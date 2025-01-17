@@ -7,6 +7,7 @@ const REGEX = /^https?:\/\/.*/;
 
 class Loader {
     private assetMap = new Map<string, Asset>();
+    private loadingMap = new Map<string, boolean>();
 
     /**
      * 预加载
@@ -36,11 +37,22 @@ class Loader {
     public load<T extends typeof Asset>(params: { path: string, bundle?: string, version?: string, type?: T, onProgress?: (finish: number, total: number, item: AssetManager.RequestItem) => void, onComplete?: (item: InstanceType<T> | null) => void }) {
         const key = `${params.bundle || 'resources'}-${params.type.name}-${params.path}`;
 
+        if (this.loadingMap.has(key)) {
+            Core.inst.lib.logger.error('Loader', '资源正在加载中，不允许重复加载', params);
+            return;
+        }
+
+        // 加载中
+        this.loadingMap.set(key, true);
+
         // 有缓存
         if (this.assetMap.has(key)) {
             const asset = this.assetMap.get(key);
             // 有缓存的情况下不触发onProgress回调
             params.onComplete && setTimeout(() => {
+                // 加载无效
+                if (!this.loadingMap.has(key)) return;
+                this.loadingMap.delete(key);
                 params.onComplete(asset as InstanceType<T>);
             }, 0);
             return;
@@ -49,6 +61,13 @@ class Loader {
         Core.inst.manager.loader.load({
             ...params,
             onComplete: (asset) => {
+                // 加载无效
+                if (!this.loadingMap.has(key)) {
+                    asset.addRef();
+                    asset.decRef();
+                    return;
+                }
+                this.loadingMap.delete(key);
                 if (asset) {
                     asset.addRef();
                     this.assetMap.set(key, asset);
@@ -84,6 +103,14 @@ class Loader {
     public loadDir<T extends typeof Asset>(params: { path: string, bundle?: string, version?: string, type?: T, onProgress?: (finish: number, total: number, item: AssetManager.RequestItem) => void, onComplete?: (items: InstanceType<T>[] | null) => void }) {
         const key = `${params.bundle || 'resources'}-${params.type.name}-${params.path}:`;
 
+        if (this.loadingMap.has(key)) {
+            Core.inst.lib.logger.error('Loader', '资源正在加载中，不允许重复加载', params);
+            return;
+        }
+
+        // 加载中
+        this.loadingMap.set(key, true);
+
         const results = [] as InstanceType<T>[];
         this.assetMap.forEach((asset, path) => {
             if (path.indexOf(key) === 0) {
@@ -95,6 +122,9 @@ class Loader {
         if (results.length) {
             // 有缓存的情况下不触发onProgress回调
             params.onComplete && setTimeout(() => {
+                // 加载无效
+                if (!this.loadingMap.has(key)) return;
+                this.loadingMap.delete(key);
                 params.onComplete(results);
             }, 0);
             return;
@@ -102,12 +132,20 @@ class Loader {
 
         Core.inst.manager.loader.loadDir({
             ...params,
-            onComplete: (items) => {
-                items?.forEach((item) => {
-                    item.addRef();
-                    this.assetMap.set(key + item.uuid, item);
+            onComplete: (assets) => {
+                // 加载无效
+                if (!this.loadingMap.has(key)) {
+                    assets?.forEach((asset) => {
+                        asset.addRef();
+                        asset.decRef();
+                    });
+                    return;
+                }
+                assets?.forEach((asset) => {
+                    asset.addRef();
+                    this.assetMap.set(key + asset.uuid, asset);
                 });
-                params.onComplete && params.onComplete(items);
+                params.onComplete && params.onComplete(assets);
             }
         });
     }
@@ -296,6 +334,7 @@ class Loader {
         const assetList: Asset[] = [];
         this.assetMap.forEach(asset => assetList.push(asset));
         this.assetMap.clear();
+        this.loadingMap.clear();
         // 延迟一秒释放资源
         setTimeout(() => {
             assetList.forEach(asset => asset.decRef());
@@ -330,23 +369,19 @@ export default class LoaderManager extends BaseManager {
         }
         if (!bundle) bundle = 'resources';
 
-        if (type === SpriteFrame && path.slice(-12) !== '/spriteFrame') {
-            this.warn(`加载SpriteFrame类型的资源, 路径必须以/spriteFrame结尾, 已自动修正: 「${path}」 -> 「${path}/spriteFrame」`);
-            path += '/spriteFrame';
-        } else if (type === Texture2D && path.slice(-8) !== '/texture') {
-            this.warn(`加载Texture2D类型的资源, 路径必须以/texture结尾, 已自动修正: 「${path}」 -> 「${path}/texture」`);
-            path += '/texture';
-        } else if (type === TextureCube && path.slice(-12) !== '/textureCube') {
-            this.warn(`加载TextureCube类型的资源, 路径必须以/textureCube结尾, 已自动修正: 「${path}」 -> 「${path}/textureCube」`);
-            path += '/textureCube';
-        }
-
         const args: any[] = [path];
         if (type) args.push(type);
         if (onProgress) args.push(onProgress);
         args.push((err: string, res: any) => {
             if (err) {
                 this.error(`${handle} "${path}" fail`, err);
+                if (type === SpriteFrame && path.slice(-12) !== '/spriteFrame') {
+                    this.warn(`加载SpriteFrame类型的资源, 路径可能需要以/spriteFrame结尾, 如: 「${path}」 -> 「${path}/spriteFrame」`);
+                } else if (type === Texture2D && path.slice(-8) !== '/texture') {
+                    this.warn(`加载Texture2D类型的资源, 路径可能需要以/texture结尾, 如: 「${path}」 -> 「${path}/texture」`);
+                } else if (type === TextureCube && path.slice(-12) !== '/textureCube') {
+                    this.warn(`加载TextureCube类型的资源, 路径可能需要以/textureCube结尾, 如: 「${path}」 -> 「${path}/textureCube」`);
+                }
                 onComplete && onComplete(null);
             } else {
                 onComplete && onComplete(res);
