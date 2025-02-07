@@ -145,29 +145,44 @@ export default class BaseManager extends Component {
         );
     }
 
+    /**
+     * [系统内置] 事件分发
+     */
     public emit(event: string | number, ...data: any[]) {
         this._base_event.emit(event as any, ...data);
     }
 
+    /**
+     * [系统内置] 事件监听
+     */
     public on(event: string | number, cb: (...any: any[]) => void, target?: any) {
         this._base_event.on(event as any, cb, target);
     }
 
+    /**
+     * [系统内置] 事件监听
+     */
     public once(event: string | number, cb: (...any: any[]) => void, target?: any) {
         this._base_event.once(event as any, cb, target);
     }
 
+    /**
+     * [系统内置] 事件移除监听
+     */
     public off(event: string | number, cb?: (...any: any[]) => void, target?: any) {
         this._base_event.off(event as any, cb, target);
     }
 
+    /**
+     * [系统内置] 事件移除监听
+     */
     public targetOff(target: any) {
         this._base_event.targetOff(target);
     }
 
     /***********************************静态***********************************/
     /**
-     * 系统内置manager的数量
+     * 框架内置Manager的数量
      * @private
      */
     public static get sysMgrCount() {
@@ -176,6 +191,7 @@ export default class BaseManager extends Component {
 
     /**
      * manager asset bundle
+     * @private
      */
     private static bundle: AssetManager.Bundle = null;
 
