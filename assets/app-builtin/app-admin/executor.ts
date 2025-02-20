@@ -38,4 +38,4 @@ if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) Object.assign(app.Controller, {})
 if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) Object.assign(app.controller, {})
 }
 if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) director.on(Director.EVENT_RESET,init)
-init()
+if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) init()
