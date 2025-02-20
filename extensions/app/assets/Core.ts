@@ -63,8 +63,8 @@ const Controller = {};
 const Manager = {};
 const manager = {};
 
+const eventTarget = new EventTarget();
 let EventMap = {};
-let eventTarget = new EventTarget();
 
 director.on(Director.EVENT_RESET, () => {
     js.clear(Config);
@@ -76,7 +76,6 @@ director.on(Director.EVENT_RESET, () => {
     js.clear(manager);
 
     EventMap = {};
-    eventTarget = new EventTarget();
 });
 
 export default class Core<T extends ICore> {
