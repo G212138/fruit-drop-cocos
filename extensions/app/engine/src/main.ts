@@ -454,7 +454,7 @@ async function updateExecutor() {
     result += `if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) Object.assign(app.controller, {${ctrList.map(([varname]) => `${varname.slice(0, -10).toLocaleLowerCase()}:new ${varname}()`).join(',')}})\n`;
     result += '}\n';
     result += 'if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) director.on(Director.EVENT_RESET,init)\n';
-    result += 'init()\n';
+    result += 'if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) init()\n';
 
     // 修正windows系统中的\为/
     result = result.replace(/\\/g, '/');
