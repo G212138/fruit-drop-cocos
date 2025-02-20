@@ -46,6 +46,11 @@
                     "open-github"
                 ]
             },
+            "open-store": {
+                "methods": [
+                    "open-store"
+                ]
+            },
             "refresh-executor": {
                 "methods": [
                     "refresh-executor"
@@ -97,6 +102,11 @@
                 "path": "i18n:app.app/i18n:app.help",
                 "label": "反馈",
                 "message": "open-issues"
+            },
+            {
+                "path": "i18n:app.app/i18n:app.help",
+                "label": "商店",
+                "message": "open-store"
             },
             {
                 "path": "i18n:app.app/i18n:app.help",

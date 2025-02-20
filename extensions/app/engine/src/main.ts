@@ -518,6 +518,10 @@ export const methods: { [key: string]: (...any: any) => any } = {
         const url = 'https://github.com/a1076559139/XForge';
         Editor.Message.send('program', 'open-url', url);
     },
+    ['open-store']() {
+        const url = 'https://store.cocos.com/app/search?name=xforge';
+        Editor.Message.send('program', 'open-url', url);
+    },
     ['refresh-executor']() {
         // 点击更新
         callUpdateExecutor();
