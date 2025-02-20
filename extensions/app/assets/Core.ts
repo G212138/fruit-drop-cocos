@@ -1,4 +1,4 @@
-import { Canvas, Component, director, EventTarget, js, Node } from 'cc';
+import { Canvas, Component, director, EventTarget, isValid, js, Node } from 'cc';
 import { DEV, EDITOR } from 'cc/env';
 import * as debug from './lib/debug/debug';
 import logger from './lib/logger/logger';
@@ -69,7 +69,7 @@ export default class Core<T extends ICore> {
 
     private static _Root2D: Node | undefined;
     public static get Root2D(): Node | undefined {
-        if (!this._Root2D) {
+        if (!isValid(this._Root2D, true)) {
             this._Root2D = director.getScene().getComponentInChildren(Canvas)?.node;
         }
         return this._Root2D;
