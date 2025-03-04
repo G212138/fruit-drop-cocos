@@ -117,7 +117,7 @@ export default class SoundManager<E extends string, M extends string> extends Ba
         }
         if (this.effectMuteCacheKey) {
             const effectMute = storage.get(this.effectMuteCacheKey) === true;
-            AudioEngine.inst.setAllEffectsMute(effectMute);
+            AudioEngine.inst.setGlobalEffectsMute(effectMute);
         } else {
             this.warn('effectMuteCacheKey不能为空');
         }
@@ -129,7 +129,7 @@ export default class SoundManager<E extends string, M extends string> extends Ba
         }
         if (this.effectVolumeScaleCacheKey) {
             const effectVolumeScale = storage.get(this.effectVolumeScaleCacheKey);
-            if (typeof effectVolumeScale === 'number') AudioEngine.inst.setAllEffectsVolumeScale(effectVolumeScale);
+            if (typeof effectVolumeScale === 'number') AudioEngine.inst.setGlobalEffectsVolumeScale(effectVolumeScale);
         } else {
             this.warn('effectVolumeScaleCacheKey不能为空');
         }
@@ -614,7 +614,7 @@ export default class SoundManager<E extends string, M extends string> extends Ba
      * @param isCache 静音状态是否写入缓存(通过localstorage)
      */
     public setEffectMute(mute: boolean, isCache = false) {
-        AudioEngine.inst.setAllEffectsMute(mute);
+        AudioEngine.inst.setGlobalEffectsMute(mute);
         isCache && storage.set(this.effectMuteCacheKey, mute);
     }
 
@@ -622,7 +622,7 @@ export default class SoundManager<E extends string, M extends string> extends Ba
      * 音效是否静音
      */
     public get isEffectMute() {
-        return AudioEngine.inst.getAllEffectsMute();
+        return AudioEngine.inst.getGlobalEffectsMute();
     }
 
     /**
@@ -648,7 +648,7 @@ export default class SoundManager<E extends string, M extends string> extends Ba
      * @param isCache 音量倍率是否写入缓存(通过localstorage)
      */
     public setEffectVolumeScale(scale: number, isCache = false) {
-        AudioEngine.inst.setAllEffectsVolumeScale(scale);
+        AudioEngine.inst.setGlobalEffectsVolumeScale(scale);
         isCache && storage.set(this.effectVolumeScaleCacheKey, scale);
     }
 
@@ -656,6 +656,6 @@ export default class SoundManager<E extends string, M extends string> extends Ba
      * 音效音量倍率
      */
     public get effectVolumeScale() {
-        return AudioEngine.inst.getAllEffectsVolumeScale();
+        return AudioEngine.inst.getGlobalEffectsVolumeScale();
     }
 }
