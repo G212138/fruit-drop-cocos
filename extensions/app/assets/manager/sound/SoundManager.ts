@@ -147,10 +147,24 @@ export default class SoundManager<E extends string, M extends string> extends Ba
 
     /**
      * 预加载声音资源
-     * @param soundPath sound路径
+     * @param name sound路径
+     * @param bundle Bundle名，默认为app-sound
      */
-    public preload(soundPath: (E | M), complete?: (item: AssetManager.RequestItem[] | null) => any) {
-        if (!soundPath) {
+    public preload(name: string, bundle: string, complete?: (item: AssetManager.RequestItem[] | null) => any): void;
+    public preload(name: (E | M), complete?: (item: AssetManager.RequestItem[] | null) => any): void;
+    public preload(name: string, ...args: any[]) {
+        const bundleName = (args.length >= 1
+            && (typeof args[0] === 'string')
+            ? (args[0] || BundleName)
+            : BundleName
+        ) as string;
+        const complete = (args.length >= 1
+            && (args[args.length - 1] instanceof Function)
+            ? args[args.length - 1]
+            : null
+        ) as (item: AssetManager.RequestItem[] | null) => any;
+
+        if (!name) {
             this.error('preload', 'fail');
             complete && setTimeout(function () {
                 if (!isValid(this)) return;
@@ -159,8 +173,8 @@ export default class SoundManager<E extends string, M extends string> extends Ba
             return;
         }
 
-        if (soundPath.indexOf('effect') !== 0 && soundPath.indexOf('music') !== 0) {
-            this.error('preload', 'fail', soundPath);
+        if (name.indexOf('effect') !== 0 && name.indexOf('music') !== 0) {
+            this.error('preload', 'fail', name);
             complete && setTimeout(function () {
                 if (!isValid(this)) return;
                 complete(null);
@@ -170,8 +184,8 @@ export default class SoundManager<E extends string, M extends string> extends Ba
 
         // 远程加载
         Core.inst.manager.loader.preload({
-            bundle: BundleName,
-            path: soundPath,
+            bundle: bundleName,
+            path: name,
             type: AudioClip,
             onComplete: complete
         });
@@ -180,6 +194,7 @@ export default class SoundManager<E extends string, M extends string> extends Ba
     /**
      * 加载声音资源
      * @param name sound路径
+     * @param bundle Bundle名，默认为app-sound
      * @param progress 加载进度回调
      * @param complete 加载完成回调
      */
@@ -249,6 +264,7 @@ export default class SoundManager<E extends string, M extends string> extends Ba
     /**
      * 释放声音资源
      * @param name 声音路径
+     * @param bundle Bundle名，默认为app-sound
      */
     public release(name: string, bundle: string): void;
     public release(name: E | M): void;
@@ -310,6 +326,7 @@ export default class SoundManager<E extends string, M extends string> extends Ba
     /**
      * 播放音效
      * @param name 音效
+     * @param bundle Bundle名，默认为app-sound
      * @param loop 循环播放
      * @param volume 音量
      * @param interval 多少秒内不会重复播放
@@ -369,6 +386,7 @@ export default class SoundManager<E extends string, M extends string> extends Ba
     /**
      * 播放音效
      * @param name 音效
+     * @param bundle Bundle名，默认为app-sound
      * @param loop 循环播放
      * @param volume 音量
      * @param interval 多少秒内不会重复播放
@@ -444,6 +462,7 @@ export default class SoundManager<E extends string, M extends string> extends Ba
     /**
      * 播放音乐
      * @param volume 音量
+     * @param bundle Bundle名，默认为app-sound
      * @param force 是否强制重新播放
      */
     public playMusic(params: playMusic<M>): void;
@@ -522,6 +541,7 @@ export default class SoundManager<E extends string, M extends string> extends Ba
     /**
      * 播放音乐
      * @param volume 音量
+     * @param bundle Bundle名，默认为app-sound
      * @param force 是否强制重新播放
      * @returns 如果Promise返回值是false，则播放失败
      */
