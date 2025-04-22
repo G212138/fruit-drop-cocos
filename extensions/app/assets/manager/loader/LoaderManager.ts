@@ -5,9 +5,31 @@ import Core from '../../Core';
 const { ccclass } = _decorator;
 const REGEX = /^https?:\/\/.*/;
 
+class Command {
+    private static cache: Command[] = [];
+
+    static create(onComplete: (items: unknown) => void, onProgress: (finish: number, total: number, item: AssetManager.RequestItem) => void = null) {
+        const command = Command.cache.pop() || new Command();
+        onProgress && command.onProgress.push(onProgress);
+        onComplete && command.onComplete.push(onComplete);
+        return command;
+    }
+
+    static put(command: Command) {
+        command.onProgress.length = 0;
+        command.onComplete.length = 0;
+        Command.cache.push(command);
+    }
+
+    onProgress: Array<(finish: number, total: number, item: AssetManager.RequestItem) => void> = [];
+    onComplete: Array<(items: unknown) => void> = [];
+
+    private constructor() { }
+}
+
 class Loader {
     private assetMap = new Map<string, Asset>();
-    private loadingMap = new Map<string, boolean>();
+    private loadingMap = new Map<string, Command>();
 
     /**
      * 预加载
@@ -35,31 +57,39 @@ class Loader {
      * @param params.type 资源类型
      */
     public load<T extends typeof Asset>(params: { path: string, bundle?: string, version?: string, type?: T, onProgress?: (finish: number, total: number, item: AssetManager.RequestItem) => void, onComplete?: (item: InstanceType<T> | null) => void }) {
-        const key = `${params.bundle || 'resources'}-${params.type.name}-${params.path}`;
+        const key = `${params.bundle || 'resources'}-${params.type.name}-${params.path}-${params.version || ''}`;
 
         if (this.loadingMap.has(key)) {
-            Core.inst.lib.logger.error('Loader', '资源正在加载中，不允许重复加载', params);
+            const command = this.loadingMap.get(key);
+            params.onProgress && command.onProgress.push(params.onProgress);
+            params.onComplete && command.onComplete.push(params.onComplete);
             return;
         }
 
         // 加载中
-        this.loadingMap.set(key, true);
+        const command = Command.create(params.onComplete, params.onProgress);
+        this.loadingMap.set(key, command);
 
         // 有缓存
         if (this.assetMap.has(key)) {
             const asset = this.assetMap.get(key);
             // 有缓存的情况下不触发onProgress回调
-            params.onComplete && setTimeout(() => {
+            setTimeout(() => {
                 // 加载无效
                 if (!this.loadingMap.has(key)) return;
                 this.loadingMap.delete(key);
-                params.onComplete(asset as InstanceType<T>);
+                command.onComplete.forEach(cb => cb(asset));
+                Command.put(command);
             }, 0);
             return;
         }
 
         Core.inst.manager.loader.load({
             ...params,
+            onProgress: (finish, total, item) => {
+                if (!this.loadingMap.has(key)) return;
+                command.onProgress.forEach(cb => cb(finish, total, item));
+            },
             onComplete: (asset) => {
                 // 加载无效
                 if (!this.loadingMap.has(key)) {
@@ -72,7 +102,8 @@ class Loader {
                     asset.addRef();
                     this.assetMap.set(key, asset);
                 }
-                params.onComplete && params.onComplete(asset);
+                command.onComplete.forEach(cb => cb(asset));
+                Command.put(command);
             }
         });
     }
@@ -101,15 +132,18 @@ class Loader {
      * @param params.type 资源类型
      */
     public loadDir<T extends typeof Asset>(params: { path: string, bundle?: string, version?: string, type?: T, onProgress?: (finish: number, total: number, item: AssetManager.RequestItem) => void, onComplete?: (items: InstanceType<T>[] | null) => void }) {
-        const key = `${params.bundle || 'resources'}-${params.type.name}-${params.path}:`;
+        const key = `${params.bundle || 'resources'}-${params.type.name}-${params.path}-${params.version || ''}:`;
 
         if (this.loadingMap.has(key)) {
-            Core.inst.lib.logger.error('Loader', '资源正在加载中，不允许重复加载', params);
+            const command = this.loadingMap.get(key);
+            params.onProgress && command.onProgress.push(params.onProgress);
+            params.onComplete && command.onComplete.push(params.onComplete);
             return;
         }
 
         // 加载中
-        this.loadingMap.set(key, true);
+        const command = Command.create(params.onComplete, params.onProgress);
+        this.loadingMap.set(key, command);
 
         const results = [] as InstanceType<T>[];
         this.assetMap.forEach((asset, path) => {
@@ -121,17 +155,22 @@ class Loader {
         // 有缓存
         if (results.length) {
             // 有缓存的情况下不触发onProgress回调
-            params.onComplete && setTimeout(() => {
+            setTimeout(() => {
                 // 加载无效
                 if (!this.loadingMap.has(key)) return;
                 this.loadingMap.delete(key);
-                params.onComplete(results);
+                command.onComplete.forEach(cb => cb(results));
+                Command.put(command);
             }, 0);
             return;
         }
 
         Core.inst.manager.loader.loadDir({
             ...params,
+            onProgress: (finish, total, item) => {
+                if (!this.loadingMap.has(key)) return;
+                command.onProgress.forEach(cb => cb(finish, total, item));
+            },
             onComplete: (assets) => {
                 // 加载无效
                 if (!this.loadingMap.has(key)) {
@@ -141,11 +180,13 @@ class Loader {
                     });
                     return;
                 }
+                this.loadingMap.delete(key);
                 assets?.forEach((asset) => {
                     asset.addRef();
                     this.assetMap.set(key + asset.uuid, asset);
                 });
-                params.onComplete && params.onComplete(assets);
+                command.onComplete.forEach(cb => cb(results));
+                Command.put(command);
             }
         });
     }
@@ -172,24 +213,46 @@ class Loader {
      * loadRemote({url:'', ext:'.png', onComplete:(result){ }})
      */
     public loadRemote({ url, ext, onComplete }: { url: string, ext?: string, onComplete?: (result: Asset | null) => void }) {
+        if (this.loadingMap.has(url)) {
+            const command = this.loadingMap.get(url);
+            onComplete && command.onComplete.push(onComplete);
+            return;
+        }
+
+        // 加载中
+        const command = Command.create(onComplete);
+        this.loadingMap.set(url, command);
+
         // 有缓存
         if (this.assetMap.has(url)) {
             const asset = this.assetMap.get(url);
             // 有缓存的情况下不触发onProgress回调
-            onComplete && setTimeout(() => {
-                onComplete(asset);
+            setTimeout(() => {
+                // 加载无效
+                if (!this.loadingMap.has(url)) return;
+                this.loadingMap.delete(url);
+                command.onComplete.forEach(cb => cb(asset));
+                Command.put(command);
             }, 0);
             return;
         }
 
         Core.inst.manager.loader.loadRemote({
             url, ext,
-            onComplete: (item) => {
-                if (item) {
-                    item.addRef();
-                    this.assetMap.set(url, item);
+            onComplete: (asset) => {
+                // 加载无效
+                if (!this.loadingMap.has(url)) {
+                    asset.addRef();
+                    asset.decRef();
+                    return;
                 }
-                onComplete && onComplete(item);
+                this.loadingMap.delete(url);
+                if (asset) {
+                    asset.addRef();
+                    this.assetMap.set(url, asset);
+                }
+                command.onComplete.forEach(cb => cb(asset));
+                Command.put(command);
             }
         });
     }
