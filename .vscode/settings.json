@@ -1,0 +1,10 @@
+{
+    "files.exclude": {
+        "**/*.meta": true,
+        "**/*.prefab": true,
+        "**/*.scene": true,
+        "profiles/": true,
+        "library/": true,
+        "temp/": true
+    }
+}
