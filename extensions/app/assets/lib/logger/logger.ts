@@ -4,6 +4,8 @@ interface ILog {
     (title: string, ...args: any[]): void
 }
 
+function empty() { }
+
 /**
  * 日志管理类，用于统一日志输出格式
  */
@@ -19,7 +21,7 @@ export class Logger {
      */
     static create(level: 'log' | 'warn' | 'error', styleColor: string, title: string, titleColor = '#fff') {
         if (this.setting.filter.indexOf(level) == -1) {
-            return;
+            return empty;
         }
 
         if (DEV) {
