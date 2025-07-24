@@ -7,7 +7,8 @@ import { App } from './app';
 export function cccReady(app: App) {
     // 为了防止web环境中异常掉帧问题(关键代码在cc.game._pacer._handleRAF中)
     if (sys.isBrowser) {
-        game.frameRate = 100;
+        // game.frameRate = 100; // 在60、90帧率手机上满帧率运行，120帧率手机上以60帧率运行(可能不够流畅但省电)
+        game.frameRate = 200; // 满帧率运行
     }
 }
 
