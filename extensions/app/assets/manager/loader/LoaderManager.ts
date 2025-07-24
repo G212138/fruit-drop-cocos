@@ -408,7 +408,7 @@ class Loader {
 @ccclass('LoaderManager')
 export default class LoaderManager extends BaseManager {
     /**
-     * `Loader`是基于`LoaderManager`的封装，不同的是，`Loader`是基于单个`Loader实例`对资源进行`自动引用计数`管理。（LoaderManager本质是对cc.assetManager的封装，提供了更方便的接口，都是基于Asset Bundle管理资源，并且资源的引用计数需要开发者手动管理）
+     * `Loader`的目的是对资源加载进行分组引用计数管理。比如两个`Loader`实例都加载了同一个资源，当某个实例执行releaseAll后，并不会让引擎资源释放资源，只有两个实例都执行了释放资源后，才会让引擎资源释放资源。
      * @example
      * // 创建Loader实例
      * const loader = new LoaderManager.Loader();
