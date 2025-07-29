@@ -230,7 +230,7 @@ class Timer {
 
 @ccclass('TimerManager')
 export default class TimerManager extends BaseManager {
-    private timers: Map<string | number, Timer> = new Map();
+    private timers: Map<string | number | Symbol, Timer> = new Map();
 
     /**
      * 清除所有定时器
@@ -246,7 +246,7 @@ export default class TimerManager extends BaseManager {
      * 删除定时器
      * @param key 定时器key
      */
-    delete(key: string | number) {
+    delete(key: string | number | Symbol) {
         const timer = this.timers.get(key);
         if (!timer) return;
 
@@ -258,7 +258,7 @@ export default class TimerManager extends BaseManager {
      * 获取定时器
      * @param key 定时器key
      */
-    get(key: string | number): Timer {
+    get(key: string | number | Symbol): Timer {
         if (this.timers.has(key)) {
             return this.timers.get(key);
         }

@@ -4,6 +4,7 @@ const { ccclass } = _decorator;
 
 class Event {
     static destroy(event: Event) {
+        if (!event) return;
         event._event = null;
     }
 
@@ -63,19 +64,19 @@ class Event {
 
 @ccclass('EventManager')
 export default class EventManager extends BaseManager {
-    private events: Map<string | number, Event> = new Map();
+    private events: Map<string | number | Symbol, Event> = new Map();
 
     clear() {
         this.events.forEach(event => Event.destroy(event));
         return this.events.clear();
     }
 
-    delete(key: string | number) {
+    delete(key: string | number | Symbol) {
         Event.destroy(this.events.get(key));
         return this.events.delete(key);
     }
 
-    get(key: string | number): Event {
+    get(key: string | number | Symbol): Event {
         if (this.events.has(key)) {
             return this.events.get(key);
         }
