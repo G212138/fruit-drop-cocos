@@ -776,7 +776,7 @@ export default class UIManager<UIName extends string, MiniName extends string> e
         // 验证name是否为真
         if (!name) {
             this.error('preload', 'fail');
-            complete && setTimeout(function () {
+            complete && setTimeout(() => {
                 if (!isValid(this)) return;
                 complete(null);
             });
@@ -807,7 +807,7 @@ export default class UIManager<UIName extends string, MiniName extends string> e
         // 验证name是否为真
         if (!name) {
             this.error('load', 'fail');
-            complete && setTimeout(function () {
+            complete && setTimeout(() => {
                 if (!isValid(this)) return;
                 complete(null);
             });

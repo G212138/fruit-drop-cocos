@@ -166,7 +166,7 @@ export default class SoundManager<E extends string, M extends string> extends Ba
 
         if (!name) {
             this.error('preload', 'fail');
-            complete && setTimeout(function () {
+            complete && setTimeout(() => {
                 if (!isValid(this)) return;
                 complete(null);
             });
@@ -175,7 +175,7 @@ export default class SoundManager<E extends string, M extends string> extends Ba
 
         if (name.indexOf('effect') !== 0 && name.indexOf('music') !== 0) {
             this.error('preload', 'fail', name);
-            complete && setTimeout(function () {
+            complete && setTimeout(() => {
                 if (!isValid(this)) return;
                 complete(null);
             });
