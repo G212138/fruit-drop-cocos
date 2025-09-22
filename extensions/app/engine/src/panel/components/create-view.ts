@@ -7,8 +7,8 @@ import { convertUrlToPath, createFolderByUrl, delayFileExistsByUrl, getResMeta, 
  * 获取脚本内容
  */
 function getComScript(name = 'NewClass') {
-    const isPage = name.toLocaleLowerCase().startsWith('page');
-    const isPaper = name.toLocaleLowerCase().startsWith('paper');
+    const isPage = name.toLowerCase().startsWith('page');
+    const isPaper = name.toLowerCase().startsWith('paper');
 
     const basePath = isPaper ? '../../../../../../../extensions/app/assets/base/BaseView' : '../../../../../../extensions/app/assets/base/BaseView';
 

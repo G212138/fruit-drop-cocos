@@ -289,7 +289,7 @@ async function updateExecutor() {
             }
             else if (fileUrl.startsWith('db://app/manager/')) {
                 // 系统manager(系统Mgr的文件夹命名为了美观没有那么规范，所以和用户Mgr的逻辑有区别)
-                if (filename.endsWith('Manager') && dirname.endsWith(filename.slice(0, -7).toLocaleLowerCase())) {
+                if (filename.endsWith('Manager') && dirname.endsWith(filename.slice(0, -7).toLowerCase())) {
                     mgrList.push([varname, filename, dirname, extname]);
                 }
             }
@@ -309,7 +309,7 @@ async function updateExecutor() {
                 const index = dirArray.indexOf(viewFolderName);
                 const viewDirArray = dirArray.slice(index + 1);
 
-                if (['page', 'paper', 'pop', 'top'].indexOf(viewDirArray[0].toLocaleLowerCase()) >= 0) {
+                if (['page', 'paper', 'pop', 'top'].indexOf(viewDirArray[0].toLowerCase()) >= 0) {
                     // 主界面
                     if (filename === `${stringCase(viewDirArray[0], false)}${stringCase(viewDirArray[1], false)}`) {
                         viewScene[filename] = extname === '.scene';
@@ -407,7 +407,7 @@ async function updateExecutor() {
     let CtrStr = '';
     ctrList.forEach(function ([varname], index, array) {
         CtrStr += `${varname.slice(0, -10)}:typeof ${varname}`;
-        ctrStr += `${varname.slice(0, -10).toLocaleLowerCase()}:IReadOnly<${varname}>`;
+        ctrStr += `${varname.slice(0, -10).toLowerCase()}:IReadOnly<${varname}>`;
         if (index < array.length - 1) {
             CtrStr += ',';
             ctrStr += ',';
@@ -420,11 +420,11 @@ async function updateExecutor() {
     mgrList.forEach(function ([varname], index, array) {
         MgrStr += `${varname.slice(0, -7)}:Omit<typeof ${varname},keyof Component>`;
         if (varname === 'UIManager') {
-            mgrStr += `${varname.slice(0, -7).toLocaleLowerCase()}:Omit<${varname}<IViewName,IMiniViewName>,keyof Component>`;
+            mgrStr += `${varname.slice(0, -7).toLowerCase()}:Omit<${varname}<IViewName,IMiniViewName>,keyof Component>`;
         } else if (varname === 'SoundManager') {
-            mgrStr += `${varname.slice(0, -7).toLocaleLowerCase()}:Omit<${varname}<IEffectName,IMusicName>,keyof Component>`;
+            mgrStr += `${varname.slice(0, -7).toLowerCase()}:Omit<${varname}<IEffectName,IMusicName>,keyof Component>`;
         } else {
-            mgrStr += `${varname.slice(0, -7).toLocaleLowerCase()}:Omit<${varname},keyof Component>`;
+            mgrStr += `${varname.slice(0, -7).toLowerCase()}:Omit<${varname},keyof Component>`;
         }
         if (index < array.length - 1) {
             MgrStr += ',';
@@ -451,7 +451,7 @@ async function updateExecutor() {
     result += `if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) Object.assign(app.store, {${storeList.map(([varname]) => `${varname.slice(6)}:new ${varname}()`).join(',')}})\n\n`;
     // controller
     result += `if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) Object.assign(app.Controller, {${ctrList.map(([varname]) => `${varname.slice(0, -10)}:${varname}`).join(',')}})\n`;
-    result += `if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) Object.assign(app.controller, {${ctrList.map(([varname]) => `${varname.slice(0, -10).toLocaleLowerCase()}:new ${varname}()`).join(',')}})\n`;
+    result += `if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) Object.assign(app.controller, {${ctrList.map(([varname]) => `${varname.slice(0, -10).toLowerCase()}:new ${varname}()`).join(',')}})\n`;
     result += '}\n';
     result += 'if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) director.on(Director.EVENT_RESET,init)\n';
     result += 'if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) init()\n';

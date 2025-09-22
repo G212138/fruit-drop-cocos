@@ -128,24 +128,6 @@ const MiniViewName: { [key in IMiniViewName]: key } = new Proxy({} as any, {
 });
 
 /**
- * 将串式命名转成驼峰命名
- * @param str 串式字符串
- * @param lower 首字母是否小写(默认大写)
- * @returns 
- */
-function stringCase(str: string, lower = false) {
-    str = str.replace(/-/g, '_');
-    const arr = str.split('_');
-
-    return arr.map(function (str, index) {
-        if (index === 0 && lower) {
-            return str.charAt(0).toLocaleLowerCase() + str.slice(1);
-        }
-        return str.charAt(0).toLocaleUpperCase() + str.slice(1);
-    }).join('');
-}
-
-/**
  * 将驼峰命名转成串式命名
  * @param str 驼峰字符串
  * @returns 
@@ -153,9 +135,9 @@ function stringCase(str: string, lower = false) {
 function stringCaseNegate(str: string) {
     return str.replace(/[A-Z]/g, (searchStr, startIndex) => {
         if (startIndex === 0) {
-            return searchStr.toLocaleLowerCase();
+            return searchStr.toLowerCase();
         } else {
-            return '-' + searchStr.toLocaleLowerCase();
+            return '-' + searchStr.toLowerCase();
         }
     });
 }

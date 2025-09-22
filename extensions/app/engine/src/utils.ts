@@ -35,9 +35,9 @@ export function stringCase(str: string, lower = false) {
 
     return arr.map(function (str, index) {
         if (index === 0 && lower) {
-            return str.charAt(0).toLocaleLowerCase() + str.slice(1);
+            return str.charAt(0).toLowerCase() + str.slice(1);
         }
-        return str.charAt(0).toLocaleUpperCase() + str.slice(1);
+        return str.charAt(0).toUpperCase() + str.slice(1);
     }).join('');
 }
 
@@ -49,9 +49,9 @@ export function stringCase(str: string, lower = false) {
 export function stringCaseNegate(str: string) {
     return str.replace(/[A-Z]/g, (searchStr, startIndex) => {
         if (startIndex === 0) {
-            return searchStr.toLocaleLowerCase();
+            return searchStr.toLowerCase();
         } else {
-            return '-' + searchStr.toLocaleLowerCase();
+            return '-' + searchStr.toLowerCase();
         }
     });
 }

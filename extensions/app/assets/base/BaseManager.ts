@@ -54,7 +54,7 @@ export default class BaseManager extends Component {
         if (this._base_manager_name !== 'Manager' && this._base_manager_name.slice(-7) === 'Manager') {
             const managerName = this._base_manager_name.slice(0, - 7);
             Core.inst.Manager[managerName] = this.constructor;
-            Core.inst.manager[managerName.toLocaleLowerCase()] = this;
+            Core.inst.manager[managerName.toLowerCase()] = this;
         } else if (EDITOR) {
             error(`[${this._base_manager_name}] manager命名错误(应为 xxxxManager 以Manager结尾)`);
         } else if (DEBUG) {

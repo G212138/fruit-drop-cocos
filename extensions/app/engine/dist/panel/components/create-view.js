@@ -11,8 +11,8 @@ const utils_1 = require("../../utils");
  * 获取脚本内容
  */
 function getComScript(name = 'NewClass') {
-    const isPage = name.toLocaleLowerCase().startsWith('page');
-    const isPaper = name.toLocaleLowerCase().startsWith('paper');
+    const isPage = name.toLowerCase().startsWith('page');
+    const isPaper = name.toLowerCase().startsWith('paper');
     const basePath = isPaper ? '../../../../../../../extensions/app/assets/base/BaseView' : '../../../../../../extensions/app/assets/base/BaseView';
     return 'import { _decorator, Node } from \'cc\';\r\n' +
         'import BaseView from \'' + basePath + '\';\r\n' +
