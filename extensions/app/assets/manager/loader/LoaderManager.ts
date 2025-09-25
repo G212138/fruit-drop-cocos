@@ -185,7 +185,7 @@ class Loader {
                     asset.addRef();
                     this.assetMap.set(key + asset.uuid, asset);
                 });
-                command.onComplete.forEach(cb => cb(results));
+                command.onComplete.forEach(cb => cb(assets));
                 Command.put(command);
             }
         });
