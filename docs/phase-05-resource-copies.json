@@ -1,0 +1,157 @@
+[
+  {
+    "source": "resources\\sprite\\fruitIcon\\1.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-1.png",
+    "sha256": "00f32d75c5290d38aaafffb6f7cb6167491563934bb2332f422d37786d9aca49"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\2.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-2.png",
+    "sha256": "1e35fb715d357c1fe3e525d9bc32d2d2854576b80c7cb7dce3a9477ca5e5de21"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\3.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-3.png",
+    "sha256": "9f224ffd5fef3405b7b328612b9e64585846c12d03006b721444a7c9697fb7b7"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\4.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-4.png",
+    "sha256": "852cbe07891912e83de805c5ccf40baa7f6be16560ce349675d0fd798f4a7cf8"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\5.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-5.png",
+    "sha256": "8cbb6f08df4ed8a716508aea3ae23b8d629ab969dda04b357e89b213aa1cfe48"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\6.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-6.png",
+    "sha256": "23acc0719a33fc7a73b1f1848dbd5dc1d5859c95499e2ffc92e2a9b284802bef"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\7.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-7.png",
+    "sha256": "fdb34f2eff6a18f056948fde919f254574585d2fbbcf31bff6f86cf659c9d2d2"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\8.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-8.png",
+    "sha256": "9582754c4d111cf1586b9d72af5a6fab36d25cb12adc0cf456494693c1772adb"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\9.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-9.png",
+    "sha256": "237b8e8da85ed667db4f9a44233f73f3c2bf01510910669820daf91328b92ca1"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\10.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-10.png",
+    "sha256": "43f715d3969d8ffad5e8f803c31636a7b48c06d51aadb524a6046f74968c4feb"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\11.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-11.png",
+    "sha256": "21c02c3cf09c4319a5cdf628a95ec8c65c561a6e1c6d9ad9102ac75b8874091f"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\12.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-12.png",
+    "sha256": "05bea24fd79bd8a323a1182f9d73e38707f7770df0c0892fc011a94ec0185b4d"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\13.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-13.png",
+    "sha256": "4fbc04f560a868634835aa7f481aac62c6091cd8ef7686b4e70be5a92c64f9d9"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\14.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-14.png",
+    "sha256": "c897c94dbab20932a566907c8c8aa178488f60970d256360deadcecd199afb6c"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\15.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-15.png",
+    "sha256": "8012adde0ce4f08b54a9ef491f1d13c47195408ecd0a89b4817f4e746104f350"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\16.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-16.png",
+    "sha256": "1bf58d7f51b36d739cecf62f08dc90561786017b285884327be356336bed649e"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\17.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-17.png",
+    "sha256": "2c135ce4881e32f468a4bd79c16248a57689c39ad9ab9c65f204af2f9648bc43"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\18.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-18.png",
+    "sha256": "a2ccf4b6e7c40e72fc7813ceceb41f33c5c44f5e3c58285bead92bcca28722fb"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\19.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-19.png",
+    "sha256": "ee41f912bff2ac8bfff35ab60947cbf023b918d7eafd155dc745905b44529652"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\20.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-20.png",
+    "sha256": "4c5e55797ca35e3fca20f85e87dc578a1a15f319aebd72604a6f934036625e13"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\21.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-21.png",
+    "sha256": "3e77a57d079b3835313686d2e5200918fb8fb3bf958e516226587c8b68b6d288"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\22.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-22.png",
+    "sha256": "939ad870ef4ece03c26e7cbef0bc28bc489895eee1e4b43f87a91b3a13ca01e3"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\23.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-23.png",
+    "sha256": "bf0885e70b51dcf7ff5dc2c9ff6119a94872ccc2390f20d8de41d2f5d5946dee"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\24.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-24.png",
+    "sha256": "c4ff60c9973c01ecad4d92665afc4c538890766a42c6f58b2fdb59a6bae4b360"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\25.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-25.png",
+    "sha256": "f002f57f31a8b2107586b3ac64ee9c5a2f065ab99f37e6aa22b8e6068717c519"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\26.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-26.png",
+    "sha256": "735a659af3ac7a4546c9a88bb1b96f2ec6e71bd65f79187a4b6940505742d338"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\27.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-27.png",
+    "sha256": "91246307f4d92b6fc116a3ae06137cf22daf96b903bb2f71e54eef775e32b594"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\28.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-28.png",
+    "sha256": "862b5fdcf929e5613d207d5214176fec606e1fc66b381460e5e66de7eeee7fd1"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\29.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-29.png",
+    "sha256": "12e55558dfb462c58a40329a09461b082e1c8d94e1cb8c631fb9f331c66ab0c1"
+  },
+  {
+    "source": "resources\\sprite\\fruitIcon\\30.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\fruit-30.png",
+    "sha256": "ddaad33c9342a5b12322ac263457954ff398b9f2fd6e31f57aef63dab221cd66"
+  },
+  {
+    "source": "resources\\sprite\\Theme\\Dessert\\解锁墙2.png",
+    "target": "assets\\app-bundle\\app-view\\page\\game\\resources\\textures\\lock-wall.png",
+    "sha256": "4d7354219faa6694052d7018809d306d69d21d2a78a7e1ebec85ab9ae0709c94"
+  }
+]

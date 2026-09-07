@@ -1,0 +1,55 @@
+
+bingzha.png
+size: 565,222
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+1
+  rotate: false
+  xy: 480, 48
+  size: 83, 172
+  orig: 83, 172
+  offset: 0, 0
+  index: -1
+2
+  rotate: true
+  xy: 224, 26
+  size: 57, 123
+  orig: 57, 123
+  offset: 0, 0
+  index: -1
+3
+  rotate: false
+  xy: 378, 9
+  size: 100, 211
+  orig: 100, 211
+  offset: 0, 0
+  index: -1
+4
+  rotate: false
+  xy: 224, 85
+  size: 152, 135
+  orig: 152, 135
+  offset: 0, 0
+  index: -1
+bing1
+  rotate: false
+  xy: 349, 63
+  size: 10, 20
+  orig: 12, 22
+  offset: 1, 1
+  index: -1
+bing2
+  rotate: false
+  xy: 349, 49
+  size: 10, 12
+  orig: 12, 14
+  offset: 1, 1
+  index: -1
+图层 1
+  rotate: true
+  xy: 2, 2
+  size: 218, 220
+  orig: 220, 222
+  offset: 1, 1
+  index: -1

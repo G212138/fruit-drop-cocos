@@ -23,7 +23,7 @@ class Vec2 {
     /** 返回速度平方。 */
     lengthSqr(){return this.x*this.x+this.y*this.y;}
 }
-const cc = {
+const cc = {sp:{Skeleton:class {}},
     _decorator: {ccclass:()=>value=>value,property:(...args)=>args.length>1?undefined:()=>{}},
     Tween: {stopAllByTarget(){}},
     Component: class {}, Node: {EventType:{TOUCH_END:'touch-end'}}, Vec2,
@@ -77,3 +77,11 @@ fruit.node.emit(BoardEvents.ReleaseRequested,fruit);
 assert.equal(cover.node.active,true,'点击请求本身不揭示');
 fruit.onDestroy();cover.onDestroy();
 console.log('通过：真实组件事件绑定、首次触地边界、消除揭示、重开遮罩和监听完整清理。');
+// 冰层独立状态：每次配对减一、清零不下溢、展示层只接收结果。
+({fruit}=fixture(false));
+const updates=[];
+fruit.attachIce(2,{initialize(value){updates.push(value);},updateLayers(value){updates.push(value);}});
+fruit.reduceIce();assert.equal(fruit.iceLayers,1);
+fruit.reduceIce();assert.equal(fruit.iceLayers,0);
+fruit.reduceIce();assert.deepEqual(updates,[2,1,0]);
+console.log('通过：冰层状态减层、清零、不重复碎冰。');

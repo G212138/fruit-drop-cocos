@@ -116,13 +116,13 @@ console.log('通过：原版接触判负、触底与高度区别、静止计时�
 
 const originalLevels = JSON.parse(fs.readFileSync(root + '/app-bundle/app-view/page/game/resources/levels/original-levels.json')).levels;
 assert.deepEqual(originalLevels.slice(0,4).map((source, index) => countFruits(parseLevel(source,index+1))), [12,40,72,126]);
-assert.deepEqual(level.fruits[0], {kind:22,hidden:false,x:-189,y:1192});
-assert.deepEqual(level.fruits[6], {kind:21,hidden:false,x:-18,y:-122});
+assert.deepEqual(level.fruits[0], {kind:22,iceLayers:0,hidden:false,x:-189,y:1192});
+assert.deepEqual(level.fruits[6], {kind:21,iceLayers:0,hidden:false,x:-18,y:-122});
 assert.equal(countFruits(parseLevel(originalLevels[4], 5)), 92);
-assert.throws(() => parseLevel(originalLevels[5], 6), /尚未开放/);
+assert.throws(() => parseLevel(originalLevels[11], 12), /尚未开放/);
 assert.throws(() => parseLevel({...originalLevels[0],m:2}), /模式/);
 assert.throws(() => parseLevel({...originalLevels[0],d:[{n:'21',h:'invalid',p:[0,0]}]}), /隐藏/);
-assert.throws(() => parseLevel({...originalLevels[0],d:[{n:'21',ice:1,p:[0,0]}]}), /冰块/);
+assert.throws(() => parseLevel({...originalLevels[0],d:[{n:'21',ice:-1,p:[0,0]}]}), /冰层/);
 assert.throws(() => parseLevel({...originalLevels[0],d:[{n:'21',p:[NaN,0]}]}), /坐标/);
 const { planVerticalShift } = load(expansion + '/movement/VerticalShiftRules.ts');
 assert.equal(planVerticalShift([]), null);
@@ -166,3 +166,6 @@ assert.equal(hiddenLevel.fruits.filter(fruit => fruit.hidden).length,3);
 assert.deepEqual(hiddenLevel.fruits.filter(fruit => fruit.hidden).map(fruit=>fruit.kind),[21,24,4]);
 assert.equal(canMatch({...candidate,hidden:true},{...candidate,hidden:false}),true);
 console.log('通过：隐藏水果首次动态触地揭示、悬停/补位不揭示、消除揭示、第五关三处原始隐藏配置。');
+assert.deepEqual(originalLevels.slice(5,11).map((source,index)=>countFruits(parseLevel(source,index+6))),[106,112,106,106,104,102]);
+assert.deepEqual(parseLevel(originalLevels[9],10).fruits.filter(f=>f.iceLayers>0).map(f=>f.iceLayers),[30,20,25,40]);
+console.log('通过：第六至十一关原配置与第十关四处冰层数。');

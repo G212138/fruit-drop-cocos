@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, Prefab, instantiate, isValid } from 'cc';
+import { IceFruitView } from '../ice/IceFruitView';
 import { FloorFruit } from '../failure/FloorFailureRules';
 import { FruitItem } from '../fruit/FruitItem';
 import { FruitDefinition } from '../level/LevelDefinition';
@@ -18,6 +19,10 @@ export class FruitSpawner extends Component {
     /** 独立花朵遮罩预制体，仅为原配置标记隐藏的水果实例化。 */
     @property(Prefab)
     hiddenFruitPrefab: Prefab = null!;
+
+    /** 独立冰层骨骼预制体，附着于配置有冰层的水果。 */
+    @property(Prefab)
+    iceFruitPrefab: Prefab = null!;
 
     /** 存活实例集合，消除时移除，重开时清空。 */
     private readonly live = new Set<FruitItem>();
@@ -42,6 +47,12 @@ export class FruitSpawner extends Component {
             const fruit = node.getComponent(FruitItem)!;
             fruit.configure(definition.kind);
             this.attachHiddenView(node, definition.hidden);
+            if (definition.iceLayers > 0) {
+                if (!this.iceFruitPrefab) throw new Error('冰层预制体未绑定');
+                const cover = instantiate(this.iceFruitPrefab);
+                cover.parent = node;
+                fruit.attachIce(definition.iceLayers, cover.getComponent(IceFruitView)!);
+            }
             this.live.add(fruit);
             onSpawned(fruit);
         }
@@ -57,6 +68,11 @@ export class FruitSpawner extends Component {
         if (!this.hiddenFruitPrefab) throw new Error('隐藏水果缺少遮罩预制体');
         const cover = instantiate(this.hiddenFruitPrefab);
         cover.parent = owner;
+    }
+
+    /** 一对水果真正移除后削减当前在场水果的冰层。 */
+    reduceIce(): void {
+        for (const fruit of this.live) fruit.reduceIce();
     }
 
     /** 获取仍未点击的存活水果，已下落水果不跟随补位。 */

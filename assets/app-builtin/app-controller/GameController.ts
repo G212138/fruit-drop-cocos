@@ -5,6 +5,9 @@ import { app } from '../../app/app';
 
 /** 游戏流程入口，集中发布状态变化。 */
 export class GameController extends BaseController<GameController, { Changed: () => void }>() {
+    /** 本局是否为编辑器试玩，试玩胜利不写玩家进度。 */
+    private trial = false;
+
     /** 懒加载进度，避免框架初始化前访问平台存储。 */
     private progressStore: LevelProgress | null = null;
 
@@ -14,8 +17,9 @@ export class GameController extends BaseController<GameController, { Changed: ()
         return this.progressStore;
     }
 
-    /** 初始化一局状态。 @param total 总水果数，单位个。 @param level 原关卡编号。 */
-    begin(total: number, level = 1): void {
+    /** 初始化一局状态。 @param total 总水果数，单位个。 @param level 原关卡编号。 @param trial 是否为不写玩家进度的试玩。 */
+    begin(total: number, level = 1, trial = false): void {
+        this.trial = trial;
         app.store.game.begin(total, level);
         this.emit(GameController.Event.Changed);
     }
@@ -24,7 +28,7 @@ export class GameController extends BaseController<GameController, { Changed: ()
     matched(): void {
         const previous = app.store.game.phase;
         app.store.game.removePair();
-        if (previous === 'playing' && app.store.game.phase === 'won') {
+        if (!this.trial && previous === 'playing' && app.store.game.phase === 'won') {
             this.progress.complete(app.store.game.level);
         }
         this.emit(GameController.Event.Changed);

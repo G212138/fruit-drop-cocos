@@ -38,6 +38,8 @@ export class GameBoard extends Component {
 
         this.playing = true;
         this.spawner.spawn(level.fruits, fruit => this.bindFruit(fruit));
+        // 编辑草稿可能全部位于屏幕上方，按既有补位规则移入可点击区域。
+        this.shift.begin(this.spawner.getWaiting());
     }
 
     /**
@@ -55,7 +57,7 @@ export class GameBoard extends Component {
      * @param fruit 本次操作的水果实例。
      */
     private release(fruit: FruitItem): void {
-        if (this.playing && !this.shift.busy && fruit.waiting) {
+        if (this.playing && !this.shift.busy && fruit.waiting && fruit.iceLayers === 0) {
             fruit.drop();
             this.shift.begin(this.spawner.getWaiting());
         }
@@ -110,6 +112,7 @@ export class GameBoard extends Component {
             this.shift.remove(second);
             first.pop();
             second.pop();
+            this.spawner.reduceIce();
             this.node.emit(BoardEvents.Matched);
         }
     }

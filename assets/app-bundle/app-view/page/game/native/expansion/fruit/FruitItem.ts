@@ -2,6 +2,8 @@ import {
     _decorator, Component, Node, RigidBody2D, ERigidBody2DType,
     PolygonCollider2D, Contact2DType, Collider2D, Vec2, Tween,
 } from 'cc';
+import { IceFruitView } from '../ice/IceFruitView';
+import { reduceIceLayers } from '../ice/IceRules';
 import { PHYSICS_RULES } from '../physics/PhysicsRules';
 import { BoardEvents } from '../board/BoardEvents';
 import { MatchCandidate } from '../matching/MatchRules';
@@ -27,6 +29,25 @@ export class FruitItem extends Component {
     /** 原版水果类型，由各自预制体序列化，禁止猜测数组下标。 */
     @property
     kind = 0;
+    /** 当前剩余冰层，单位层；大于零时不可点击下落。 */
+    iceLayers = 0;
+    /** 实例化的独立冰层表现，普通水果为空。 */
+    private iceView: IceFruitView | null = null;
+
+    /** @param layers 初始冰层数。 @param view 编辑器预制体实例上的冰层表现。 */
+    attachIce(layers: number, view: IceFruitView): void {
+        this.iceLayers = layers;
+        this.iceView = view;
+        view.initialize(layers);
+    }
+
+    /** 每次成功配对削减一层，不能由接触回调直接触发。 */
+    reduceIce(): void {
+        if (this.iceLayers <= 0) return;
+        this.iceLayers = reduceIceLayers(this.iceLayers);
+        this.iceView?.updateLayers(this.iceLayers);
+    }
+
     /** 是否接触过原版地形，接触槽壁也会记录。 */
     touchedFloor = false;
     /** 配对锁定标记，避免同帧被重复消除。 */
@@ -40,6 +61,8 @@ export class FruitItem extends Component {
      */
     configure(kind: number): void {
         if (this.kind !== kind) throw new Error('水果预制体与配置编号不一致');
+        this.iceLayers = 0;
+        this.iceView = null;
         this.touchedFloor = false;
         this.removing = false;
         this.released = false;

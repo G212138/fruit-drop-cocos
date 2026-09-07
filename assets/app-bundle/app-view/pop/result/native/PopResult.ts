@@ -1,3 +1,4 @@
+import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
 import { _decorator, Label, Node } from 'cc';
 import BaseView from 'db://app/base/BaseView';
 import { app } from '../../../../../app/app';
@@ -22,7 +23,7 @@ export class PopResult extends BaseView {
         this.level = data.level;
         this.won = data.won;
         this.titleLabel.string = data.won ? '第 '+data.level+' 关完成！' : '底部水果堆满了';
-        this.nextButton.active = data.won;
+        this.nextButton.active = data.won && !EditorSession.trial;
     }
 
     /** 免费重开当前关卡，不改变进度或触发模拟广告。 */
@@ -33,7 +34,7 @@ export class PopResult extends BaseView {
 
     /** 已获胜时进入下一原始关卡；未支持关卡会由加载层明确提示。 */
     next(): void {
-        if (!this.won) return;
+        if (!this.won || EditorSession.trial) return;
         this.hide();
         app.manager.ui.show({ name: 'PageGame', data: { level: this.level + 1 } });
     }
@@ -41,6 +42,6 @@ export class PopResult extends BaseView {
     /** 返回首页，下次开始读取已保存进度。 */
     home(): void {
         this.hide();
-        app.manager.ui.show({ name: 'PageHome' });
+        app.manager.ui.show({ name: EditorSession.trial ? 'PageEditor' : 'PageHome' });
     }
 }

@@ -1,3 +1,4 @@
+import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
 import { _decorator, Node, Prefab, JsonAsset, instantiate, isValid } from 'cc';
 import BaseView from 'db://app/base/BaseView';
 import { app } from '../../../../../app/app';
@@ -41,7 +42,7 @@ export class PageGame extends BaseView.BindController(GameController) {
      */
     onShow(data?: { level?: number }): void {
         const generation = ++this.generation;
-        this.levelNumber = data?.level ?? this.controller.progress.level;
+        this.levelNumber = EditorSession.trial ? 1 : data?.level ?? this.controller.progress.level;
         this.loadError = '';
         this.ended = false;
         this.ready = false;
@@ -91,10 +92,12 @@ export class PageGame extends BaseView.BindController(GameController) {
                 if (!asset || !this.board) {
                     throw new Error('关卡或棋盘组件缺失');
                 }
-                if (this.levelNumber > this.controller.progress.level) throw new Error('该关卡尚未解锁');
-                const level = parseLevel(asset.json.levels?.[this.levelNumber - 1], this.levelNumber);
+                if (!EditorSession.trial && this.levelNumber > this.controller.progress.level) throw new Error('该关卡尚未解锁');
+                const level = EditorSession.trial
+                    ? parseLevel({ ...EditorSession.trial, level: 1 }, 1)
+                    : parseLevel(asset.json.levels?.[this.levelNumber - 1], this.levelNumber);
                 this.ready = true;
-                this.controller.begin(countFruits(level), level.number);
+                this.controller.begin(countFruits(level), level.number, !!EditorSession.trial);
                 this.board.begin(level);
             } catch (error) {
                 this.reportLoadError(String(error));
@@ -159,7 +162,7 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 返回首页，暂停当前关卡的输入和物理。 */
     private returnHome(): void {
-        app.manager.ui.show({ name: 'PageHome' });
+        app.manager.ui.show({ name: EditorSession.trial ? 'PageEditor' : 'PageHome' });
     }
 
     /** 未开放关卡提供明确的重玩入口，不修改已保存进度。 */
