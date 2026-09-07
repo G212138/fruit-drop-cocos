@@ -39,4 +39,14 @@ export class GameController extends BaseController<GameController, { Changed: ()
         app.store.game.lose();
         this.emit(GameController.Event.Changed);
     }
+
+    /**
+     * 奖励流程批准复活后恢复原局数据，棋盘随后应用回收或强制配对。
+     * @returns 是否成功恢复；失败时不得继续修改水果或发放奖励。
+     */
+    revive(): boolean {
+        if (!app.store.game.revive()) return false;
+        this.emit(GameController.Event.Changed);
+        return true;
+    }
 }

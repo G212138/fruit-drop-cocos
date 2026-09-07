@@ -37,4 +37,14 @@ export default class Game implements IStore<Game> {
             this.phase = 'lost';
         }
     }
+
+    /**
+     * 通过奖励校验后恢复同一失败局，不回滚已消除数量或重设累计关卡。
+     * @returns 是否实际从失败进入游戏态；拒绝胜利、未开始和重复发放。
+     */
+    revive(): boolean {
+        if (this.phase !== 'lost' || this.remaining <= 0) return false;
+        this.phase = 'playing';
+        return true;
+    }
 }

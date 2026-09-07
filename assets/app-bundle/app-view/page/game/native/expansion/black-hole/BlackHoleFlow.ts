@@ -45,6 +45,9 @@ export class BlackHoleFlow {
     advance(fruit: FruitItem, spawn: (definition: FruitDefinition) => FruitItem): void {
         const group = this.groups.get(fruit);
         if (!group || this.stopped) return;
+        // 横向复活可以直接选中新出现成员；旧实例离组后不能再由出现计时恢复刚体。
+        this.appearing.delete(fruit);
+        fruit.spawning = false;
         this.groups.delete(fruit);
         const definition = group.pending.shift();
         if (!definition) {
@@ -79,6 +82,10 @@ export class BlackHoleFlow {
             angularSpeed: Math.abs(fruit.body.angularVelocity) * DEGREES_PER_RADIAN,
         }));
         for (const [fruit, previous] of this.appearing) {
+            if (!isValid(fruit.node, true) || fruit.removing) {
+                this.appearing.delete(fruit);
+                continue;
+            }
             const elapsed = previous + dt;
             this.appearing.set(fruit, elapsed);
             const scale = blackHoleAppearanceScale(elapsed);
@@ -102,6 +109,11 @@ export class BlackHoleFlow {
     /** 停止后保留当前画面，直到清理本局。 */
     stop(): void {
         this.stopped = true;
+    }
+
+    /** 复活后继续原出现进度和成员队列，不能重新生成已释放的宿主或重置倒计时。 */
+    resume(): void {
+        this.stopped = false;
     }
 
     /** 清除本局表现与生成状态，重开时重新启用。 */
