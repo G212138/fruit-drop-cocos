@@ -1,4 +1,7 @@
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
+import { DEV } from 'cc/env';
+import { RewardGate } from '../../../../../app-builtin/app-model/expansion/RewardGate';
+import { DevelopmentRewardPanel } from './expansion/reward/DevelopmentRewardPanel';
 import { _decorator, Node, Prefab, JsonAsset, instantiate, isValid } from 'cc';
 import BaseView from 'db://app/base/BaseView';
 import { app } from '../../../../../app/app';
@@ -31,6 +34,10 @@ export class PageGame extends BaseView.BindController(GameController) {
     private settings: SettingsPanel | null = null;
     /** 独立音频副作用协调器，不改变本局游戏状态。 */
     private readonly settingsController = app.controller.settings;
+    /** 当前页广告门禁，重开和退出时令旧请求失效。 */
+    private rewardGate: RewardGate | null = null;
+    /** 只在开发环境加载的独立广告结果模拟面板。 */
+    private developmentReward: DevelopmentRewardPanel | null = null;
     /** 异步加载代次，拒绝上一局迟到的回调。 */
     private generation = 0;
     /** 是否已打开本局结算，防止重复弹窗。 */
@@ -55,11 +62,16 @@ export class PageGame extends BaseView.BindController(GameController) {
         this.ready = false;
         this.releaseChildren();
         this.settingsController.begin();
+        this.rewardGate = new RewardGate({show: request => {
+            if (DEV && this.developmentReward) return this.developmentReward.show(request);
+            return Promise.resolve({...request, status:'unavailable', source:'platform'});
+        }}, DEV);
         this.controller.targetOff(this);
         this.controller.on(GameController.Event.Changed, this.refreshState, this);
         this.loadBoard(generation);
         this.loadHud(generation);
         this.loadSettings(generation);
+        if (DEV) this.loadDevelopmentReward(generation);
     }
 
     /**
@@ -86,6 +98,7 @@ export class PageGame extends BaseView.BindController(GameController) {
             this.board = node.getComponent(GameBoard);
             node.on(BoardEvents.Matched, this.onMatched, this);
             node.on(BoardEvents.Failed, this.onFailed, this);
+            node.on('expand-request', this.requestExpansion, this);
             this.loadLevel(generation);
         });
     }
@@ -214,6 +227,30 @@ export class PageGame extends BaseView.BindController(GameController) {
         else if (action === 'restart') this.onShow({ level: this.levelNumber });
     }
 
+    /** @param generation 当前显示代次；正式构建不会加载开发模拟界面。 */
+    private loadDevelopmentReward(generation: number): void {
+        this.loadRes('prefabs/DevelopmentRewardPanel', Prefab, prefab => {
+            if (!this.isCurrent(generation) || !prefab) return;
+            const node = instantiate(prefab);
+            node.active = false;
+            node.parent = this.hudRoot;
+            this.developmentReward = node.getComponent(DevelopmentRewardPanel);
+        });
+    }
+
+    /** 请求激励扩槽，校验结果和页面代次后才改变物理与判负规则。 */
+    private async requestExpansion(): Promise<void> {
+        if (!this.rewardGate || !this.board?.canExpand || this.ended) return;
+        const generation = this.generation;
+        const result = await this.rewardGate.request('expand-slot');
+        if (!this.isCurrent(generation) || this.ended) return;
+        if (result === 'rewarded') {
+            if (this.board?.expandSlot()) this.hud?.showNotice('底部空间已扩展');
+        } else if (result === 'cancelled') this.hud?.showNotice('已取消，底部空间未改变');
+        else if (result === 'failed') this.hud?.showNotice('广告暂时无法完成，请稍后重试');
+        else if (result === 'unavailable') this.hud?.showNotice('广告暂不可用，请稍后重试');
+    }
+
     /** 未开放关卡提供明确的重玩入口，不修改已保存进度。 */
     private replayFirst(): void {
         this.onShow({ level: 1 });
@@ -221,6 +258,13 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 解除旧局监听并释放通过预制体创建的子界面。 */
     private releaseChildren(): void {
+        this.rewardGate?.invalidate();
+        this.rewardGate = null;
+        if (this.developmentReward && isValid(this.developmentReward.node)) {
+            this.developmentReward.cancel();
+            this.developmentReward.node.destroy();
+        }
+        this.developmentReward = null;
         this.settingsController.end();
         if (this.settings && isValid(this.settings.node)) {
             this.settings.node.targetOff(this);

@@ -50,6 +50,11 @@ export class GameHud extends Component {
         this.node.emit('open-settings');
     }
 
+    /** @param message 当前操作的真实结果说明，不将取消或失败显示为奖励成功。 */
+    showNotice(message: string): void {
+        this.hint.string = message;
+    }
+
     /** 预制体重玩按钮发布明确操作，不静默替换未支持关卡。 */
     replay(): void {
         this.node.emit('replay-first');

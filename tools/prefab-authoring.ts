@@ -226,6 +226,31 @@ const methods = {
     },
 
     /** 使用原场景地形多边形和锁墙，取代验证版简化墙体。 */
+    async createReward() {
+        const root=node('LockWallView',null,163,95);
+        const view=root.addComponent('LockWallView');
+        view.visual=await sprite('Visual',root,base+'page/game/resources/textures/lock-wall.png',163,95);
+        view.body=root.addComponent(cc.RigidBody2D);view.body.type=cc.ERigidBody2DType.Static;
+        root.addComponent(cc.BoxCollider2D).size=new cc.Size(80,90);
+        view.button=root.addComponent(cc.Button);
+        const event=new cc.EventHandler();event.target=root;event.component='LockWallView';event.handler='requestUnlock';view.button.clickEvents=[event];
+        await save(root,base+'page/game/resources/prefabs/LockWallView.prefab');
+        const panelRoot=node('DevelopmentRewardPanel');
+        const panel=panelRoot.addComponent('DevelopmentRewardPanel');
+        const mask=await sprite('Mask',panelRoot,base+'page/game/resources/textures/settings/mask.png',750,2000);
+        mask.getComponent(cc.Sprite).color=new cc.Color(0,0,0,180);mask.addComponent(cc.BlockInputEvents);
+        await sprite('Background',panelRoot,base+'page/game/resources/textures/settings/panel.png',627,621);
+        panel.description=label('Description',panelRoot,'广告开发模拟',30,190,550);
+        panel.description.node.getComponent(cc.UITransform).setContentSize(550,160);
+        for(const [name,text,y,handler] of [['Complete','模拟完整观看',30,'complete'],['Cancel','模拟提前退出',-85,'cancel'],['Fail','模拟播放失败',-200,'fail']]){
+            const target=label(name,panelRoot,text,36,y,500).node;
+            const event=new cc.EventHandler();event.target=panelRoot;event.component='DevelopmentRewardPanel';event.handler=handler;
+            const button=target.addComponent(cc.Button);button.transition=cc.Button.Transition.SCALE;button.zoomScale=0.94;button.clickEvents=[event];
+        }
+        return save(panelRoot,base+'page/game/resources/prefabs/DevelopmentRewardPanel.prefab');
+    },
+
+    /** 使用原场景地形和独立锁墙预制体。 */
     async createBoard() {
         const root = node('GameBoard');
         await sprite('Background', root, base + 'page/game/resources/textures/background.png', 750, 1667);
@@ -237,9 +262,9 @@ const methods = {
         polygon.offset = new cc.Vec2(...definition.offset);
         polygon.restitution = 0;
         const lock = sourceGeometry.lock;
-        const lockNode = await sprite('LockWall', root, base + 'page/game/resources/textures/lock-wall.png', ...lock.size, ...lock.position);
-        lockNode.addComponent(cc.RigidBody2D).type = cc.ERigidBody2DType.Static;
-        lockNode.addComponent(cc.BoxCollider2D).size = new cc.Size(...lock.colliderSize);
+        const lockLayout=node('LockWallLayout',root,...lock.size,...lock.position);
+        const lockNode=cc.instantiate(await asset(base+'page/game/resources/prefabs/LockWallView.prefab'));
+        lockNode.parent=lockLayout;
         wall('LeftEdge', root, -380.287, 0, 10, 1280);
         wall('RightEdge', root, 379.916, 0, 10, 1280);
         const spawner = root.addComponent('FruitSpawner');
@@ -258,6 +283,7 @@ const methods = {
         }
         const board = root.addComponent('GameBoard');
         board.spawner = spawner;
+        board.lockWallRoot = lockNode;
         board.leftBoundary = root.getChildByName('LeftEdge');
         board.rightLine = await sprite('RightLine',root,base + 'page/game/resources/textures/right-line.png',4,1023,313.357,179.307);
         board.rightLine.active = false;

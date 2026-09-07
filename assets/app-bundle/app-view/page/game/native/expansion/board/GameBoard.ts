@@ -2,6 +2,7 @@ import { _decorator, Component, PhysicsSystem2D, Vec2, Node, RigidBody2D, UITran
 import { EntryFlow } from '../movement/EntryFlow';
 import { LevelHintView } from '../hint/LevelHintView';
 import { chooseHint } from '../hint/HintRules';
+import { LockWallView } from '../reward/LockWallView';
 import { HorizontalFlow } from '../movement/HorizontalFlow';
 import { PHYSICS_RULES } from '../physics/PhysicsRules';
 import { FloorFailureRules } from '../failure/FloorFailureRules';
@@ -16,6 +17,36 @@ const { ccclass, property } = _decorator;
 /** 棋盘只协调配对、补位与判负，不包含 UI 布局和单体表现。 */
 @ccclass('GameBoard')
 export class GameBoard extends Component {
+    /** 独立锁墙预制体节点，保持原版位置并由奖励流程解锁。 */
+    @property(Node)
+    lockWallRoot: Node = null!;
+    /** 当前局是否可以发起扩槽；提示和入场期间不接收请求。 */
+    get canExpand(): boolean {
+        return this.playing && !this.levelHint?.busy && !this.entry.busy
+            && !!this.lockWallRoot && !this.lockWallRoot.getComponent(LockWallView)!.unlocked;
+    }
+    /** 原版普通槽四个判负，扩槽后五个判负，单位个。 */
+    private get floorThreshold(): number {
+        return this.lockWallRoot?.getComponent(LockWallView)?.unlocked ? 5 : 4;
+    }
+
+    /** 注册预制体锁墙的请求事件，不直接绑定广告平台。 */
+    onLoad(): void {
+        this.lockWallRoot.on('unlock-request', this.requestExpansion, this);
+    }
+
+    /** 向页面发布当前局扩槽意图，页面负责广告门禁。 */
+    private requestExpansion(): void {
+        if (this.canExpand) this.node.emit('expand-request');
+    }
+
+    /** 仅在本局仍可接收奖励时移除锁墙，返回是否实际发放。 */
+    expandSlot(): boolean {
+        if (!this.canExpand) return false;
+        const expanded = this.lockWallRoot.getComponent(LockWallView)!.unlock();
+        if (expanded) this.failure.reset();
+        return expanded;
+    }
     /** 独立原版机制提示，展示结束后才推进水果入场。 */
     @property(Node)
     levelHintRoot: Node = null!;
@@ -142,8 +173,8 @@ export class GameBoard extends Component {
         if (!this.playing) return;
         const fruits = this.spawner.getFloorSnapshots();
         const contactFailure = this.contacts.splice(0).some(([first, second]) =>
-            this.failure.losesOnContact(fruits, first, second));
-        if (contactFailure || this.failure.tick(fruits, dt)) {
+            this.failure.losesOnContact(fruits, first, second, this.floorThreshold));
+        if (contactFailure || this.failure.tick(fruits, dt, this.floorThreshold)) {
             this.stop();
             this.node.emit(BoardEvents.Failed);
         }
