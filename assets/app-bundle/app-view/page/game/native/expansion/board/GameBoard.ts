@@ -231,8 +231,8 @@ export class GameBoard extends Component {
         second.node.targetOff(this);
         this.shift.remove(first);
         this.shift.remove(second);
-        first.pop();
-        second.pop();
+        first.pop(forced);
+        second.pop(forced);
         // 原版 markElimination 对复活移除也累计减冰；复活阶段不累计横向补位。
         this.spawner.reduceIce();
         if (!forced && this.mode === 2) this.horizontal.matched();

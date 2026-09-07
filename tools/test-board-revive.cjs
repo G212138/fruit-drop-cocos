@@ -44,9 +44,9 @@ new Function('require','exports',boardCode)(name=>name==='cc'?{_decorator:{cccla
 const board=new boardExports.GameBoard(),effects=[];
 board.mode=2;board.spawner={remove(){effects.push('remove');},reduceIce(){effects.push('ice');}};
 board.shift={remove(){}};board.horizontal={matched(){effects.push('shift');}};board.node={emit(){effects.push('event');}};
-const pairFruit=()=>({removing:false,node:{targetOff(){}},pop(){effects.push('pop');}});
+const pairFruit=()=>({removing:false,node:{targetOff(){}},pop(forced){effects.push(forced?'revive-pop':'pop');}});
 board.removePair(pairFruit(),pairFruit(),true);
-assert.deepEqual(effects,['remove','remove','pop','pop','ice','event']);
+assert.deepEqual(effects,['remove','remove','revive-pop','revive-pop','ice','event']);
 effects.length=0;board.removePair(pairFruit(),pairFruit(),false);
 assert.deepEqual(effects,['remove','remove','pop','pop','ice','shift','event']);
 console.log('通过：真实棋盘强制配对减冰，正常配对才追加横向补位。');

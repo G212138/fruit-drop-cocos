@@ -209,13 +209,14 @@ export class FruitItem extends Component {
         this.body.angularVelocity = 0;
     }
 
-    /** 在物理步结束后关闭碰撞并播放消除表现。 */
-    pop(): void {
+    /** @param revived 是否为复活强制消除；使用原版较长的放大收缩反馈。 */
+    pop(revived = false): void {
         this.node.emit(BoardEvents.Removing);
         Tween.stopAllByTarget(this.node);
         // 整体停用刚体一次，保留碰撞体至节点销毁，避免同帧重复移除碰撞代理。
         this.body.enabled = false;
-        this.visual.playRemoval(() => this.node.destroy());
+        if (revived) this.visual.playReviveRemoval(() => this.node.destroy());
+        else this.visual.playRemoval(() => this.node.destroy());
     }
 
     /** 解除单体注册的所有监听。 */

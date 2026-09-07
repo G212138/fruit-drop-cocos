@@ -35,6 +35,21 @@ export class FruitVisual extends Component {
             .start();
     }
 
+    /**
+     * 原版 popAndDestroy 的复活强制消除：0.25秒 sineOut 放大至原尺寸1.3倍，再0.125秒 sineIn 缩小。
+     * @param onComplete 消除结束后销毁既有实例的回调。
+     */
+    playReviveRemoval(onComplete: () => void): void {
+        this.clearWarning();
+        // 原版 scale || 1：刚补出的黑洞成员为零缩放时仍能显示这次消除。
+        const original = this.node.scale.x || 1;
+        tween(this.node)
+            .to(0.25, { scale: new Vec3(original * 1.3, original * 1.3, 1) }, { easing: 'sineOut' })
+            .to(0.125, { scale: new Vec3(0, 0, 1) }, { easing: 'sineIn' })
+            .call(onComplete)
+            .start();
+    }
+
     /** 节点销毁时终止尚未完成的表现回调。 */
     onDestroy(): void {
         this.clearWarning();

@@ -66,3 +66,11 @@
 - 黑洞当前为扁平实例，宿主半量抬升、成员容器与自身位移合并为全量；复杂关卡的虚拟容器坐标、尚未实例化成员占位与原版层级需继续逐例对照，不能声称完全等价。
 - 强制消除当前复用既有消除视觉；原版 `spawnXCLight`、爆炸 Spine、爆炸音效及 `popAndDestroy` 的0.25秒放大/0.125秒缩小尚未全部迁移。复活弹窗目前复用已有结算布局，也需要继续对齐原 Fuhuo 表现。
 - 本批没有声称45关全部实玩或完整复刻完成。
+
+## 原版强制消除缩放反馈
+
+- 已在 FruitVisual 独立实现并通过 FruitItem、GameBoard 接入复活强制消除：0.25秒 sineOut 放大到当前缩放1.3倍，0.125秒 sineIn 缩为零，与源 `popAndDestroy` 一致。黑洞刚补出的零缩放实例沿用原 `scale || 1` 回退，仍可展示消除。普通配对的既有视觉本批未修改。
+- `test-warning-visual.cjs` 检查时长、缓动、普通/半尺寸/零尺寸的相对缩放及警示色清理；`test-board-revive.cjs` 检查强制与普通消除路由；`test-fruit-lifecycle.cjs` 检查单体选择强制视觉及较长动画期间的物理关闭，均通过。TypeScript 未出现 assets 目录诊断，脚本已通过 MCP 刷新。
+- 新核实的源场景证据：`watermelonGame.fire` 的 GameSc 序列化组件（类型 `a24e3sZyp9GJoX+eE54dcEO`）含 baozha 预制体引用 `1d4e8359-b4e4-4738-a54c-6da20772a3bf`，对应 `resources/prefab/spine/baozha.prefab`；其中骨骼使用 `_res/resources/Skeleton/baozha/baozha.json`，timeScale=1.2、premultipliedAlpha=false、动画名1。
+- 同一组件没有 XClight 序列化字段，GameSc 构造默认 null，当前源码未发现赋值。不能仅因存在 spawnXCLight 函数就把发光效果认定为当前原版必然生效的效果；后续若发现运行时绑定再补充证据。
+- 爆炸骨骼和 bomb 音效尚未接入；本批没有新增横向复活实际视觉验收结论。

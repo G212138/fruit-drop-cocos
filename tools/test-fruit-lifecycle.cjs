@@ -108,3 +108,10 @@ assert.equal(fruit.body.enabled,false,'出现中的成员继续由黑洞流程�
 assert.equal(fruit.body.type,0);assert.equal(fruit.waiting,true);
 fruit.onDestroy();
 console.log('通过：复活回收关闭碰撞、静态等待、未回收触底动态恢复和黑洞出现保护。');
+({fruit}=fixture(true));
+let reviveRemoval=0;
+fruit.visual.playReviveRemoval=()=>reviveRemoval++;
+fruit.pop(true);
+assert.equal(reviveRemoval,1,'复活强制消除路由到原版视觉');
+assert.equal(fruit.body.enabled,false,'较长消除动画期间仍不参与碰撞');
+fruit.onDestroy();
