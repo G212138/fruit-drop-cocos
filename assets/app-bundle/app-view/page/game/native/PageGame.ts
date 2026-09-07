@@ -6,7 +6,7 @@ import { GameController } from '../../../../../app-builtin/app-controller/GameCo
 import { GameBoard } from './expansion/board/GameBoard';
 import { BoardEvents } from './expansion/board/BoardEvents';
 import { GameHud } from './expansion/hud/GameHud';
-import { countFruits, parseLevel } from './expansion/level/LevelDefinition';
+import { countFruits, parseLevel, loadCampaignLevel } from './expansion/level/LevelDefinition';
 const { ccclass, property } = _decorator;
 
 /** 游戏页面负责装配预制体、连接状态和切换结算界面。 */
@@ -95,7 +95,7 @@ export class PageGame extends BaseView.BindController(GameController) {
                 if (!EditorSession.trial && this.levelNumber > this.controller.progress.level) throw new Error('该关卡尚未解锁');
                 const level = EditorSession.trial
                     ? parseLevel({ ...EditorSession.trial, level: 1 }, 1)
-                    : parseLevel(asset.json.levels?.[this.levelNumber - 1], this.levelNumber);
+                    : loadCampaignLevel(asset.json.levels, this.levelNumber);
                 this.ready = true;
                 this.controller.begin(countFruits(level), level.number, !!EditorSession.trial);
                 this.board.begin(level);

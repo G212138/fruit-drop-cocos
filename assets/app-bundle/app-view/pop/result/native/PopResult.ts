@@ -32,7 +32,7 @@ export class PopResult extends BaseView {
         app.manager.ui.show({ name: 'PageGame', data: { level: this.level } });
     }
 
-    /** 已获胜时进入下一原始关卡；未支持关卡会由加载层明确提示。 */
+    /** 已获胜时进入下一累计关卡；超出原配置数量后由加载层按原版规则循环布局。 */
     next(): void {
         if (!this.won || EditorSession.trial) return;
         this.hide();

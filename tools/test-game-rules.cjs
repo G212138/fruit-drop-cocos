@@ -205,3 +205,23 @@ for (let index=0;index<originalLevels.length;index++) {
     assert.equal(parsed.mode,originalLevels[index].m);
 }
 console.log('通过：两代引擎速度单位换算、原版45关全部解析及水果总数与模式一致。');
+const {loopedLevelIndex,loadCampaignLevel}=load(expansion+'/level/LevelDefinition.ts');
+assert.deepEqual([1,2,3,45,46,47,88,89].map(number=>loopedLevelIndex(45,number)),[0,1,2,44,2,3,44,2]);
+assert.equal(loopedLevelIndex(1,100),0);
+assert.equal(loopedLevelIndex(2,100),1);
+assert.throws(()=>loopedLevelIndex(0,1),/配置/);
+assert.throws(()=>loopedLevelIndex(45,NaN),/编号/);
+assert.throws(()=>loopedLevelIndex(45,1.5),/编号/);
+const repeated=loadCampaignLevel(originalLevels,46);
+assert.equal(repeated.number,46,'显示和存档保留累计关数');
+assert.deepEqual(repeated.fruits,parseLevel(originalLevels[2],3).fruits,'第46关复用原第3关布局');
+assert.equal(loadCampaignLevel(originalLevels,55).mode,2,'循环后的第55关复用原第12关横向模式');
+assert.throws(()=>loadCampaignLevel([],46),/配置/);
+const loopStorage={value:null,getItem(){return this.value;},setItem(key,value){this.value=value;}};
+const loopProgress=new LevelProgress(loopStorage);
+loopProgress.complete(45);
+assert.equal(loopProgress.level,46);
+assert.equal(loadCampaignLevel(originalLevels,loopProgress.level).number,46);
+loopProgress.complete(46);
+assert.equal(new LevelProgress(loopStorage).level,47,'循环关通关后继续递增且可重新读取');
+console.log('通过：45关后循环边界、跳过前两关、横向模式保留、累计关数与进度持久化。');

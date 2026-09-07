@@ -97,3 +97,28 @@ function optionalId(value: unknown): number | undefined {
 export function countFruits(level: LevelDefinition): number {
     return level.fruits.length;
 }
+
+/**
+ * 沿用原 GameSc.getLoopedLevelIndex：超过配置总数后循环第三关至最后一关，前两关不再重复。
+ * @param count 原始配置数量，单位关；一至两关配置只重复最后一关。
+ * @param displayed 玩家看到的累计关数，必须为安全正整数。
+ */
+export function loopedLevelIndex(count: number, displayed: number): number {
+    if (!Number.isSafeInteger(count) || count < 1) throw new Error('关卡配置列表为空或数量无效');
+    if (!Number.isSafeInteger(displayed) || displayed < 1) throw new Error('累计关卡编号无效');
+    if (displayed <= count) return displayed - 1;
+    if (count <= 2) return count - 1;
+    return 2 + (displayed - 3) % (count - 2);
+}
+
+/**
+ * 加载正式关卡并保留累计关数；编辑器试玩仍直接解析其独立草稿。
+ * @param values 原版完整关卡数组，不允许缺失配置时静默替换成第一关。
+ * @param displayed 玩家累计关数，用于 HUD、结算和下一关存档。
+ */
+export function loadCampaignLevel(values: unknown, displayed: number): LevelDefinition {
+    if (!Array.isArray(values)) throw new Error('关卡配置列表无效');
+    const index = loopedLevelIndex(values.length, displayed);
+    const definition = parseLevel(values[index], index + 1);
+    return { ...definition, number: displayed };
+}
