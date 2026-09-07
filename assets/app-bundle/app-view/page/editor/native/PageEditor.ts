@@ -145,8 +145,8 @@ export class PageEditor extends BaseView {
     trial(): void {
         try {
             const data = this.draft.buildDocument();
-            if (data.m !== 1 || data.d.some(item => item.BlackHoleID || item.FatherBlackHoleID)) {
-                throw new Error('横向和黑洞试玩正在迁移，可先保存编辑数据');
+            if (data.m !== 1) {
+                throw new Error('横向试玩正在迁移，可先保存编辑数据');
             }
             EditorSession.trial = this.draft.beginTrial();
             app.manager.ui.show({ name: 'PageGame' });

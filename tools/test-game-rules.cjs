@@ -169,3 +169,17 @@ console.log('通过：隐藏水果首次动态触地揭示、悬停/补位不揭
 assert.deepEqual(originalLevels.slice(5,11).map((source,index)=>countFruits(parseLevel(source,index+6))),[106,112,106,106,104,102]);
 assert.deepEqual(parseLevel(originalLevels[9],10).fruits.filter(f=>f.iceLayers>0).map(f=>f.iceLayers),[30,20,25,40]);
 console.log('通过：第六至十一关原配置与第十关四处冰层数。');
+const { blocksBlackHoleCollision, blackHoleAppearanceScale } = load(expansion + '/black-hole/BlackHoleRules.ts');
+assert.equal(blackHoleAppearanceScale(0.01),0);
+assert.ok(Math.abs(blackHoleAppearanceScale(0.52)-1.2)<1e-9);
+assert.ok(Math.abs(blackHoleAppearanceScale(0.62)-1)<1e-9);
+const falling = {x:60,y:0,radius:50,speedSquared:0,angularSpeed:0};
+assert.equal(blocksBlackHoleCollision(0,0,50,[falling]),true);
+assert.equal(blocksBlackHoleCollision(0,0,50,[{...falling,x:80}]),false);
+assert.equal(blocksBlackHoleCollision(0,0,50,[{...falling,x:80,speedSquared:401}]),true);
+assert.equal(blocksBlackHoleCollision(0,0,50,[{...falling,x:91,speedSquared:1000}]),false);
+const blackLevel = parseLevel({...originalLevels[14],level:1},1);
+assert.equal(blackLevel.fruits.length,originalLevels[14].d.length);
+assert.ok(blackLevel.fruits.some(fruit=>fruit.fatherBlackHoleId));
+assert.throws(()=>parseLevel({level:1,m:1,d:[{n:'1',p:[0,0],FatherBlackHoleID:3,SequenceID:1},{n:'1',p:[0,0]}]}),/宿主/);
+console.log('通过：黑洞原第十五关完整计数、成员引用、出现曲线与碰撞保护距离速度边界。');

@@ -31,6 +31,8 @@ export class FruitItem extends Component {
     kind = 0;
     /** 当前剩余冰层，单位层；大于零时不可点击下落。 */
     iceLayers = 0;
+    /** 黑洞成员出现与避让阶段标记，为真时禁止点击和底部判负。 */
+    spawning = false;
     /** 实例化的独立冰层表现，普通水果为空。 */
     private iceView: IceFruitView | null = null;
 
@@ -62,6 +64,7 @@ export class FruitItem extends Component {
     configure(kind: number): void {
         if (this.kind !== kind) throw new Error('水果预制体与配置编号不一致');
         this.iceLayers = 0;
+        this.spawning = false;
         this.iceView = null;
         this.touchedFloor = false;
         this.removing = false;

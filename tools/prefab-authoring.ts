@@ -194,6 +194,21 @@ const methods = {
         return results;
     },
 
+    /** 按原 Blackhole 预制体的图片尺寸、数量位置与缩放制作独立表现。 */
+    async createBlackHole() {
+        const root = node('BlackHoleView', null, 70, 70);
+        const view = root.addComponent('BlackHoleView');
+        const ring = await sprite('Ring', root, base + 'page/game/resources/textures/black-hole.png',70,70);
+        view.ring = ring.getComponent(cc.Sprite);
+        const badge = await sprite('CountBadge', root, base + 'page/game/resources/textures/black-hole-badge.png',37,37,24.534,-20.877);
+        badge.setScale(0.8,0.8,1);
+        view.badge = badge;
+        view.countLabel = label('Count',badge,'3',30,0.793,70);
+        view.countLabel.node.setPosition(-0.359,0.793,0);
+        view.countLabel.color = cc.Color.BLACK;
+        return save(root,base + 'page/game/resources/prefabs/BlackHoleView.prefab');
+    },
+
     /** 使用原场景地形多边形和锁墙，取代验证版简化墙体。 */
     async createBoard() {
         const root = node('GameBoard');
@@ -218,6 +233,7 @@ const methods = {
         viewport.addComponent(cc.Mask).type = cc.Mask.Type.GRAPHICS_RECT;
         spawner.fruitRoot = node('Fruits', viewport);
         spawner.iceFruitPrefab = await asset(base + 'page/game/resources/prefabs/IceFruitView.prefab');
+        spawner.blackHolePrefab = await asset(base + 'page/game/resources/prefabs/BlackHoleView.prefab');
         spawner.hiddenFruitPrefab = await asset(base + 'page/game/resources/prefabs/HiddenFruitView.prefab');
         spawner.fruitPrefabs = [];
         for (const definition of sourceGeometry.fruits) {
@@ -294,7 +310,8 @@ const methods = {
             ['Import','导入',-230,-620,'importJson'],['Export','导出',0,-620,'exportJson'],['Home','返回主页',230,-620,'home']
         ]) textButton(name,text,x,y,handler);
         function editBox(name,x,y,width,height,initial,multiline) {
-            const inputRoot = node(name,root,width,height,x,y);
+            const clipRoot = node(name + 'Clip',root,width,height,x,y);
+            const inputRoot = node(name,clipRoot,width,height);
             const text = label('Text',inputRoot,initial,24,0,width);
             text.node.getComponent(cc.UITransform).setContentSize(width,height);
             const placeholder = label('Placeholder',inputRoot,'输入内容',24,0,width);
@@ -310,7 +327,7 @@ const methods = {
                 text.enableWrapText = true;
                 text.horizontalAlign = cc.Label.HorizontalAlign.LEFT;
                 text.verticalAlign = cc.Label.VerticalAlign.TOP;
-                inputRoot.addComponent(cc.Mask).type = cc.Mask.Type.GRAPHICS_RECT;
+                clipRoot.addComponent(cc.Mask).type = cc.Mask.Type.GRAPHICS_RECT;
             }
             return input;
         }

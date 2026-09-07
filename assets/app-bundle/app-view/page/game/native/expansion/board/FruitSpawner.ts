@@ -3,6 +3,7 @@ import { IceFruitView } from '../ice/IceFruitView';
 import { FloorFruit } from '../failure/FloorFailureRules';
 import { FruitItem } from '../fruit/FruitItem';
 import { FruitDefinition } from '../level/LevelDefinition';
+import { BlackHoleFlow } from '../black-hole/BlackHoleFlow';
 const { ccclass, property } = _decorator;
 
 /** 水果实例集合，只实例化编辑器制作的预制体。 */
@@ -23,13 +24,20 @@ export class FruitSpawner extends Component {
     /** 独立冰层骨骼预制体，附着于配置有冰层的水果。 */
     @property(Prefab)
     iceFruitPrefab: Prefab = null!;
+    /** 独立黑洞与剩余数量预制体，使用原版图片。 */
+    @property(Prefab)
+    blackHolePrefab: Prefab = null!;
+    /** 黑洞成员生命周期，与单体实例集合分别管理。 */
+    private readonly blackHoles = new BlackHoleFlow();
+    /** 当前棋盘的事件绑定回调，重开时替换。 */
+    private onSpawned: ((fruit: FruitItem) => void) | null = null;
 
     /** 存活实例集合，消除时移除，重开时清空。 */
     private readonly live = new Set<FruitItem>();
 
     /** 返回存活数量，用于判断当前批次是否结束。 */
     get count(): number {
-        return this.live.size;
+        return this.live.size + this.blackHoles.pendingCount;
     }
 
     /**
@@ -38,24 +46,37 @@ export class FruitSpawner extends Component {
      * @param onSpawned 每个水果实例化完成后绑定局部事件的回调。
      */
     spawn(wave: FruitDefinition[], onSpawned: (fruit: FruitItem) => void): void {
+        this.onSpawned = onSpawned;
         for (const definition of wave) {
-            const prefab = this.fruitPrefabs.find(value => value.data.getComponent(FruitItem)?.kind === definition.kind);
-            if (!prefab) throw new Error('水果缺少预制体：' + definition.kind);
-            const node = instantiate(prefab);
-            node.parent = this.fruitRoot;
-            node.setPosition(definition.x, definition.y);
-            const fruit = node.getComponent(FruitItem)!;
-            fruit.configure(definition.kind);
-            this.attachHiddenView(node, definition.hidden);
-            if (definition.iceLayers > 0) {
-                if (!this.iceFruitPrefab) throw new Error('冰层预制体未绑定');
-                const cover = instantiate(this.iceFruitPrefab);
-                cover.parent = node;
-                fruit.attachIce(definition.iceLayers, cover.getComponent(IceFruitView)!);
+            if (definition.fatherBlackHoleId) continue;
+            const fruit = this.spawnOne(definition);
+            if (definition.blackHoleId) {
+                if (!this.blackHolePrefab) throw new Error('黑洞预制体未绑定');
+                this.blackHoles.attach(fruit, wave.filter(item => item.fatherBlackHoleId === definition.blackHoleId),
+                    this.blackHolePrefab, this.fruitRoot);
             }
-            this.live.add(fruit);
-            onSpawned(fruit);
         }
+    }
+
+    /** @param definition 单颗水果定义；黑洞复用同一工厂，保证隐藏、冰层和事件绑定一致。 */
+    private spawnOne(definition: FruitDefinition): FruitItem {
+        const prefab = this.fruitPrefabs.find(value => value.data.getComponent(FruitItem)?.kind === definition.kind);
+        if (!prefab) throw new Error('水果缺少预制体：' + definition.kind);
+        const node = instantiate(prefab);
+        node.parent = this.fruitRoot;
+        node.setPosition(definition.x, definition.y);
+        const fruit = node.getComponent(FruitItem)!;
+        fruit.configure(definition.kind);
+        this.attachHiddenView(node, definition.hidden);
+        if (definition.iceLayers > 0) {
+            if (!this.iceFruitPrefab) throw new Error('冰层预制体未绑定');
+            const cover = instantiate(this.iceFruitPrefab);
+            cover.parent = node;
+            fruit.attachIce(definition.iceLayers, cover.getComponent(IceFruitView)!);
+        }
+        this.live.add(fruit);
+        this.onSpawned!(fruit);
+        return fruit;
     }
 
     /**
@@ -72,7 +93,17 @@ export class FruitSpawner extends Component {
 
     /** 一对水果真正移除后削减当前在场水果的冰层。 */
     reduceIce(): void {
-        for (const fruit of this.live) fruit.reduceIce();
+        for (const fruit of this.live) if (!this.blackHoles.isPendingAppearance(fruit)) fruit.reduceIce();
+    }
+
+    /** @param fruit 即将下落或被移除的水果；非黑洞成员不会触发生成。 */
+    releaseBlackHole(fruit: FruitItem): void {
+        this.blackHoles.advance(fruit, definition => this.spawnOne(definition));
+    }
+
+    /** @param dt 当前帧时长，单位秒；更新黑洞表现及出现碰撞保护。 */
+    updateBlackHoles(dt: number): void {
+        this.blackHoles.tick(dt, [...this.live]);
     }
 
     /** 获取仍未点击的存活水果，已下落水果不跟随补位。 */
@@ -85,6 +116,7 @@ export class FruitSpawner extends Component {
      * @param fruit 本次操作的水果实例。
      */
     remove(fruit: FruitItem): void {
+        this.releaseBlackHole(fruit);
         this.live.delete(fruit);
     }
 
@@ -93,12 +125,13 @@ export class FruitSpawner extends Component {
         return this.fruitRoot.children
             .filter(node => isValid(node, true))
             .map(node => node.getComponent(FruitItem))
-            .filter((fruit): fruit is FruitItem => !!fruit)
+            .filter((fruit): fruit is FruitItem => !!fruit && !fruit.spawning)
             .map(fruit => fruit.getFloorSnapshot());
     }
 
     /** 冻结本局存活水果。 */
     freeze(): void {
+        this.blackHoles.stop();
         for (const fruit of this.live) {
             fruit.freeze();
         }
@@ -106,6 +139,8 @@ export class FruitSpawner extends Component {
 
     /** 销毁全部单体，包括正在播放消除补间的节点。 */
     clear(): void {
+        this.blackHoles.clear();
+        this.onSpawned = null;
         if (isValid(this.fruitRoot)) {
             for (const node of [...this.fruitRoot.children]) {
                 node.destroy();

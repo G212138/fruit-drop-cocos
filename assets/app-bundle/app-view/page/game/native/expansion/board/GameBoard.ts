@@ -57,7 +57,8 @@ export class GameBoard extends Component {
      * @param fruit 本次操作的水果实例。
      */
     private release(fruit: FruitItem): void {
-        if (this.playing && !this.shift.busy && fruit.waiting && fruit.iceLayers === 0) {
+        if (this.playing && !this.shift.busy && fruit.waiting && !fruit.spawning && fruit.iceLayers === 0) {
+            this.spawner.releaseBlackHole(fruit);
             fruit.drop();
             this.shift.begin(this.spawner.getWaiting());
         }
@@ -89,6 +90,7 @@ export class GameBoard extends Component {
      */
     lateUpdate(dt: number): void {
         if (!this.playing) return;
+        this.spawner.updateBlackHoles(dt);
         this.resolveMatches();
         if (!this.playing) return;
         const fruits = this.spawner.getFloorSnapshots();
