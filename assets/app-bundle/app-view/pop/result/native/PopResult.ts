@@ -1,26 +1,44 @@
-import { _decorator, Label } from 'cc';
+import { _decorator, Label, Node } from 'cc';
 import BaseView from 'db://app/base/BaseView';
 import { app } from '../../../../../app/app';
 const { ccclass, property } = _decorator;
 
-/** 结算仅展示结果，广告与奖励逻辑不能放入此组件。 */
+/** 结算界面只展示结果，不在此处判定胜利或发放广告奖励。 */
 @ccclass('PopResult')
 export class PopResult extends BaseView {
+    /** 预制体中的胜负结果标签。 */
     @property(Label)
     titleLabel: Label = null!;
+    /** 仅胜利时显示的下一关按钮。 */
+    @property(Node)
+    nextButton: Node = null!;
+    /** 当前结算所属关卡，用于原关重开。 */
+    private level = 1;
+    /** 本次是否胜利，阻止失败局通过隐藏按钮进入下一关。 */
+    private won = false;
 
-    /** 根据页面传入的结算结果显示标题。 */
-    onShow(data: { won: boolean }): void {
-        this.titleLabel.string = data.won ? '全部消除！' : '底部水果堆满了';
+    /** @param data 页面已确认的胜负结果和原关卡编号。 */
+    onShow(data: { won: boolean; level: number }): void {
+        this.level = data.level;
+        this.won = data.won;
+        this.titleLabel.string = data.won ? '第 '+data.level+' 关完成！' : '底部水果堆满了';
+        this.nextButton.active = data.won;
     }
 
-    /** 免费重开验证关，不触发模拟广告。 */
+    /** 免费重开当前关卡，不改变进度或触发模拟广告。 */
     restart(): void {
         this.hide();
-        app.manager.ui.show({ name: 'PageGame' });
+        app.manager.ui.show({ name: 'PageGame', data: { level: this.level } });
     }
 
-    /** 返回首页。 */
+    /** 已获胜时进入下一原始关卡；未支持关卡会由加载层明确提示。 */
+    next(): void {
+        if (!this.won) return;
+        this.hide();
+        app.manager.ui.show({ name: 'PageGame', data: { level: this.level + 1 } });
+    }
+
+    /** 返回首页，下次开始读取已保存进度。 */
     home(): void {
         this.hide();
         app.manager.ui.show({ name: 'PageHome' });

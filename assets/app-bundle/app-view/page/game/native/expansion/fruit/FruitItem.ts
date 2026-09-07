@@ -1,7 +1,8 @@
 import {
     _decorator, Component, Node, RigidBody2D, ERigidBody2DType,
-    CircleCollider2D, Contact2DType, Collider2D, SpriteFrame,
+    PolygonCollider2D, Contact2DType, Collider2D, Vec2,
 } from 'cc';
+import { PHYSICS_RULES } from '../physics/PhysicsRules';
 import { BoardEvents } from '../board/BoardEvents';
 import { MatchCandidate } from '../matching/MatchRules';
 import { FloorFruit } from '../failure/FloorFailureRules';
@@ -11,27 +12,38 @@ const { ccclass, property } = _decorator;
 /** 水果单体负责输入和物理，上报接触而不裁决消除。 */
 @ccclass('FruitItem')
 export class FruitItem extends Component {
+    /** 预制体绑定的单体视觉组件。 */
     @property(FruitVisual)
     visual: FruitVisual = null!;
 
+    /** 预制体绑定的二维刚体，控制悬停、补位和下落。 */
     @property(RigidBody2D)
     body: RigidBody2D = null!;
 
-    @property(CircleCollider2D)
-    collider: CircleCollider2D = null!;
+    /** 原版轮廓对应的多边形碰撞体。 */
+    @property(PolygonCollider2D)
+    collider: PolygonCollider2D = null!;
 
+    /** 原版水果类型，由各自预制体序列化，禁止猜测数组下标。 */
+    @property
     kind = 0;
+    /** 是否接触过原版地形，接触槽壁也会记录。 */
     touchedFloor = false;
+    /** 配对锁定标记，避免同帧被重复消除。 */
     removing = false;
+    /** 是否已经点击释放；释放后不参与整体补位。 */
     private released = false;
 
-    /** 初始化水果数据，默认悬停等待点击。 */
-    configure(kind: number, frame: SpriteFrame): void {
-        this.kind = kind;
+    /**
+     * 初始化水果数据，默认悬停等待点击。
+     * @param kind 原版水果编号，必须与预制体内序列化编号一致。
+     */
+    configure(kind: number): void {
+        if (this.kind !== kind) throw new Error('水果预制体与配置编号不一致');
         this.touchedFloor = false;
         this.removing = false;
         this.released = false;
-        this.visual.setFrame(frame);
+
         this.body.type = ERigidBody2DType.Static;
     }
 
@@ -53,10 +65,28 @@ export class FruitItem extends Component {
     drop(): void {
         this.released = true;
         this.body.type = ERigidBody2DType.Dynamic;
+        // 沿用原版释放速度值；Creator 2D 线速度接口使用物理米每秒。
+        this.body.linearVelocity = new Vec2(0, PHYSICS_RULES.dropVelocityY);
         this.body.wakeUp();
     }
 
-    /** 新接触先进入配对队列，再记录原版即时失败检查所需的接触双方。 */
+    /** 是否仍可参与整体补位。 */
+    get waiting(): boolean {
+        return !this.released && !this.removing;
+    }
+
+    /** @param shifting 为真时由动画驱动刚体，结束后恢复静态悬停。 */
+    setShifting(shifting: boolean): void {
+        this.body.type = shifting ? ERigidBody2DType.Animated : ERigidBody2DType.Static;
+        this.body.linearVelocity = new Vec2();
+        this.body.angularVelocity = 0;
+    }
+
+    /**
+     * 新接触先进入配对队列，再记录原版即时失败检查所需的接触双方。
+     * @param self 物理引擎回调中的本水果碰撞体。
+     * @param other 物理引擎回调中的另一方碰撞体。
+     */
     private onContactBegan(self: Collider2D, other: Collider2D): void {
         this.onContact(self, other);
         const fruit = other.getComponent(FruitItem);
@@ -70,11 +100,15 @@ export class FruitItem extends Component {
             ...this.getMatchCandidate(),
             id: this.node.uuid,
             settled: this.body.type !== ERigidBody2DType.Dynamic
-                || (velocity.lengthSqr() <= 25 && Math.abs(this.body.angularVelocity) <= 5),
+                || (velocity.lengthSqr() <= PHYSICS_RULES.settledSpeedSquared && Math.abs(this.body.angularVelocity) <= PHYSICS_RULES.settledAngularSpeed),
         };
     }
 
-    /** 记录触底并将水果接触交给棋盘处理。 */
+    /**
+     * 记录触底并将水果接触交给棋盘处理。
+     * @param _self 物理引擎回调中的本水果碰撞体。
+     * @param other 物理引擎回调中的另一方碰撞体。
+     */
     private onContact(_self: Collider2D, other: Collider2D): void {
         if (other.node.name === 'Floor') {
             this.touchedFloor = true;

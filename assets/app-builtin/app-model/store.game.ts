@@ -2,15 +2,21 @@ import { IStore } from 'db://app/base/BaseModel';
 
 /** 单局权威状态，不保存节点、物理对象或资源引用。 */
 export default class Game implements IStore<Game> {
+    /** 当前关卡编号，从一开始。 */
+    level = 1;
+    /** 尚未消除水果数，单位个。 */
     remaining = 0;
+    /** 开局总数，单位个，用于计算进度。 */
     total = 0;
+    /** 单局阶段；已结束结果不被重复碰撞通知覆盖。 */
     phase: 'idle' | 'playing' | 'won' | 'lost' = 'idle';
 
-    /** 开始验证关，重置权威状态。 */
-    begin(total: number): void {
+    /** 开始一关，重置权威状态。 @param total 水果总数。 @param level 原关卡序号。 */
+    begin(total: number, level = 1): void {
         if (!Number.isInteger(total) || total <= 0 || total % 2 !== 0) {
             throw new Error('总水果数必须为正偶数');
         }
+        this.level = level;
         this.total = total;
         this.remaining = total;
         this.phase = 'playing';

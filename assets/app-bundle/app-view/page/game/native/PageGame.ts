@@ -11,21 +11,38 @@ const { ccclass, property } = _decorator;
 /** 游戏页面负责装配预制体、连接状态和切换结算界面。 */
 @ccclass('PageGame')
 export class PageGame extends BaseView.BindController(GameController) {
+    /** 页面预制体中的棋盘挂载点，加载完成后实例化到这里。 */
     @property(Node)
     boardRoot: Node = null!;
 
+    /** 页面预制体中的 HUD 挂载点，独立于棋盘生命周期。 */
     @property(Node)
     hudRoot: Node = null!;
 
+    /** 本显示周期实例化的棋盘；退出页面后销毁。 */
     private board: GameBoard | null = null;
+    /** 独立 HUD 实例，所有标签由预制体绑定。 */
     private hud: GameHud | null = null;
+    /** 异步加载代次，拒绝上一局迟到的回调。 */
     private generation = 0;
+    /** 是否已打开本局结算，防止重复弹窗。 */
     private ended = false;
+    /** 关卡配置与棋盘均已就绪才允许开始。 */
     private ready = false;
 
-    /** 每次显示重新装配本局，并使旧异步加载回调失效。 */
-    onShow(): void {
+    /** 本次请求的原版关卡编号，从一开始。 */
+    private levelNumber = 1;
+    /** 当前加载失败的用户可读说明；空字符串表示没有错误。 */
+    private loadError = '';
+
+    /**
+     * 每次显示重新装配本局，并使旧异步加载回调失效。
+     * @param data 页面传入的关卡或结算参数；未传关卡时读取存档。
+     */
+    onShow(data?: { level?: number }): void {
         const generation = ++this.generation;
+        this.levelNumber = data?.level ?? this.controller.progress.level;
+        this.loadError = '';
         this.ended = false;
         this.ready = false;
         this.releaseChildren();
@@ -35,12 +52,18 @@ export class PageGame extends BaseView.BindController(GameController) {
         this.loadHud(generation);
     }
 
-    /** 判断异步结果是否仍属于当前显示周期。 */
+    /**
+     * 判断异步结果是否仍属于当前显示周期。
+     * @param generation 发起异步加载时记录的页面代次。
+     */
     private isCurrent(generation: number): boolean {
         return isValid(this.node) && generation === this.generation;
     }
 
-    /** 实例化编辑器制作的棋盘预制体并连接业务通知。 */
+    /**
+     * 实例化编辑器制作的棋盘预制体并连接业务通知。
+     * @param generation 发起异步加载时记录的页面代次。
+     */
     private loadBoard(generation: number): void {
         this.loadRes('prefabs/GameBoard', Prefab, prefab => {
             if (!this.isCurrent(generation)) return;
@@ -57,17 +80,21 @@ export class PageGame extends BaseView.BindController(GameController) {
         });
     }
 
-    /** 加载并校验数据，再开始状态机和棋盘。 */
+    /**
+     * 加载并校验数据，再开始状态机和棋盘。
+     * @param generation 发起异步加载时记录的页面代次。
+     */
     private loadLevel(generation: number): void {
-        this.loadRes('levels/level-001', JsonAsset, asset => {
+        this.loadRes('levels/original-levels', JsonAsset, asset => {
             if (!this.isCurrent(generation)) return;
             try {
                 if (!asset || !this.board) {
                     throw new Error('关卡或棋盘组件缺失');
                 }
-                const level = parseLevel(asset.json);
+                if (this.levelNumber > this.controller.progress.level) throw new Error('该关卡尚未解锁');
+                const level = parseLevel(asset.json.levels?.[this.levelNumber - 1], this.levelNumber);
                 this.ready = true;
-                this.controller.begin(countFruits(level));
+                this.controller.begin(countFruits(level), level.number);
                 this.board.begin(level);
             } catch (error) {
                 this.reportLoadError(String(error));
@@ -75,7 +102,10 @@ export class PageGame extends BaseView.BindController(GameController) {
         });
     }
 
-    /** 实例化独立 HUD，节点和标签均来自预制体。 */
+    /**
+     * 实例化独立 HUD，节点和标签均来自预制体。
+     * @param generation 发起异步加载时记录的页面代次。
+     */
     private loadHud(generation: number): void {
         this.loadRes('prefabs/GameHud', Prefab, prefab => {
             if (!this.isCurrent(generation)) return;
@@ -86,6 +116,8 @@ export class PageGame extends BaseView.BindController(GameController) {
             const node = instantiate(prefab);
             node.parent = this.hudRoot;
             this.hud = node.getComponent(GameHud);
+            node.on('return-home', this.returnHome, this);
+            node.on('replay-first', this.replayFirst, this);
             this.refreshState();
         });
     }
@@ -103,19 +135,36 @@ export class PageGame extends BaseView.BindController(GameController) {
     /** 将状态映射到显示，并确保结算只打开一次。 */
     private refreshState(): void {
         const state = app.store.game;
-        this.hud?.render(state.remaining, state.total);
+        if (this.loadError) this.hud?.showError(this.levelNumber, this.loadError);
+        else this.hud?.render(this.levelNumber, this.ready ? state.remaining : 0,
+            this.ready ? state.total : 0, this.controller.progress.warning);
         const finished = state.phase === 'won' || state.phase === 'lost';
         if (!this.ready || this.ended || !finished) return;
         this.ended = true;
         this.board?.stop();
-        app.manager.ui.show({ name: 'PopResult', data: { won: state.phase === 'won' } });
+        app.manager.ui.show({ name: 'PopResult', data: { won: state.phase === 'won', level: this.levelNumber } });
     }
 
-    /** 资源错误不冒充正常结算，停止本局并记录真实原因。 */
+    /**
+     * 资源错误不冒充正常结算，停止本局并记录真实原因。
+     * @param message 用户可读的加载失败原因。
+     */
     private reportLoadError(message: string): void {
         this.board?.stop();
-        this.generation++;
-        console.error('[PageGame] ' + message);
+        this.ready = false;
+        this.loadError = message;
+        this.refreshState();
+        console.warn('[PageGame] ' + message);
+    }
+
+    /** 返回首页，暂停当前关卡的输入和物理。 */
+    private returnHome(): void {
+        app.manager.ui.show({ name: 'PageHome' });
+    }
+
+    /** 未开放关卡提供明确的重玩入口，不修改已保存进度。 */
+    private replayFirst(): void {
+        this.onShow({ level: 1 });
     }
 
     /** 解除旧局监听并释放通过预制体创建的子界面。 */
@@ -126,6 +175,7 @@ export class PageGame extends BaseView.BindController(GameController) {
             this.board.node.destroy();
         }
         if (this.hud && isValid(this.hud.node)) {
+            this.hud.node.targetOff(this);
             this.hud.node.destroy();
         }
         this.board = null;

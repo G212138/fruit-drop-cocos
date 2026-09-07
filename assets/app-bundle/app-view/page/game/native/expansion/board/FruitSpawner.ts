@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Prefab, SpriteFrame, instantiate, isValid } from 'cc';
+import { _decorator, Component, Node, Prefab, instantiate, isValid } from 'cc';
 import { FloorFruit } from '../failure/FloorFailureRules';
 import { FruitItem } from '../fruit/FruitItem';
 import { FruitDefinition } from '../level/LevelDefinition';
@@ -7,16 +7,15 @@ const { ccclass, property } = _decorator;
 /** 水果实例集合，只实例化编辑器制作的预制体。 */
 @ccclass('FruitSpawner')
 export class FruitSpawner extends Component {
+    /** 预制体内的水果容器，局部原点与棋盘一致。 */
     @property(Node)
     fruitRoot: Node = null!;
 
-    @property(Prefab)
-    fruitPrefab: Prefab = null!;
+    /** 按原版类型制作的独立预制体，包含各自图片、尺寸和多边形碰撞体。 */
+    @property([Prefab])
+    fruitPrefabs: Prefab[] = [];
 
-    @property([SpriteFrame])
-    frames: SpriteFrame[] = [];
-
-    private readonly frameKinds = [21, 22, 6, 17];
+    /** 存活实例集合，消除时移除，重开时清空。 */
     private readonly live = new Set<FruitItem>();
 
     /** 返回存活数量，用于判断当前批次是否结束。 */
@@ -24,24 +23,34 @@ export class FruitSpawner extends Component {
         return this.live.size;
     }
 
-    /** 按关卡坐标实例化水果，并交由棋盘绑定事件。 */
+    /**
+     * 按关卡坐标实例化水果，并交由棋盘绑定事件。
+     * @param wave 整关水果定义列表，保留原配置顺序。
+     * @param onSpawned 每个水果实例化完成后绑定局部事件的回调。
+     */
     spawn(wave: FruitDefinition[], onSpawned: (fruit: FruitItem) => void): void {
         for (const definition of wave) {
-            const frame = this.frames[this.frameKinds.indexOf(definition.kind)];
-            if (!frame) {
-                throw new Error('水果缺少图片绑定：' + definition.kind);
-            }
-            const node = instantiate(this.fruitPrefab);
+            const prefab = this.fruitPrefabs.find(value => value.data.getComponent(FruitItem)?.kind === definition.kind);
+            if (!prefab) throw new Error('水果缺少预制体：' + definition.kind);
+            const node = instantiate(prefab);
             node.parent = this.fruitRoot;
             node.setPosition(definition.x, definition.y);
             const fruit = node.getComponent(FruitItem)!;
-            fruit.configure(definition.kind, frame);
+            fruit.configure(definition.kind);
             this.live.add(fruit);
             onSpawned(fruit);
         }
     }
 
-    /** 从存活集合移除已配对水果；表现结束后才销毁节点。 */
+    /** 获取仍未点击的存活水果，已下落水果不跟随补位。 */
+    getWaiting(): FruitItem[] {
+        return [...this.live].filter(fruit => fruit.waiting);
+    }
+
+    /**
+     * 从存活集合移除已配对水果；表现结束后才销毁节点。
+     * @param fruit 本次操作的水果实例。
+     */
     remove(fruit: FruitItem): void {
         this.live.delete(fruit);
     }

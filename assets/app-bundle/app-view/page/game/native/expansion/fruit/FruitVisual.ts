@@ -4,16 +4,23 @@ const { ccclass, property } = _decorator;
 /** 单体视觉组件，只控制预制体已有的图片节点。 */
 @ccclass('FruitVisual')
 export class FruitVisual extends Component {
+    /** 预制体内已有的水果图片组件。 */
     @property(Sprite)
     sprite: Sprite = null!;
 
-    /** 绑定原项目复制的水果图片并恢复缩放。 */
+    /**
+     * 绑定原项目复制的水果图片并恢复缩放。
+     * @param frame 从原项目复制并由 Creator 导入的水果图片。
+     */
     setFrame(frame: SpriteFrame): void {
         this.sprite.spriteFrame = frame;
         this.node.setScale(Vec3.ONE);
     }
 
-    /** 使用引擎补间播放可实际实现的消除反馈。 */
+    /**
+     * 使用引擎补间播放消除反馈。迁移适配值：先用 0.12 秒放大到 1.15 倍，再用 0.12 秒缩至零。
+     * @param onComplete 消除表现结束后释放水果节点的回调。
+     */
     playRemoval(onComplete: () => void): void {
         tween(this.node)
             .to(0.12, { scale: new Vec3(1.15, 1.15, 1) })
