@@ -119,8 +119,8 @@ assert.deepEqual(originalLevels.slice(0,4).map((source, index) => countFruits(pa
 assert.deepEqual(level.fruits[0], {kind:22,iceLayers:0,hidden:false,x:-189,y:1192});
 assert.deepEqual(level.fruits[6], {kind:21,iceLayers:0,hidden:false,x:-18,y:-122});
 assert.equal(countFruits(parseLevel(originalLevels[4], 5)), 92);
-assert.throws(() => parseLevel(originalLevels[11], 12), /尚未开放/);
-assert.throws(() => parseLevel({...originalLevels[0],m:2}), /模式/);
+assert.throws(() => parseLevel({...originalLevels[0],level:46}, 46), /尚未开放/);
+assert.throws(() => parseLevel({...originalLevels[0],m:3}), /模式/);
 assert.throws(() => parseLevel({...originalLevels[0],d:[{n:'21',h:'invalid',p:[0,0]}]}), /隐藏/);
 assert.throws(() => parseLevel({...originalLevels[0],d:[{n:'21',ice:-1,p:[0,0]}]}), /冰层/);
 assert.throws(() => parseLevel({...originalLevels[0],d:[{n:'21',p:[NaN,0]}]}), /坐标/);
@@ -183,3 +183,25 @@ assert.equal(blackLevel.fruits.length,originalLevels[14].d.length);
 assert.ok(blackLevel.fruits.some(fruit=>fruit.fatherBlackHoleId));
 assert.throws(()=>parseLevel({level:1,m:1,d:[{n:'1',p:[0,0],FatherBlackHoleID:3,SequenceID:1},{n:'1',p:[0,0]}]}),/宿主/);
 console.log('通过：黑洞原第十五关完整计数、成员引用、出现曲线与碰撞保护距离速度边界。');
+const {initialHorizontalShift,shiftAfterHorizontalDrop,consumeHorizontalShift,chooseHorizontalDrop}=load(expansion+'/movement/HorizontalRules.ts');
+assert.equal(initialHorizontalShift([-500,300],313),-137);
+assert.equal(initialHorizontalShift([-500,0],313),163);
+assert.equal(initialHorizontalShift([-100,0],313),0);
+assert.equal(shiftAfterHorizontalDrop([-800,-200],313),363);
+assert.equal(shiftAfterHorizontalDrop([-800,0],313),0);
+assert.deepEqual(consumeHorizontalShift(100,[-300],313,0.1),{delta:50,remaining:50});
+assert.deepEqual(consumeHorizontalShift(100,[0],313,0.1),{delta:0,remaining:0});
+assert.equal(chooseHorizontalDrop([{x:250,y:0,radius:40},{x:270,y:0,radius:40}],313,179,4,1023),1);
+assert.equal(chooseHorizontalDrop([{x:313,y:900,radius:40}],313,179,4,1023),-1);
+assert.equal(parseLevel({...originalLevels[11],level:1}).mode,2);
+console.log('通过：横向入场对齐、远端空缺补位、速度和边界截断、自动释放距离与高度筛选。');
+const physicsUnits=load(expansion+'/physics/PhysicsRules.ts');
+assert.equal(physicsUnits.PHYSICS_RULES.dropVelocityY,-9.375);
+assert.equal(physicsUnits.PHYSICS_RULES.settledSpeedSquared,25/1024);
+assert.ok(Math.abs(physicsUnits.PHYSICS_RULES.settledAngularSpeed-5*Math.PI/180)<1e-12);
+for (let index=0;index<originalLevels.length;index++) {
+    const parsed=parseLevel(originalLevels[index],index+1);
+    assert.equal(parsed.fruits.length,originalLevels[index].d.length);
+    assert.equal(parsed.mode,originalLevels[index].m);
+}
+console.log('通过：两代引擎速度单位换算、原版45关全部解析及水果总数与模式一致。');

@@ -2,6 +2,7 @@ import { instantiate, Prefab, Node, isValid, UITransform, ERigidBody2DType } fro
 import { FruitItem } from '../fruit/FruitItem';
 import { FruitDefinition } from '../level/LevelDefinition';
 import { BlackHoleView } from './BlackHoleView';
+import { PIXELS_PER_PHYSICS_METER, DEGREES_PER_RADIAN } from '../physics/PhysicsRules';
 import { BLACK_HOLE_SPAWN_DELAY, BLACK_HOLE_GROW_SECONDS, BLACK_HOLE_SETTLE_SECONDS, BLACK_HOLE_COLLISION_TIMEOUT,
     blackHoleAppearanceScale, blocksBlackHoleCollision } from './BlackHoleRules';
 
@@ -74,7 +75,8 @@ export class BlackHoleFlow {
         for (const group of this.groups.values()) group.view.moveTo(group.resident.node.position);
         const falling = live.filter(fruit => !fruit.removing && fruit.body.type === ERigidBody2DType.Dynamic).map(fruit => ({
             x: fruit.node.position.x, y: fruit.node.position.y, radius: this.radius(fruit),
-            speedSquared: fruit.body.linearVelocity.lengthSqr(), angularSpeed: Math.abs(fruit.body.angularVelocity),
+            speedSquared: fruit.body.linearVelocity.lengthSqr() * PIXELS_PER_PHYSICS_METER ** 2,
+            angularSpeed: Math.abs(fruit.body.angularVelocity) * DEGREES_PER_RADIAN,
         }));
         for (const [fruit, previous] of this.appearing) {
             const elapsed = previous + dt;

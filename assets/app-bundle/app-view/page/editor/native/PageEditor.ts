@@ -144,10 +144,6 @@ export class PageEditor extends BaseView {
     /** 校验草稿后启动独立试玩，胜利不解锁玩家关卡。 */
     trial(): void {
         try {
-            const data = this.draft.buildDocument();
-            if (data.m !== 1) {
-                throw new Error('横向试玩正在迁移，可先保存编辑数据');
-            }
             EditorSession.trial = this.draft.beginTrial();
             app.manager.ui.show({ name: 'PageGame' });
         } catch (error) {

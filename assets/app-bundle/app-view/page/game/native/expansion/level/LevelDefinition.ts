@@ -23,14 +23,16 @@ export interface FruitDefinition {
 export interface LevelDefinition {
     /** 从一开始的原始关卡序号。 */
     number: number;
+    /** 原版一为纵向补位，二为向右补位及边界自动释放。 */
+    mode: 1 | 2;
     /** 保留原配置顺序的水果列表。 */
     fruits: FruitDefinition[];
 }
 
 /** 原版首次生成时纵向增加七百设计像素，不是调难度参数。 */
 export const INITIAL_OFFSET_Y = 700;
-/** 已接入普通、隐藏和冰层机制的前十一个关卡；后续机制接入前禁止开放。 */
-export const SUPPORTED_LEVEL_COUNT = 11;
+/** 原版完整四十五关；普通、隐藏、冰层、黑洞和横向均已接入，逐关实玩验证仍单独记录。 */
+export const SUPPORTED_LEVEL_COUNT = 45;
 /** 原版完整三十种水果编号，必须具有对应预制体。 */
 export const SUPPORTED_FRUIT_KINDS = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30];
 
@@ -44,7 +46,7 @@ export function parseLevel(value: unknown, number = 1): LevelDefinition {
         throw new Error('第 '+number+' 关尚未开放，特殊机制正在迁移');
     }
     const source = value as { level: number; m: number; d: Record<string, unknown>[] };
-    if (!source || source.level !== number || source.m !== 1 || !Array.isArray(source.d) || !source.d.length) {
+    if (!source || source.level !== number || (source.m !== 1 && source.m !== 2) || !Array.isArray(source.d) || !source.d.length) {
         throw new Error('关卡编号、移动模式或水果列表无效');
     }
     const counts = new Map<number, number>();
@@ -80,7 +82,7 @@ export function parseLevel(value: unknown, number = 1): LevelDefinition {
         sequences.add(key);
     }
     if ([...counts.values()].some(count => count % 2)) throw new Error('同类水果数量必须成对');
-    return { number, fruits };
+    return { number, mode: source.m, fruits };
 }
 
 /** @param value 原配置黑洞编号或顺序；省略表示无此属性，存在时必须为正整数。 */

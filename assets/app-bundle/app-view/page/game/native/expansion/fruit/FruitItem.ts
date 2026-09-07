@@ -91,7 +91,7 @@ export class FruitItem extends Component {
     drop(): void {
         this.released = true;
         this.body.type = ERigidBody2DType.Dynamic;
-        // 沿用原版释放速度值；Creator 2D 线速度接口使用物理米每秒。
+        // 原版像素每秒已经在 PhysicsRules 换算为 Creator 3.8 所需的物理米每秒。
         this.body.linearVelocity = new Vec2(0, PHYSICS_RULES.dropVelocityY);
         this.body.wakeUp();
     }
@@ -119,7 +119,7 @@ export class FruitItem extends Component {
         if (fruit) this.node.emit(BoardEvents.FruitContactBegan, this, fruit);
     }
 
-    /** 提供判负快照，沿用原版线速度平方二十五和角速度五的静止阈值。 */
+    /** 提供判负快照，原版像素与度的静止阈值已换算为米与弧度。 */
     getFloorSnapshot(): FloorFruit {
         const velocity = this.body.linearVelocity;
         return {

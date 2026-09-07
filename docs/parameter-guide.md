@@ -12,9 +12,9 @@
 | speed | 300 | 距离除以该值计算动画秒数；正弦缓出，所以不是实际匀速 | animateShiftUnclickedBalls |
 | minDuration / maxDuration | 0.2 / 1.2 | 补位时间上下限，单位秒；调大会延长输入锁定时间 | 同上 |
 | PHYSICS_RULES.gravityY | -1600 | 向下重力，单位设计像素每平方秒；引擎内部按像素米比例转换 | 原 GameSc |
-| dropVelocityY | -300 | 释放时线速度，单位物理米每秒；保持原始设置值，引擎另有限速 | 原 dropBallNode；核对 3.8.8 Box2D 实现 |
-| settledSpeedSquared | 25 | 线速度平方不超过该值才视为静止，单位为物理米每秒的平方 | areDynamicBallsSettled |
-| settledAngularSpeed | 5 | 角速度绝对值上限，单位弧度每秒 | 同上；核对 3.8.8 RigidBody2D 文档 |
+| dropVelocityY | -300 / 32 = -9.375 | 原版像素/秒转换为3.8米/秒，负数向下 | 2.4.15 CCRigidBody.linearVelocity 与3.8.8 setLinearVelocity 源码 |
+| settledSpeedSquared | 25 / 1024 | 原版像素速度平方转换为米速度平方，严格静止判定 | 两代引擎速度接口源码 |
+| settledAngularSpeed | 5 × π / 180 | 原版5度/秒转换为弧度/秒 | 2.4.15 CCRigidBody.angularVelocity 与3.8.8接口源码 |
 | canMatch.limit | -80 | 双方 y 都必须严格低于此线；不是水果数量 | BallSc.onPreSolve |
 | FLOOR_RULES.bottomY | -250 | 底部接触排序采用的高度线，单位设计像素 | canEliminateNow |
 | normalThreshold | 4 | 普通槽判负数量；纯规则也接受扩槽的 5，当前无扩槽操作 | getLoseFloorBallThreshold |

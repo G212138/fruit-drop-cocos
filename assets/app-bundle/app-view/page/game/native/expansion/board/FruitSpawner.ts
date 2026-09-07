@@ -111,6 +111,11 @@ export class FruitSpawner extends Component {
         return [...this.live].filter(fruit => fruit.waiting);
     }
 
+    /** 返回所有未消除的在场水果，供横向补位计算最左边界。 */
+    getLive(): FruitItem[] {
+        return [...this.live];
+    }
+
     /**
      * 从存活集合移除已配对水果；表现结束后才销毁节点。
      * @param fruit 本次操作的水果实例。

@@ -240,7 +240,11 @@ const methods = {
             const name = definition.kind === 21 ? 'FruitItem' : 'Fruit' + String(definition.kind).padStart(2, '0');
             spawner.fruitPrefabs.push(await asset(base + 'page/game/resources/prefabs/' + name + '.prefab'));
         }
-        root.addComponent('GameBoard').spawner = spawner;
+        const board = root.addComponent('GameBoard');
+        board.spawner = spawner;
+        board.leftBoundary = root.getChildByName('LeftEdge');
+        board.rightLine = await sprite('RightLine',root,base + 'page/game/resources/textures/right-line.png',4,1023,313.357,179.307);
+        board.rightLine.active = false;
         return save(root, base + 'page/game/resources/prefabs/GameBoard.prefab');
     },
 
