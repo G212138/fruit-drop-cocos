@@ -1,0 +1,400 @@
+{
+  "source": "E:/Pc/Downloads/逆向_缤纷消水果_2.4.15js/逆向_缤纷消水果_2.4.15js",
+  "scenePath": "assets/scene/watermelon/watermelonGame.fire",
+  "resources": [
+    {
+      "role": "mask",
+      "sceneNodeIndex": 130,
+      "source": "C:/ProgramData/cocos/editors/Creator/2.4.15/resources/static/default-assets/image/default_sprite_splash.png",
+      "spriteUuid": "a23235d1-15db-4b95-8439-a2e005bfff91",
+      "sha256": "83c9b8ce1937570a40bcedde29457a4ab7865ca1db23a46d2d68e6b1949f3c28",
+      "size": {
+        "__type__": "cc.Size",
+        "width": 750,
+        "height": 2000
+      },
+      "transform": null,
+      "color": {
+        "__type__": "cc.Color",
+        "a": 255,
+        "b": 0,
+        "g": 0,
+        "r": 0
+      },
+      "opacity": 120
+    },
+    {
+      "role": "panel",
+      "sceneNodeIndex": 134,
+      "source": "assets/_res/main/textures/watermelonGame/_idx1/Bg.png",
+      "spriteUuid": "ea6e6854-7af0-4ff2-99b8-ed2a5d2a1df8",
+      "sha256": "e3d7d3ac73d8e21ea7b05dd3a3c09727f25a0aa30aa45b047f8e03d138beb26c",
+      "size": {
+        "__type__": "cc.Size",
+        "width": 627,
+        "height": 621
+      },
+      "transform": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        0.6
+      ],
+      "color": null,
+      "opacity": 255
+    },
+    {
+      "role": "title",
+      "sceneNodeIndex": 136,
+      "source": "assets/_res/main/textures/watermelonGame/_idx1/Settings.png",
+      "spriteUuid": "c466d794-a904-40a0-9ad8-d51e128603d6",
+      "sha256": "72617d907764322f3ab46021e9c007e125c824b68e7274c4f7e24e248c41ec01",
+      "size": {
+        "__type__": "cc.Size",
+        "width": 122,
+        "height": 64
+      },
+      "transform": [
+        0,
+        258.778,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        0.6
+      ],
+      "color": null,
+      "opacity": 255
+    },
+    {
+      "role": "vibrate-icon",
+      "sceneNodeIndex": 139,
+      "source": "assets/_res/main/textures/watermelonGame/MusicSp2.png",
+      "spriteUuid": "9336607a-b99b-4976-8441-8d3b2205b9af",
+      "sha256": "b7e1e1be86ab3d54b5b9418a1c61063ff003d03e504e71830a01307b582c2fca",
+      "size": {
+        "__type__": "cc.Size",
+        "width": 84,
+        "height": 84
+      },
+      "transform": [
+        -161.063,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ],
+      "color": null,
+      "opacity": 255
+    },
+    {
+      "role": "vibrate-text",
+      "sceneNodeIndex": 141,
+      "source": "assets/_res/main/textures/watermelonGame/MusicText2.png",
+      "spriteUuid": "5c14ae10-5051-40ca-aca9-1fc5cd694b59",
+      "sha256": "7073b8c63c40715cb38a8b2fb7a37eed614416f6a9080792cd399d2f8f83a641",
+      "size": {
+        "__type__": "cc.Size",
+        "width": 86,
+        "height": 44
+      },
+      "transform": [
+        0,
+        -2.699,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ],
+      "color": null,
+      "opacity": 255
+    },
+    {
+      "role": "switch-on",
+      "sceneNodeIndex": 143,
+      "source": "assets/_res/main/textures/watermelonGame/OpenBtn.png",
+      "spriteUuid": "658a281e-437d-4986-ab2c-d8994f907a3b",
+      "sha256": "796b6644edb8be8c8acb7eb4673e051416c276c15c6e4a085774bfb6c0c7fc34",
+      "size": {
+        "__type__": "cc.Size",
+        "width": 201,
+        "height": 75
+      },
+      "transform": [
+        192.363,
+        -7.699,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ],
+      "color": null,
+      "opacity": 255
+    },
+    {
+      "role": "switch-off",
+      "sceneNodeIndex": 144,
+      "source": "assets/_res/main/textures/watermelonGame/GreyBtn.png",
+      "spriteUuid": "a991b582-ba50-4e6c-89ea-c7360b0c3e68",
+      "sha256": "c09bd40df8a4879ae2f44653f5aab374041302869f67685c217a5c500344ebb1",
+      "size": {
+        "__type__": "cc.Size",
+        "width": 195,
+        "height": 85
+      },
+      "transform": [
+        -3.917,
+        0.653,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ],
+      "color": null,
+      "opacity": 255
+    },
+    {
+      "role": "sound-icon",
+      "sceneNodeIndex": 151,
+      "source": "assets/_res/main/textures/watermelonGame/MusicSp3.png",
+      "spriteUuid": "6613d077-3f6f-4fd8-a62b-9975f69ad19c",
+      "sha256": "19291bdfcb027c79fd4791574d9827eaadaa2a9a8efe83ea02e1d7a5e87db77d",
+      "size": {
+        "__type__": "cc.Size",
+        "width": 84,
+        "height": 72
+      },
+      "transform": [
+        -165.202,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ],
+      "color": null,
+      "opacity": 255
+    },
+    {
+      "role": "sound-text",
+      "sceneNodeIndex": 153,
+      "source": "assets/_res/main/textures/watermelonGame/MusicText3.png",
+      "spriteUuid": "307cf41f-d914-4805-90c7-1b010ef143e4",
+      "sha256": "8be89a0347cfcaf90290ede2e1d599ace12d1a68753aace1fed44cd2fb11f74c",
+      "size": {
+        "__type__": "cc.Size",
+        "width": 87,
+        "height": 45
+      },
+      "transform": [
+        -5.526,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ],
+      "color": null,
+      "opacity": 255
+    },
+    {
+      "role": "music-icon",
+      "sceneNodeIndex": 163,
+      "source": "assets/_res/main/textures/watermelonGame/MusicSp1.png",
+      "spriteUuid": "020cd2e2-b235-4555-bfa1-93aafc2eef40",
+      "sha256": "6b658c0972a2aa03745a61d9bb18bcd1635e18dd413857ed94da6215afc6f5d2",
+      "size": {
+        "__type__": "cc.Size",
+        "width": 79,
+        "height": 87
+      },
+      "transform": [
+        -168.103,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ],
+      "color": null,
+      "opacity": 255
+    },
+    {
+      "role": "music-text",
+      "sceneNodeIndex": 165,
+      "source": "assets/_res/main/textures/watermelonGame/MusicText1.png",
+      "spriteUuid": "865461b1-6829-47f1-b934-4544d5afbdf8",
+      "sha256": "dc71dd4dcc2796c8818aa0c355d8c326e3ce5ec20377bb9bd2d228ff2f33e67d",
+      "size": {
+        "__type__": "cc.Size",
+        "width": 86,
+        "height": 45
+      },
+      "transform": [
+        -5.526,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ],
+      "color": null,
+      "opacity": 255
+    },
+    {
+      "role": "home-button",
+      "sceneNodeIndex": 175,
+      "source": "assets/_res/main/textures/watermelonGame/ReturnBtn.png",
+      "spriteUuid": "0183d854-8f8a-4fff-b6ea-1557a60e93fc",
+      "sha256": "473d0113c35b98257bce1d3701bd06f77cbd839c826ec25155450f2e9214b805",
+      "size": {
+        "__type__": "cc.Size",
+        "width": 327,
+        "height": 124
+      },
+      "transform": [
+        0,
+        113,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      "color": null,
+      "opacity": 255
+    },
+    {
+      "role": "restart-button",
+      "sceneNodeIndex": 179,
+      "source": "assets/_res/main/textures/watermelonGame/btn橙色.png",
+      "spriteUuid": "ce175996-1955-4ac6-b9b8-b224ba283d43",
+      "sha256": "2a469d48c0bfc3d14c2ae5bf967525fefeae5d8124cd18973db7a9e0c23072c1",
+      "size": {
+        "__type__": "cc.Size",
+        "width": 327,
+        "height": 124
+      },
+      "transform": [
+        0,
+        -31,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      "color": null,
+      "opacity": 255
+    },
+    {
+      "role": "continue-button",
+      "sceneNodeIndex": 183,
+      "source": "assets/_res/main/textures/watermelonGame/btn绿色.png",
+      "spriteUuid": "557ec534-5be0-4509-9dcc-77191c7e2728",
+      "sha256": "9dd3d16563ef0f7cebe7181a766935ef25d950dbe7e9b9b0d4759a3fa9773405",
+      "size": {
+        "__type__": "cc.Size",
+        "width": 327,
+        "height": 124
+      },
+      "transform": [
+        0,
+        -175,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      "color": null,
+      "opacity": 255
+    }
+  ],
+  "buttonEvents": [
+    {
+      "index": 178,
+      "event": {
+        "__type__": "cc.ClickEvent",
+        "_componentId": "66147TonVtO4rrffKA/Kbov",
+        "handler": "backHome",
+        "target": {
+          "__id__": 129
+        }
+      }
+    },
+    {
+      "index": 182,
+      "event": {
+        "__type__": "cc.ClickEvent",
+        "_componentId": "a24e3sZyp9GJoX+eE54dcEO",
+        "handler": "replay",
+        "target": {
+          "__id__": 29
+        }
+      }
+    },
+    {
+      "index": 186,
+      "event": {
+        "__type__": "cc.ClickEvent",
+        "_componentId": "66147TonVtO4rrffKA/Kbov",
+        "handler": "close",
+        "target": {
+          "__id__": 129
+        }
+      }
+    }
+  ]
+}

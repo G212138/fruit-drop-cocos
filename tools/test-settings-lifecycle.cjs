@@ -1,0 +1,28 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const ts = require('C:/ProgramData/cocos/editors/Creator/3.8.8/resources/app.asar.unpacked/node_modules/typescript');
+/** 模拟子节点事件系统在父组件销毁前释放的顺序。 */
+function row() {
+    return {valid:true,listeners:[],on(event,fn,target){this.listeners.push({event,fn,target});},
+        targetOff(target){if(!this.valid)throw new Error('已销毁事件系统');this.listeners=this.listeners.filter(item=>item.target!==target);}};
+}
+const pending = new Map();
+const cc = {_decorator:{ccclass:()=>value=>value,property:()=>()=>{}},Component:class{},
+    isValid:value=>!!value?.valid,Tween:{stopAllByTarget:target=>pending.delete(target)},
+    tween:target=>{const chain={to:()=>chain,call:fn=>{pending.set(target,fn);return chain;},start:()=>{}};return chain;}};
+const output=ts.transpileModule(fs.readFileSync('assets/app-bundle/app-view/page/game/native/expansion/settings/SettingsPanel.ts','utf8'),{
+    compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.CommonJS,experimentalDecorators:true}}).outputText;
+const result={};new Function('require','exports',output)(name=>name==='cc'?cc:{},result);
+const panel=new result.SettingsPanel();
+panel.musicRow=row();panel.soundRow=row();panel.vibrateRow=row();panel.content={};panel.opacity={};
+const events=[];panel.node={active:true,emit:(...event)=>events.push(event)};
+panel.onEnable();panel.onDisable();panel.onEnable();
+assert.equal(panel.musicRow.listeners.length,1,'重复打开不能重复绑定');
+panel.restartGame();panel.returnHome();
+pending.get(panel.opacity)();
+assert.deepEqual(events,[['settings-action','restart']],'关闭期间导航只处理第一次点击');
+panel.onDisable();
+assert.equal(panel.musicRow.listeners.length,0);
+for(const item of [panel.musicRow,panel.soundRow,panel.vibrateRow])item.valid=false;
+assert.doesNotThrow(()=>panel.onDestroy(),'父组件销毁不能再访问已释放的子事件系统');
+console.log('通过：面板重复启停、关闭去重、监听解除及先销毁子节点的清理顺序。');

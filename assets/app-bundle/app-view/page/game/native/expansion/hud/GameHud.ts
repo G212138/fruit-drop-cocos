@@ -45,6 +45,11 @@ export class GameHud extends Component {
         this.node.emit('return-home');
     }
 
+    /** 预制体设置按钮通知页面打开独立设置面板。 */
+    settings(): void {
+        this.node.emit('open-settings');
+    }
+
     /** 预制体重玩按钮发布明确操作，不静默替换未支持关卡。 */
     replay(): void {
         this.node.emit('replay-first');

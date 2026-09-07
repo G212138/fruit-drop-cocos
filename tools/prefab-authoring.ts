@@ -269,6 +269,52 @@ const methods = {
     },
 
     /** 制作独立 HUD；错误说明与导航按钮始终由预制体提供。 */
+    async createSettings() {
+        const textures = base + 'page/game/resources/textures/settings/';
+        const prefabs = base + 'page/game/resources/prefabs/';
+        for (const [kind, width, height, iconX, textX, textY, switchX, switchY] of [
+            ['Music',79,87,-168.103,-5.526,0,190.631,-5],
+            ['Sound',84,72,-165.202,-5.526,0,190.631,-5],
+            ['Vibrate',84,84,-161.063,0,-2.699,192.363,-7.699]
+        ]) {
+            const root = node('Settings' + kind + 'Row',null,580,100);
+            const row = root.addComponent('SettingsToggleView');
+            await sprite('Icon',root,textures+kind.toLowerCase()+'-icon.png',width,height,iconX,0);
+            await sprite('Text',root,textures+kind.toLowerCase()+'-text.png',kind==='Sound'?87:86,kind==='Vibrate'?44:45,textX,textY);
+            const toggle = await sprite('Switch',root,textures+'switch-on.png',201,75,switchX,switchY);
+            row.switchPicture = toggle.getComponent(cc.Sprite);
+            row.onFrame = await asset(textures+'switch-on.png',true);
+            row.offFrame = await asset(textures+'switch-off.png',true);
+            const event = new cc.EventHandler();
+            event.target=root;event.component='SettingsToggleView';event.handler='requestToggle';
+            toggle.addComponent(cc.Button).clickEvents=[event];
+            await save(root,prefabs+'Settings'+kind+'Row.prefab');
+        }
+        const root = node('SettingsPanel');
+        const panel = root.addComponent('SettingsPanel');
+        panel.opacity = root.addComponent(cc.UIOpacity);
+        const mask = await sprite('Mask',root,textures+'mask.png',750,2000);
+        mask.getComponent(cc.Sprite).color = new cc.Color(0,0,0,120);
+        mask.addComponent(cc.BlockInputEvents);
+        panel.content = node('Content',root,750,1334,0,150);
+        await sprite('Background',panel.content,textures+'panel.png',627,621);
+        await sprite('Title',panel.content,textures+'title.png',122,64,0,258.778);
+        for (const [kind,y,field] of [['Music',119.913,'musicRow'],['Sound',-22.3,'soundRow'],['Vibrate',-156.274,'vibrateRow']]) {
+            const row=cc.instantiate(await asset(prefabs+'Settings'+kind+'Row.prefab'));
+            // 布局由普通容器序列化，避免嵌套预制体实例的位置覆盖在保存时丢失。
+            const holder=node(kind+'Layout',panel.content,580,100,-13.807,y);
+            row.parent=holder;panel[field]=row;
+        }
+        for (const [name,file,y,handler] of [['Home','home-button',-393.855,'returnHome'],['Restart','restart-button',-537.855,'restartGame'],['Continue','continue-button',-681.855,'continueGame']]) {
+            const target=await sprite(name,panel.content,textures+file+'.png',327,124,0,y);
+            const event=new cc.EventHandler();event.target=root;event.component='SettingsPanel';event.handler=handler;
+            const control=target.addComponent(cc.Button);control.transition=cc.Button.Transition.SCALE;control.zoomScale=0.94;control.clickEvents=[event];
+        }
+        panel.warningLabel=label('Warning',panel.content,'',22,-258,560);
+        return save(root,prefabs+'SettingsPanel.prefab');
+    },
+
+    /** 制作独立 HUD；所有按钮及事件在编辑器绑定。 */
     async createHud() {
         const root = node('GameHud');
         const component = root.addComponent('GameHud');
@@ -289,6 +335,10 @@ const methods = {
         }
         component.replayButton = replay;
         replay.active = false;
+        const settings=label('SettingsButton',root,'设置',28,595,100).node;
+        settings.setPosition(300,595,0);
+        const settingsEvent=new cc.EventHandler();settingsEvent.target=root;settingsEvent.component='GameHud';settingsEvent.handler='settings';
+        settings.addComponent(cc.Button).clickEvents=[settingsEvent];
         return save(root, base + 'page/game/resources/prefabs/GameHud.prefab');
     },
 

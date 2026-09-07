@@ -1,4 +1,5 @@
 import { _decorator, Component, Label, sp, Tween, tween, Vec3, AudioSource, AudioClip } from 'cc';
+import { GameSettings } from '../../../../../../../app-builtin/app-model/expansion/GameSettings';
 const { ccclass, property } = _decorator;
 
 /** 独立冰层预制体表现：只接收剩余层数，不负责消除或下落判定。 */
@@ -37,7 +38,7 @@ export class IceFruitView extends Component {
             this.broken = true;
             this.countLabel.node.active = false;
             this.skeleton.setAnimation(0, '2', false);
-            if (this.breakClip) this.audio.playOneShot(this.breakClip);
+            if (this.breakClip && GameSettings.current.snapshot.sound) this.audio.playOneShot(this.breakClip);
             // 沿用原版两秒兜底清理，防止骨骼完成事件丢失。
             this.scheduleOnce(this.hide, 2);
             this.skeleton.setCompleteListener(() => this.hide());

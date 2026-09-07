@@ -6,6 +6,9 @@ import { GameController } from '../../../../../app-builtin/app-controller/GameCo
 import { GameBoard } from './expansion/board/GameBoard';
 import { BoardEvents } from './expansion/board/BoardEvents';
 import { GameHud } from './expansion/hud/GameHud';
+import { SettingsPanel } from './expansion/settings/SettingsPanel';
+import { GameSettings } from '../../../../../app-builtin/app-model/expansion/GameSettings';
+import { PreferencesSnapshot } from '../../../../../app-builtin/app-model/expansion/GamePreferences';
 import { countFruits, parseLevel, loadCampaignLevel } from './expansion/level/LevelDefinition';
 const { ccclass, property } = _decorator;
 
@@ -24,6 +27,10 @@ export class PageGame extends BaseView.BindController(GameController) {
     private board: GameBoard | null = null;
     /** 独立 HUD 实例，所有标签由预制体绑定。 */
     private hud: GameHud | null = null;
+    /** 本显示周期独立设置面板，关闭后保留至页面退出。 */
+    private settings: SettingsPanel | null = null;
+    /** 独立音频副作用协调器，不改变本局游戏状态。 */
+    private readonly settingsController = app.controller.settings;
     /** 异步加载代次，拒绝上一局迟到的回调。 */
     private generation = 0;
     /** 是否已打开本局结算，防止重复弹窗。 */
@@ -47,10 +54,12 @@ export class PageGame extends BaseView.BindController(GameController) {
         this.ended = false;
         this.ready = false;
         this.releaseChildren();
+        this.settingsController.begin();
         this.controller.targetOff(this);
         this.controller.on(GameController.Event.Changed, this.refreshState, this);
         this.loadBoard(generation);
         this.loadHud(generation);
+        this.loadSettings(generation);
     }
 
     /**
@@ -121,6 +130,7 @@ export class PageGame extends BaseView.BindController(GameController) {
             this.hud = node.getComponent(GameHud);
             node.on('return-home', this.returnHome, this);
             node.on('replay-first', this.replayFirst, this);
+            node.on('open-settings', this.openSettings, this);
             this.refreshState();
         });
     }
@@ -168,6 +178,42 @@ export class PageGame extends BaseView.BindController(GameController) {
         app.manager.ui.show({ name: EditorSession.trial ? 'PageEditor' : 'PageHome' });
     }
 
+    /** @param generation 当前显示代次，过期加载不能挂回已经退出的页面。 */
+    private loadSettings(generation: number): void {
+        this.loadRes('prefabs/SettingsPanel', Prefab, prefab => {
+            if (!this.isCurrent(generation)) return;
+            if (!prefab) {
+                this.reportLoadError('设置预制体加载失败');
+                return;
+            }
+            const node = instantiate(prefab);
+            node.active = false;
+            node.parent = this.hudRoot;
+            this.settings = node.getComponent(SettingsPanel);
+            node.on('setting-request', this.changeSetting, this);
+            node.on('settings-action', this.settingsAction, this);
+        });
+    }
+
+    /** 打开原版设置面板；其遮罩阻止点击穿透，但不暂停物理和计时。 */
+    private openSettings(): void {
+        if (!this.settings || !this.ready || this.ended) return;
+        this.settings.node.setSiblingIndex(this.hudRoot.children.length - 1);
+        this.settings.open(GameSettings.current.snapshot, GameSettings.current.warning);
+    }
+
+    /** @param key 独立设置行请求变更的设置项。 */
+    private changeSetting(key: keyof PreferencesSnapshot): void {
+        const warning = this.settingsController.toggle(key);
+        this.settings?.render(GameSettings.current.snapshot, warning);
+    }
+
+    /** @param action 面板淡出后的导航意图；重开使用当前正式关或当前试玩配置。 */
+    private settingsAction(action: 'continue' | 'home' | 'restart'): void {
+        if (action === 'home') this.returnHome();
+        else if (action === 'restart') this.onShow({ level: this.levelNumber });
+    }
+
     /** 未开放关卡提供明确的重玩入口，不修改已保存进度。 */
     private replayFirst(): void {
         this.onShow({ level: 1 });
@@ -175,6 +221,12 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 解除旧局监听并释放通过预制体创建的子界面。 */
     private releaseChildren(): void {
+        this.settingsController.end();
+        if (this.settings && isValid(this.settings.node)) {
+            this.settings.node.targetOff(this);
+            this.settings.node.destroy();
+        }
+        this.settings = null;
         if (this.board && isValid(this.board.node)) {
             this.board.clear();
             this.board.node.targetOff(this);

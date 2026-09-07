@@ -16,14 +16,15 @@ export type IEffectNames = IEffectName[]
 
 import store_game from '../app-model/store.game'
 import {GameController} from '../app-controller/GameController'
+import {SettingsController} from '../app-controller/SettingsController'
 import EventManager from '../../../extensions/app/assets/manager/event/EventManager'
 import LoaderManager from '../../../extensions/app/assets/manager/loader/LoaderManager'
 import SoundManager from '../../../extensions/app/assets/manager/sound/SoundManager'
 import TimerManager from '../../../extensions/app/assets/manager/timer/TimerManager'
 import UIManager from '../../../extensions/app/assets/manager/ui/UIManager'
 export type IApp = {
-    Controller: {Game:typeof GameController},
-    controller: {game:IReadOnly<GameController>},
+    Controller: {Game:typeof GameController,Settings:typeof SettingsController},
+    controller: {game:IReadOnly<GameController>,settings:IReadOnly<SettingsController>},
     Manager: {Event:Omit<typeof EventManager,keyof Component>,Loader:Omit<typeof LoaderManager,keyof Component>,Sound:Omit<typeof SoundManager,keyof Component>,Timer:Omit<typeof TimerManager,keyof Component>,UI:Omit<typeof UIManager,keyof Component>},
     manager: {event:Omit<EventManager,keyof Component>,loader:Omit<LoaderManager,keyof Component>,sound:Omit<SoundManager<IEffectName,IMusicName>,keyof Component>,timer:Omit<TimerManager,keyof Component>,ui:Omit<UIManager<IViewName,IMiniViewName>,keyof Component>},
     data: {},
@@ -36,8 +37,8 @@ if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) Object.assign(app.config, {})
 if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) Object.assign(app.data, {})
 if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) Object.assign(app.store, {game:new store_game()})
 
-if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) Object.assign(app.Controller, {Game:GameController})
-if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) Object.assign(app.controller, {game:new GameController()})
+if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) Object.assign(app.Controller, {Game:GameController,Settings:SettingsController})
+if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) Object.assign(app.controller, {game:new GameController(),settings:new SettingsController()})
 }
 if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) director.on(Director.EVENT_RESET,init)
 if(!EDITOR||!EDITOR_NOT_IN_PREVIEW) init()
