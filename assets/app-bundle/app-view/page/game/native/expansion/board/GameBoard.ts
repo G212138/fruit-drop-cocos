@@ -1,5 +1,7 @@
 import { _decorator, Component, PhysicsSystem2D, Vec2, Node, RigidBody2D, UITransform } from 'cc';
 import { EntryFlow } from '../movement/EntryFlow';
+import { LevelHintView } from '../hint/LevelHintView';
+import { chooseHint } from '../hint/HintRules';
 import { HorizontalFlow } from '../movement/HorizontalFlow';
 import { PHYSICS_RULES } from '../physics/PhysicsRules';
 import { FloorFailureRules } from '../failure/FloorFailureRules';
@@ -14,6 +16,13 @@ const { ccclass, property } = _decorator;
 /** 棋盘只协调配对、补位与判负，不包含 UI 布局和单体表现。 */
 @ccclass('GameBoard')
 export class GameBoard extends Component {
+    /** 独立原版机制提示，展示结束后才推进水果入场。 */
+    @property(Node)
+    levelHintRoot: Node = null!;
+    /** 从序列化的独立提示节点读取运行时组件，避免编辑器跨预制体脚本引用丢失。 */
+    private get levelHint(): LevelHintView | null {
+        return this.levelHintRoot?.getComponent(LevelHintView) ?? null;
+    }
     /** 预制体绑定的水果实例管理器，负责生成和清理整关水果。 */
     @property(FruitSpawner)
     spawner: FruitSpawner = null!;
@@ -29,6 +38,8 @@ export class GameBoard extends Component {
     private readonly horizontal = new HorizontalFlow();
     /** 独立开局入场动画与输入锁。 */
     private readonly entry = new EntryFlow();
+    /** 提示和入场完成后，只执行一次初始纵向补位。 */
+    private initialShiftPending = false;
 
     /** 本帧匹配去重队列，先锁定双方再延迟结算。 */
     private readonly matches = new MatchQueue<FruitItem>();
@@ -61,7 +72,9 @@ export class GameBoard extends Component {
         const size = this.node.getComponent(UITransform)!.contentSize;
         this.entry.begin(this.spawner.getWaiting(), this.mode, { left: -size.width / 2, top: size.height / 2 });
         this.spawner.updateBlackHoles(0);
-        if (!this.entry.busy && this.mode === 1) this.shift.begin(this.spawner.getWaiting());
+        if (!this.levelHint) throw new Error('关卡提示预制体绑定缺失');
+        this.levelHint.play(chooseHint(level));
+        this.initialShiftPending = this.mode === 1;
     }
 
     /**
@@ -79,7 +92,7 @@ export class GameBoard extends Component {
      * @param fruit 本次操作的水果实例。
      */
     private release(fruit: FruitItem): void {
-        if (this.playing && !this.entry.busy && !this.shift.busy && fruit.waiting && !fruit.spawning && fruit.iceLayers === 0) {
+        if (this.playing && !this.levelHint?.busy && !this.entry.busy && !this.shift.busy && fruit.waiting && !fruit.spawning && fruit.iceLayers === 0) {
             this.spawner.releaseBlackHole(fruit);
             fruit.drop();
             if (this.mode === 2) this.horizontal.afterDrop(this.spawner.getWaiting(), this.rightLine);
@@ -113,11 +126,15 @@ export class GameBoard extends Component {
      */
     lateUpdate(dt: number): void {
         if (!this.playing) return;
+        if (this.levelHint?.busy) return;
         if (this.entry.busy) {
-            const completed = this.entry.tick(dt);
+            this.entry.tick(dt);
             this.spawner.updateBlackHoles(0);
-            if (completed && this.mode === 1) this.shift.begin(this.spawner.getWaiting());
             return;
+        }
+        if (this.initialShiftPending) {
+            this.initialShiftPending = false;
+            this.shift.begin(this.spawner.getWaiting());
         }
         if (this.mode === 2) this.horizontal.tick(dt, this.spawner.getLive(), this.spawner.getWaiting(), this.rightLine, fruit => this.release(fruit));
         this.spawner.updateBlackHoles(dt);
@@ -152,6 +169,7 @@ export class GameBoard extends Component {
 
     /** 停止棋盘输入和本局水果模拟。 */
     stop(): void {
+        this.levelHint?.stop();
         this.entry.cancel();
         this.horizontal.reset();
         this.playing = false;
@@ -164,6 +182,8 @@ export class GameBoard extends Component {
 
     /** 清理旧局实例及排队通知。 */
     clear(): void {
+        this.initialShiftPending = false;
+        this.levelHint?.stop();
         this.entry.cancel();
         this.horizontal.reset();
         this.playing = false;

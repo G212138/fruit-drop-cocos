@@ -209,6 +209,22 @@ const methods = {
         return save(root,base + 'page/game/resources/prefabs/BlackHoleView.prefab');
     },
 
+    /** 按原 Hint 预制体尺寸与文字位置制作机制提示。 */
+    async createLevelHint() {
+        const root = node('LevelHintView', null, 492, 223, 0, 200);
+        const view = root.addComponent('LevelHintView');
+        view.picture = root.addComponent(cc.Sprite);
+        view.picture.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+        view.frames = [];
+        for (const name of ['vertical', 'horizontal', 'hidden', 'ice', 'black-hole']) {
+            view.frames.push(await asset(base + 'page/game/resources/textures/hints/' + name + '.png', true));
+        }
+        view.picture.spriteFrame = view.frames[0];
+        view.hiddenText = await sprite('HiddenText', root, base + 'page/game/resources/textures/hints/hidden-fruit-text.png', 347, 45, 0, -45.175);
+        view.hiddenText.active = false;
+        return save(root, base + 'page/game/resources/prefabs/LevelHintView.prefab');
+    },
+
     /** 使用原场景地形多边形和锁墙，取代验证版简化墙体。 */
     async createBoard() {
         const root = node('GameBoard');
@@ -245,6 +261,10 @@ const methods = {
         board.leftBoundary = root.getChildByName('LeftEdge');
         board.rightLine = await sprite('RightLine',root,base + 'page/game/resources/textures/right-line.png',4,1023,313.357,179.307);
         board.rightLine.active = false;
+        const hint = cc.instantiate(await asset(base + 'page/game/resources/prefabs/LevelHintView.prefab'));
+        hint.parent = root;
+        board.levelHintRoot = hint;
+        hint.active = false;
         return save(root, base + 'page/game/resources/prefabs/GameBoard.prefab');
     },
 
