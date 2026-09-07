@@ -65,11 +65,9 @@ export class BoardReviveFlow {
         const plan = planRevivePlacement(restored.map(fruit => this.circle(fruit, spawner)),
             waiting.map(fruit => this.circle(fruit, spawner)), spawner.getBlackHoleCenterYs());
         for (const fruit of [...waiting, ...restored]) {
-            const definition = spawner.getDefinition(fruit);
-            // 原版宿主移动半量；容器内成员同时获得容器与自身半量，扁平实例合为全量。
-            const ratio = definition.blackHoleId ? 0.5 : 1;
+            // 原版容器与其静态子水果各移动半量，宿主同样在容器内；扁平实例合为全量。
             const position = fruit.node.position;
-            fruit.node.setPosition(position.x, position.y + plan.lift * ratio, position.z);
+            fruit.node.setPosition(position.x, position.y + plan.lift, position.z);
         }
         spawner.updateBlackHoles(0);
         for (const fruit of spawner.getLive()) if (!selected.has(fruit)) fruit.resumeAfterRevive();
@@ -86,7 +84,7 @@ export class BoardReviveFlow {
                 touchedFloor: fruit.touchedFloor, available: isValid(fruit.node, true) && !!fruit.node.parent,
                 pendingRemoval: fruit.removing, spawning: fruit.spawning,
                 blackHoleId: definition.blackHoleId, parentBlackHoleId: definition.fatherBlackHoleId,
-                insideBlackHole: !!definition.fatherBlackHoleId && spawner.isBlackHoleResident(fruit),
+                insideBlackHole: spawner.isBlackHoleResident(fruit),
             };
         });
     }
@@ -97,7 +95,7 @@ export class BoardReviveFlow {
         const scale = fruit.node.scale;
         return { id: fruit.node.uuid, x: fruit.node.position.x, y: fruit.node.position.y,
             radius: Math.max(10, Math.max(size.width, size.height) * Math.max(Math.abs(scale.x) || 1, Math.abs(scale.y) || 1) * 0.5),
-            insideBlackHole: !!spawner.getDefinition(fruit).fatherBlackHoleId && spawner.isBlackHoleResident(fruit) };
+            insideBlackHole: spawner.isBlackHoleResident(fruit) };
     }
 
     /** @param pair 规则确认的两颗标识。 @param spawner 当前集合。 @param removePair 棋盘删除回调。 */

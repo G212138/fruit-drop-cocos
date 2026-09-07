@@ -23,6 +23,23 @@ assert.equal(ordinary.live.filter(f=>f.prepared).length,3);assert.equal(ordinary
 assert.equal(done,0);animations.splice(0).forEach(fn=>fn());
 assert.equal(done,1);assert.equal(flow.busy,false);assert.equal(ordinary.live.length,4);
 assert.deepEqual(ordinary.live.slice(0,3).map(f=>f.node.position.y),[90,10,-70]);
+// 原版宿主和补出成员都在容器内：容器半量加子水果半量，世界坐标获得全量。
+for(const definition of [{blackHoleId:1},{fatherBlackHoleId:1}]) {
+    const resident=fruit('resident',5,-200,false,definition);resident.resident=true;
+    const recovered=fruit('recovered',1,30),untouched=fruit('floor-black',2,10,true,{fatherBlackHoleId:2});
+    const mixed=spawner([resident,recovered,untouched]);
+    mixed.getBlackHoleCenterYs=()=>[-200];
+    mixed.updateBlackHoles=()=>{mixed.centerY=resident.node.position.y;};
+    assert.equal(flow.circle(resident,mixed).insideBlackHole,true);
+    flow.begin(1,mixed,()=>assert.fail('普通水果优先回收，不触发黑洞强制配对'),()=>{});
+    assert.equal(resident.node.position.y,60,'黑洞最低点 -200 要求基准抬升260，扁平宿主和成员均获得全量');
+    assert.equal(mixed.centerY,60,'表现容器同步到水果的新位置');
+    assert.equal(untouched.node.position.y,10,'未选中的已落地黑洞水果不抬升');
+    animations.splice(0).forEach(fn=>fn());
+    assert.equal(recovered.node.position.y,-20,'回收目标 -280 加基准抬升260');
+    assert.equal(flow.busy,false);
+}
+console.log('通过：黑洞宿主与成员的双层抬升等效坐标、容器同步及未回收水果位置。');
 const horizontal=spawner([fruit('host',1,40,true,{blackHoleId:1}),fruit('mate',1,30),fruit('next',2,20)]);
 const removed=[];
 flow.begin(2,horizontal,(a,b)=>{removed.push([a.node.uuid,b.node.uuid]);horizontal.live=horizontal.live.filter(f=>f!==a&&f!==b);
