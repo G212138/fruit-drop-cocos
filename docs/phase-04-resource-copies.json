@@ -1,0 +1,7 @@
+[
+  {
+    "source": "assets/_res/resources/textures/flower/七彩花.png",
+    "target": "assets/app-bundle/app-view/page/game/resources/textures/hidden-flower.png",
+    "sha256": "500f5f36db5e3bbb567c8396df1f06b39ecf3d4d0c4ee63c28e6cf6561371df6"
+  }
+]

@@ -16,7 +16,7 @@
 
 ## 资源结构
 
-UI 资源放各页面 resources，脚本放 native/expansion；子预制体统一放 resources/prefabs。当前有五个页面/棋盘/HUD/结算预制体与二十五个水果预制体，总计三十个。
+UI 资源放各页面 resources，脚本放 native/expansion；子预制体统一放 resources/prefabs。当前有五个页面/棋盘/HUD/结算预制体与二十五个水果预制体，另有独立 HiddenFruitView 遮罩预制体，总计三十一个。
 
 所有 UI 节点和按钮绑定由 Creator 制作并序列化。运行时代码只实例化预制体，不 new Node 或 addComponent 拼 UI。tools/prefab-authoring.ts 是编辑器制作脚本存档，不参与游戏构建，临时制作组件在保存后删除。
 
@@ -26,6 +26,6 @@ UI 资源放各页面 resources，脚本放 native/expansion；子预制体统�
 
 ## 当前支持范围与检查
 
-已接入原版前四关、整体补位、判负、下一关、原关重开和进度持久化。后续特殊机制明确拒绝加载，详情和实际验证见 phase-03-validation.md；phase-02-validation.md 保留上一阶段历史记录。
+已接入原版前五关及隐藏水果、整体补位、判负、下一关、原关重开和进度持久化。后续特殊机制明确拒绝加载，最新验证见 phase-04-validation.md，前阶段记录见 phase-03-validation.md；phase-02-validation.md 保留上一阶段历史记录。
 
 运行 node tools/test-game-rules.cjs 和 node tools/validate-prefabs.cjs。全项目类型检查仍有 XForge 扩展原有严格类型报错；业务代码单独检查。平台 SDK、广告和平台构建不在本阶段交付范围。

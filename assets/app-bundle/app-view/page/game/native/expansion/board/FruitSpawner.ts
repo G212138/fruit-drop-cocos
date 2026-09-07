@@ -15,6 +15,10 @@ export class FruitSpawner extends Component {
     @property([Prefab])
     fruitPrefabs: Prefab[] = [];
 
+    /** 独立花朵遮罩预制体，仅为原配置标记隐藏的水果实例化。 */
+    @property(Prefab)
+    hiddenFruitPrefab: Prefab = null!;
+
     /** 存活实例集合，消除时移除，重开时清空。 */
     private readonly live = new Set<FruitItem>();
 
@@ -37,9 +41,22 @@ export class FruitSpawner extends Component {
             node.setPosition(definition.x, definition.y);
             const fruit = node.getComponent(FruitItem)!;
             fruit.configure(definition.kind);
+            this.attachHiddenView(node, definition.hidden);
             this.live.add(fruit);
             onSpawned(fruit);
         }
+    }
+
+    /**
+     * 仅实例化编辑器已制作的遮罩，不用代码创建 UI 节点。
+     * @param owner 所属水果节点，遮罩跟随它移动与销毁。
+     * @param hidden 原关卡是否要求隐藏外观。
+     */
+    private attachHiddenView(owner: Node, hidden: boolean): void {
+        if (!hidden) return;
+        if (!this.hiddenFruitPrefab) throw new Error('隐藏水果缺少遮罩预制体');
+        const cover = instantiate(this.hiddenFruitPrefab);
+        cover.parent = owner;
     }
 
     /** 获取仍未点击的存活水果，已下落水果不跟随补位。 */

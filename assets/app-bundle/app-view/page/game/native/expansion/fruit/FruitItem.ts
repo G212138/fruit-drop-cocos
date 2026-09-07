@@ -1,6 +1,6 @@
 import {
     _decorator, Component, Node, RigidBody2D, ERigidBody2DType,
-    PolygonCollider2D, Contact2DType, Collider2D, Vec2,
+    PolygonCollider2D, Contact2DType, Collider2D, Vec2, Tween,
 } from 'cc';
 import { PHYSICS_RULES } from '../physics/PhysicsRules';
 import { BoardEvents } from '../board/BoardEvents';
@@ -110,8 +110,9 @@ export class FruitItem extends Component {
      * @param other 物理引擎回调中的另一方碰撞体。
      */
     private onContact(_self: Collider2D, other: Collider2D): void {
-        if (other.node.name === 'Floor') {
+        if (other.node.name === 'Floor' && !this.touchedFloor) {
             this.touchedFloor = true;
+            this.node.emit(BoardEvents.FirstFloorContact, this.body.type === ERigidBody2DType.Dynamic);
         }
         const fruit = other.getComponent(FruitItem);
         if (fruit) {
@@ -131,20 +132,25 @@ export class FruitItem extends Component {
 
     /** 停止本水果的模拟，不影响其他页面的全局物理开关。 */
     freeze(): void {
-        this.body.enabled = false;
+        // 结算时保持刚体激活并转为静态，避免补位节点仍待同步时销毁 Box2D 代理。
+        this.body.type = ERigidBody2DType.Static;
+        this.body.linearVelocity = new Vec2();
+        this.body.angularVelocity = 0;
     }
 
     /** 在物理步结束后关闭碰撞并播放消除表现。 */
     pop(): void {
-        this.freeze();
-        this.collider.enabled = false;
+        this.node.emit(BoardEvents.Removing);
+        Tween.stopAllByTarget(this.node);
+        // 整体停用刚体一次，保留碰撞体至节点销毁，避免同帧重复移除碰撞代理。
+        this.body.enabled = false;
         this.visual.playRemoval(() => this.node.destroy());
     }
 
     /** 解除单体注册的所有监听。 */
     onDestroy(): void {
         this.node.targetOff(this);
-        this.collider?.off(Contact2DType.BEGIN_CONTACT, this.onContact, this);
+        this.collider?.off(Contact2DType.BEGIN_CONTACT, this.onContactBegan, this);
         this.collider?.off(Contact2DType.PRE_SOLVE, this.onContact, this);
     }
 }

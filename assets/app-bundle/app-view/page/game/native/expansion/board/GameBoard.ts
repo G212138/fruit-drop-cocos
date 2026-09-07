@@ -106,6 +106,8 @@ export class GameBoard extends Component {
             this.spawner.remove(second);
             first.node.targetOff(this);
             second.node.targetOff(this);
+            this.shift.remove(first);
+            this.shift.remove(second);
             first.pop();
             second.pop();
             this.node.emit(BoardEvents.Matched);

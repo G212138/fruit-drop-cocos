@@ -32,6 +32,12 @@ export class FruitShift {
         this.moving = this.moving.filter(item => item !== fruit);
     }
 
+    /** @param fruit 已配对的水果；移出补位集合，避免已停止的动画永久占用输入锁。 */
+    remove(fruit: FruitItem): void {
+        Tween.stopAllByTarget(fruit.node);
+        this.moving = this.moving.filter(item => item !== fruit);
+    }
+
     /** 停止旧局所有补间，防止切关和重开后收到旧动画回调。 */
     stop(): void {
         for (const fruit of this.moving) {

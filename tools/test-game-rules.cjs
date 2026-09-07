@@ -116,11 +116,12 @@ console.log('通过：原版接触判负、触底与高度区别、静止计时�
 
 const originalLevels = JSON.parse(fs.readFileSync(root + '/app-bundle/app-view/page/game/resources/levels/original-levels.json')).levels;
 assert.deepEqual(originalLevels.slice(0,4).map((source, index) => countFruits(parseLevel(source,index+1))), [12,40,72,126]);
-assert.deepEqual(level.fruits[0], {kind:22,x:-189,y:1192});
-assert.deepEqual(level.fruits[6], {kind:21,x:-18,y:-122});
-assert.throws(() => parseLevel(originalLevels[4], 5), /尚未开放/);
+assert.deepEqual(level.fruits[0], {kind:22,hidden:false,x:-189,y:1192});
+assert.deepEqual(level.fruits[6], {kind:21,hidden:false,x:-18,y:-122});
+assert.equal(countFruits(parseLevel(originalLevels[4], 5)), 92);
+assert.throws(() => parseLevel(originalLevels[5], 6), /尚未开放/);
 assert.throws(() => parseLevel({...originalLevels[0],m:2}), /模式/);
-assert.throws(() => parseLevel({...originalLevels[0],d:[{n:'21',h:'t',p:[0,0]}]}), /隐藏/);
+assert.throws(() => parseLevel({...originalLevels[0],d:[{n:'21',h:'invalid',p:[0,0]}]}), /隐藏/);
 assert.throws(() => parseLevel({...originalLevels[0],d:[{n:'21',ice:1,p:[0,0]}]}), /冰块/);
 assert.throws(() => parseLevel({...originalLevels[0],d:[{n:'21',p:[NaN,0]}]}), /坐标/);
 const { planVerticalShift } = load(expansion + '/movement/VerticalShiftRules.ts');
@@ -154,3 +155,14 @@ assert.equal(unavailable.level,2);
 assert.ok(unavailable.warning);
 assert.throws(() => unavailable.complete(0));
 console.log('通过：原版前四关配置、坐标偏移、未支持机制拒绝、整体补位边界、进度持久化/坏档/存储失败。');
+
+const { shouldRevealHiddenFruit } = load(expansion + '/hidden/HiddenFruitRules.ts');
+assert.equal(shouldRevealHiddenFruit(false,true,false),false);
+assert.equal(shouldRevealHiddenFruit(true,false,false),false);
+assert.equal(shouldRevealHiddenFruit(true,true,false),true);
+assert.equal(shouldRevealHiddenFruit(false,false,true),true);
+const hiddenLevel = parseLevel(originalLevels[4],5);
+assert.equal(hiddenLevel.fruits.filter(fruit => fruit.hidden).length,3);
+assert.deepEqual(hiddenLevel.fruits.filter(fruit => fruit.hidden).map(fruit=>fruit.kind),[21,24,4]);
+assert.equal(canMatch({...candidate,hidden:true},{...candidate,hidden:false}),true);
+console.log('通过：隐藏水果首次动态触地揭示、悬停/补位不揭示、消除揭示、第五关三处原始隐藏配置。');

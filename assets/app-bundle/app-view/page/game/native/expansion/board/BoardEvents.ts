@@ -3,6 +3,10 @@ export const BoardEvents = {
     ReleaseRequested: 'release-request',
     FruitContact: 'fruit-contact',
     FruitContactBegan: 'fruit-contact-began',
+    /** 首次接触原版地形，参数为是否动态下落。 */
+    FirstFloorContact: 'first-floor-contact',
+    /** 配对已确认，单体开始消除表现。 */
+    Removing: 'fruit-removing',
     Matched: 'matched',
     Failed: 'failed',
 } as const;

@@ -140,6 +140,14 @@ const methods = {
         return results;
     },
 
+    /** 原 flower 预制体为 117×117，GameSc 使用 0.9 倍缩放；不添加碰撞体。 */
+    async createHiddenFruit() {
+        const root = await sprite('HiddenFruitView', null, base + 'page/game/resources/textures/hidden-flower.png', 117, 117);
+        root.setScale(0.9, 0.9, 1);
+        root.addComponent('HiddenFruitView');
+        return save(root, base + 'page/game/resources/prefabs/HiddenFruitView.prefab');
+    },
+
     /** 为前四关每种水果制作独立预制体，复制原版图片尺寸和碰撞轮廓。 */
     async createFruit() {
         const results = [];
@@ -189,6 +197,7 @@ const methods = {
         viewport.getComponent(cc.UITransform).setAnchorPoint(0.5, 0.75);
         viewport.addComponent(cc.Mask).type = cc.Mask.Type.GRAPHICS_RECT;
         spawner.fruitRoot = node('Fruits', viewport);
+        spawner.hiddenFruitPrefab = await asset(base + 'page/game/resources/prefabs/HiddenFruitView.prefab');
         spawner.fruitPrefabs = [];
         for (const definition of sourceGeometry.fruits) {
             const name = definition.kind === 21 ? 'FruitItem' : 'Fruit' + String(definition.kind).padStart(2, '0');
