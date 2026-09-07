@@ -158,6 +158,8 @@ export class FruitItem extends Component {
 
     /** 停止本水果的模拟，不影响其他页面的全局物理开关。 */
     freeze(): void {
+        // 页面隐藏后无需再修改已停用刚体的类型和速度。
+        if (this.body.enabledInHierarchy === false) return;
         // 结算时保持刚体激活并转为静态，避免补位节点仍待同步时销毁 Box2D 代理。
         this.body.type = ERigidBody2DType.Static;
         this.body.linearVelocity = new Vec2();

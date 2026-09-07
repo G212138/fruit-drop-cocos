@@ -148,6 +148,9 @@ export class FruitSpawner extends Component {
         this.onSpawned = null;
         if (isValid(this.fruitRoot)) {
             for (const node of [...this.fruitRoot.children]) {
+                // 先由刚体统一退出物理世界，再交给节点延迟销毁，避免页面隐藏期间重复清理碰撞代理。
+                const fruit = node.getComponent(FruitItem);
+                if (fruit) fruit.body.enabled = false;
                 node.destroy();
             }
         }

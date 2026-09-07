@@ -162,6 +162,9 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 返回首页，暂停当前关卡的输入和物理。 */
     private returnHome(): void {
+        this.generation++;
+        this.controller.targetOff(this);
+        this.releaseChildren();
         app.manager.ui.show({ name: EditorSession.trial ? 'PageEditor' : 'PageHome' });
     }
 
@@ -173,7 +176,7 @@ export class PageGame extends BaseView.BindController(GameController) {
     /** 解除旧局监听并释放通过预制体创建的子界面。 */
     private releaseChildren(): void {
         if (this.board && isValid(this.board.node)) {
-            this.board.stop();
+            this.board.clear();
             this.board.node.targetOff(this);
             this.board.node.destroy();
         }

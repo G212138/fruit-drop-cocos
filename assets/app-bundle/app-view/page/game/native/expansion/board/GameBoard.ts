@@ -1,4 +1,5 @@
-import { _decorator, Component, PhysicsSystem2D, Vec2, Node, RigidBody2D } from 'cc';
+import { _decorator, Component, PhysicsSystem2D, Vec2, Node, RigidBody2D, UITransform } from 'cc';
+import { EntryFlow } from '../movement/EntryFlow';
 import { HorizontalFlow } from '../movement/HorizontalFlow';
 import { PHYSICS_RULES } from '../physics/PhysicsRules';
 import { FloorFailureRules } from '../failure/FloorFailureRules';
@@ -26,6 +27,8 @@ export class GameBoard extends Component {
     private mode: 1 | 2 = 1;
     /** 独立横向补位与自动下落状态。 */
     private readonly horizontal = new HorizontalFlow();
+    /** 独立开局入场动画与输入锁。 */
+    private readonly entry = new EntryFlow();
 
     /** 本帧匹配去重队列，先锁定双方再延迟结算。 */
     private readonly matches = new MatchQueue<FruitItem>();
@@ -55,7 +58,10 @@ export class GameBoard extends Component {
         this.spawner.spawn(level.fruits, fruit => this.bindFruit(fruit));
         // 编辑草稿可能全部位于屏幕上方，按既有补位规则移入可点击区域。
         if (this.mode === 2) this.horizontal.begin(this.spawner.getWaiting(), this.rightLine);
-        else this.shift.begin(this.spawner.getWaiting());
+        const size = this.node.getComponent(UITransform)!.contentSize;
+        this.entry.begin(this.spawner.getWaiting(), this.mode, { left: -size.width / 2, top: size.height / 2 });
+        this.spawner.updateBlackHoles(0);
+        if (!this.entry.busy && this.mode === 1) this.shift.begin(this.spawner.getWaiting());
     }
 
     /**
@@ -73,7 +79,7 @@ export class GameBoard extends Component {
      * @param fruit 本次操作的水果实例。
      */
     private release(fruit: FruitItem): void {
-        if (this.playing && !this.shift.busy && fruit.waiting && !fruit.spawning && fruit.iceLayers === 0) {
+        if (this.playing && !this.entry.busy && !this.shift.busy && fruit.waiting && !fruit.spawning && fruit.iceLayers === 0) {
             this.spawner.releaseBlackHole(fruit);
             fruit.drop();
             if (this.mode === 2) this.horizontal.afterDrop(this.spawner.getWaiting(), this.rightLine);
@@ -107,6 +113,12 @@ export class GameBoard extends Component {
      */
     lateUpdate(dt: number): void {
         if (!this.playing) return;
+        if (this.entry.busy) {
+            const completed = this.entry.tick(dt);
+            this.spawner.updateBlackHoles(0);
+            if (completed && this.mode === 1) this.shift.begin(this.spawner.getWaiting());
+            return;
+        }
         if (this.mode === 2) this.horizontal.tick(dt, this.spawner.getLive(), this.spawner.getWaiting(), this.rightLine, fruit => this.release(fruit));
         this.spawner.updateBlackHoles(dt);
         this.resolveMatches();
@@ -140,6 +152,7 @@ export class GameBoard extends Component {
 
     /** 停止棋盘输入和本局水果模拟。 */
     stop(): void {
+        this.entry.cancel();
         this.horizontal.reset();
         this.playing = false;
         this.shift.stop();
@@ -151,6 +164,7 @@ export class GameBoard extends Component {
 
     /** 清理旧局实例及排队通知。 */
     clear(): void {
+        this.entry.cancel();
         this.horizontal.reset();
         this.playing = false;
         this.shift.stop();
