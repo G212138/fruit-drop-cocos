@@ -13,6 +13,7 @@ import { LevelDefinition } from '../level/LevelDefinition';
 import { MatchQueue } from '../matching/MatchQueue';
 import { BoardEvents } from './BoardEvents';
 import { FruitSpawner } from './FruitSpawner';
+import { BoardReviveFlow } from '../revive/BoardReviveFlow';
 const { ccclass, property } = _decorator;
 
 /** 棋盘只协调配对、补位与判负，不包含 UI 布局和单体表现。 */
@@ -85,6 +86,28 @@ export class GameBoard extends Component {
     private playing = false;
     /** 原版纵向补位协调器；动画期间锁定点击。 */
     private readonly shift = new FruitShift();
+    /** 独立复活实例流程，包含回收动画及旧局取消。 */
+    private readonly revival = new BoardReviveFlow();
+    /** 只有确实由当前棋盘判负的局才可复活。 */
+    private failed = false;
+
+    /** 当前棋盘是否等待失败复活，胜利或已经恢复时拒绝重复奖励。 */
+    get canRevive(): boolean {
+        return this.failed && !this.revival.busy;
+    }
+
+    /** 奖励与权威状态校验后，恢复当前实例；不重新载入关卡配置。 */
+    revive(): boolean {
+        if (!this.canRevive) return false;
+        this.failed = false;
+        return this.revival.begin(this.mode, this.spawner, (first, second) => this.removePair(first, second, true), () => {
+            this.matches.clear();
+            this.contacts.length = 0;
+            this.failure.reset();
+            this.warning.reset();
+            this.playing = true;
+        });
+    }
 
     /**
      * 重置棋盘并载入已经校验的关卡。
@@ -186,6 +209,7 @@ export class GameBoard extends Component {
             this.failure.losesOnContact(fruits, first, second, this.floorThreshold));
         if (contactFailure || this.failure.tick(fruits, dt, this.floorThreshold)) {
             this.stop();
+            this.failed = true;
             this.node.emit(BoardEvents.Failed);
         }
     }
@@ -194,22 +218,30 @@ export class GameBoard extends Component {
     private resolveMatches(): void {
         for (const [first, second] of this.matches.drain()) {
             if (!this.playing) break;
-            this.spawner.remove(first);
-            this.spawner.remove(second);
-            first.node.targetOff(this);
-            second.node.targetOff(this);
-            this.shift.remove(first);
-            this.shift.remove(second);
-            first.pop();
-            second.pop();
-            this.spawner.reduceIce();
-            if (this.mode === 2) this.horizontal.matched();
-            this.node.emit(BoardEvents.Matched);
+            this.removePair(first, second, false);
         }
+    }
+
+    /** @param first 第一颗实例。 @param second 同类伙伴。 @param forced 是否为复活强制配对。 */
+    private removePair(first: FruitItem, second: FruitItem, forced: boolean): void {
+        first.removing = second.removing = true;
+        this.spawner.remove(first);
+        this.spawner.remove(second);
+        first.node.targetOff(this);
+        second.node.targetOff(this);
+        this.shift.remove(first);
+        this.shift.remove(second);
+        first.pop();
+        second.pop();
+        // 原版 markElimination 对复活移除也累计减冰；复活阶段不累计横向补位。
+        this.spawner.reduceIce();
+        if (!forced && this.mode === 2) this.horizontal.matched();
+        this.node.emit(BoardEvents.Matched);
     }
 
     /** 停止棋盘输入和本局水果模拟。 */
     stop(): void {
+        this.revival.cancel();
         this.warning.reset();
         this.restoreWarnings();
         this.levelHint?.stop();
@@ -225,6 +257,8 @@ export class GameBoard extends Component {
 
     /** 清理旧局实例及排队通知。 */
     clear(): void {
+        this.failed = false;
+        this.revival.cancel();
         this.warning.reset();
         this.restoreWarnings();
         this.initialShiftPending = false;
@@ -241,6 +275,7 @@ export class GameBoard extends Component {
 
     /** 页面销毁时清理本棋盘，不关闭全局物理系统。 */
     onDestroy(): void {
+        this.revival.cancel();
         this.warning.reset();
         this.playing = false;
         this.shift.stop();

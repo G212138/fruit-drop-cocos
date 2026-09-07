@@ -168,7 +168,38 @@ export class PageGame extends BaseView.BindController(GameController) {
         if (!this.ready || this.ended || !finished) return;
         this.ended = true;
         this.board?.stop();
-        app.manager.ui.show({ name: 'PopResult', data: { won: state.phase === 'won', level: this.levelNumber } });
+        this.showResult();
+    }
+
+    /** @param notice 广告取消或失败时在结算面板显示的说明，省略则显示胜负结果。 */
+    private showResult(notice?: string): void {
+        const generation = this.generation;
+        app.manager.ui.show({ name: 'PopResult', data: {
+            won: app.store.game.phase === 'won', level: this.levelNumber, notice,
+            onRevive: this.board?.canRevive ? () => {
+                if (this.isCurrent(generation)) void this.requestRevive();
+            } : undefined,
+        } });
+    }
+
+    /** 在失败原局请求激励复活，只有有效完成结果才恢复状态和棋盘。 */
+    private async requestRevive(): Promise<void> {
+        if (!this.rewardGate || !this.board?.canRevive || app.store.game.phase !== 'lost') return;
+        const generation = this.generation;
+        const result = await this.rewardGate.request('revive');
+        if (!this.isCurrent(generation) || app.store.game.phase !== 'lost' || !this.board?.canRevive) return;
+        if (result !== 'rewarded') {
+            if (result === 'busy') return;
+            this.showResult(result === 'cancelled' ? '已取消，本局未改变' : '广告暂不可用，请重试');
+            return;
+        }
+        this.ended = false;
+        if (!this.controller.revive()) return;
+        if (!this.board.revive()) {
+            this.controller.lose();
+            return;
+        }
+        this.hud?.showNotice('继续本关');
     }
 
     /**

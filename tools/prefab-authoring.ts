@@ -471,6 +471,7 @@ const methods = {
         await sprite('Panel', root, base + 'pop/result/resources/textures/panel.png', 620, 740);
         component.titleLabel = label('Title', root, '全部消除！', 44, 310, 560);
         component.nextButton = await button('NextButton', root, base + 'pop/result/resources/textures/next-button.png', '下一关', 120, root, 'PopResult', 'next');
+        component.reviveButton = await button('ReviveButton', root, base + 'pop/result/resources/textures/revive-button.png', '复活', 120, root, 'PopResult', 'revive');
         await button('RestartButton', root, base + 'pop/result/resources/textures/restart-button.png', '再玩一次', -20, root, 'PopResult', 'restart');
         await button('HomeButton', root, base + 'pop/result/resources/textures/home-button.png', '返回首页', -150, root, 'PopResult', 'home');
         return save(root, base + 'pop/result/native/PopResult.prefab');

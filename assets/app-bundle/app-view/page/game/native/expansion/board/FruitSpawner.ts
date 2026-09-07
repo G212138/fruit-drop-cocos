@@ -34,6 +34,8 @@ export class FruitSpawner extends Component {
 
     /** 存活实例集合，消除时移除，重开时清空。 */
     private readonly live = new Set<FruitItem>();
+    /** 保留实例原始黑洞身份；成员释放后仍需要身份参与复活选择。 */
+    private readonly definitions = new Map<FruitItem, FruitDefinition>();
 
     /** 返回存活数量，用于判断当前批次是否结束。 */
     get count(): number {
@@ -75,6 +77,7 @@ export class FruitSpawner extends Component {
             fruit.attachIce(definition.iceLayers, cover.getComponent(IceFruitView)!);
         }
         this.live.add(fruit);
+        this.definitions.set(fruit, { ...definition });
         this.onSpawned!(fruit);
         return fruit;
     }
@@ -116,6 +119,28 @@ export class FruitSpawner extends Component {
         return [...this.live];
     }
 
+    /** @param fruit 当前存活实例；返回原配置副本，防止调用方改变工厂记录。 */
+    getDefinition(fruit: FruitItem): FruitDefinition {
+        const definition = this.definitions.get(fruit);
+        if (!definition) throw new Error('水果实例不属于当前棋盘');
+        return { ...definition };
+    }
+
+    /** @param fruit 当前水果；成员未释放时对应原版容器内状态。 */
+    isBlackHoleResident(fruit: FruitItem): boolean {
+        return this.blackHoles.isResident(fruit);
+    }
+
+    /** 提供黑洞中心坐标，复活规则不直接操作黑洞视图。 */
+    getBlackHoleCenterYs(): number[] {
+        return this.blackHoles.getCenterYs();
+    }
+
+    /** 恢复失败前的黑洞队列，保留出现进度与剩余成员。 */
+    resumeBlackHoles(): void {
+        this.blackHoles.resume();
+    }
+
     /**
      * 从存活集合移除已配对水果；表现结束后才销毁节点。
      * @param fruit 本次操作的水果实例。
@@ -123,6 +148,7 @@ export class FruitSpawner extends Component {
     remove(fruit: FruitItem): void {
         this.releaseBlackHole(fruit);
         this.live.delete(fruit);
+        this.definitions.delete(fruit);
     }
 
     /** 包含消除动画中的水果，避免动画尚未结束时误判失败。 */
@@ -155,5 +181,6 @@ export class FruitSpawner extends Component {
             }
         }
         this.live.clear();
+        this.definitions.clear();
     }
 }

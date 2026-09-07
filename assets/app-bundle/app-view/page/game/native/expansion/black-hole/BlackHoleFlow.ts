@@ -116,6 +116,16 @@ export class BlackHoleFlow {
         this.stopped = false;
     }
 
+    /** @param fruit 当前实例；为真表示仍占据黑洞的待释放位置。 */
+    isResident(fruit: FruitItem): boolean {
+        return this.groups.has(fruit);
+    }
+
+    /** 返回当前黑洞显示中心的纵坐标，供扁平棋盘的复活抬升计算。 */
+    getCenterYs(): number[] {
+        return [...this.groups.values()].map(group => group.view.node.position.y);
+    }
+
     /** 清除本局表现与生成状态，重开时重新启用。 */
     clear(): void {
         for (const group of this.groups.values()) if (isValid(group.view.node, true)) group.view.node.destroy();
