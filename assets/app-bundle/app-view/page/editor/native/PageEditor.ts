@@ -50,7 +50,7 @@ export class PageEditor extends BaseView {
     /** 按当前数据实例化标记，布局全部由已有容器与预制体定义。 */
     private render(): void {
         for (const child of [...this.fruitRoot.children]) child.destroy();
-        this.fruitRoot.setPosition(0, this.draft.scrollY, 0);
+        this.updateViewport();
         this.draft.document.d.forEach((item, index) => {
             const node = instantiate(this.markerPrefab);
             node.parent = this.fruitRoot;
@@ -58,13 +58,15 @@ export class PageEditor extends BaseView {
             const marker = node.getComponent(EditorFruitMarker)!;
             marker.index = index;
             marker.icon.spriteFrame = this.fruitFrames[Number(item.n) - 1];
+            const scale = item.FatherBlackHoleID ? 0.5 : 1;
+            node.setScale(scale, scale, 1);
             marker.badge.string = (item.h === 't' ? '隐藏 ' : '') + (item.ice ? '冰' + item.ice + ' ' : '')
-                + (item.BlackHoleID ? '洞' + item.BlackHoleID : '')
+                + (item.BlackHoleID ? '洞' + item.BlackHoleID + ' 共' + item.BlackHole : '')
                 + (item.FatherBlackHoleID ? '洞' + item.FatherBlackHoleID + '-' + item.SequenceID : '');
             marker.highlight(index === this.draft.selected);
         });
         this.modeLabel.string = this.draft.document.m === 1 ? '模式：纵向' : '模式：横向';
-        this.statusLabel.string = '共 ' + this.draft.document.d.length + ' 个 · 视口 ' + Math.round(this.draft.scrollY) + ' · 拖拽移动水果';
+        this.statusLabel.string = '共 ' + this.draft.document.d.length + ' 个 · 拖拽移动水果；回车添加，Shift 隐藏';
     }
     /** @param index 本次点击的草稿下标，标记刷新后重新分配。 */
     private select(index: number): void {
@@ -80,6 +82,11 @@ export class PageEditor extends BaseView {
     private move(index: number, x: number, y: number): void {
         this.draft.selected = index;
         this.draft.moveSelected(x, y);
+        for (const node of this.fruitRoot.children) {
+            const marker = node.getComponent(EditorFruitMarker)!;
+            const item = this.draft.document.d[marker.index];
+            node.setPosition(item.p[0], item.p[1], 0);
+        }
         this.statusLabel.string = '坐标 ' + Math.round(x) + ', ' + Math.round(y);
     }
     /** @param action 一次编辑操作；错误显示在页面，不清除草稿。 */
@@ -91,7 +98,9 @@ export class PageEditor extends BaseView {
     addFruit(): void {
         this.operate(() => {
             const count = this.draft.document.d.length;
-            this.draft.add(Number(this.numberInput.string), -240 + (count % 5) * 120, 220 - Math.floor(count / 5) * 120 - this.draft.scrollY);
+            const x = this.draft.document.m === 2 ? this.draft.scrollX : 0;
+            const y = this.draft.document.m === 1 ? this.draft.scrollY : 0;
+            this.draft.add(Number(this.numberInput.string), -240 + (count % 5) * 120 - x, 220 - Math.floor(count / 5) * 120 - y);
         });
     }
     /** 删除当前选中水果及其黑洞成员。 */
@@ -129,6 +138,7 @@ export class PageEditor extends BaseView {
     /** 恢复视口原点，不改变水果数据坐标。 */
     resetViewport(): void {
         this.draft.scrollY = 0;
+        this.draft.scrollX = 0;
         this.render();
     }
     /** 校验草稿后启动独立试玩，胜利不解锁玩家关卡。 */
@@ -151,12 +161,25 @@ export class PageEditor extends BaseView {
     }
     /** @param event 滚轮增量；沿用编辑器视口滚动，不改导出坐标。 */
     private wheel(event: EventMouse): void {
-        this.draft.scrollY += event.getScrollY();
-        this.fruitRoot.setPosition(0, this.draft.scrollY, 0);
+        this.draft.scroll(event.getScrollY());
+        this.updateViewport();
+    }
+    /** 只移动当前模式的视口轴，不改变原始关卡坐标。 */
+    private updateViewport(): void {
+        this.fruitRoot.setPosition(this.draft.document.m === 2 ? this.draft.scrollX : 0,
+            this.draft.document.m === 1 ? this.draft.scrollY : 0, 0);
     }
     /** @param event 键盘事件；文本框编辑期间不处理删除快捷键。 */
     private keyDown(event: EventKeyboard): void {
         if (this.numberInput.isFocused() || this.jsonInput.isFocused()) return;
         if (event.keyCode === KeyCode.DELETE || event.keyCode === KeyCode.BACKSPACE) this.deleteFruit();
+        else if (event.keyCode === KeyCode.ENTER) this.addFruit();
+        else if (event.keyCode === KeyCode.SHIFT_LEFT || event.keyCode === KeyCode.SHIFT_RIGHT) this.toggleHidden();
+        else if (event.keyCode === KeyCode.SPACE) this.numberInput.string = '';
+        else if (event.keyCode >= KeyCode.DIGIT_0 && event.keyCode <= KeyCode.DIGIT_9) {
+            this.numberInput.string += String(event.keyCode - KeyCode.DIGIT_0);
+        } else if (event.keyCode >= KeyCode.NUM_0 && event.keyCode <= KeyCode.NUM_9) {
+            this.numberInput.string += String(event.keyCode - KeyCode.NUM_0);
+        }
     }
 }

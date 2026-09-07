@@ -8,15 +8,19 @@ export class EditorDraft {
     selected = -1;
     /** 编辑器视口纵向偏移，单位设计像素；导出时不计入坐标。 */
     scrollY = 0;
+    /** 横向编辑模式的视口偏移，单位设计像素；原版范围零至一千五百。 */
+    scrollX = 0;
     /** 试玩前的独立快照，包含选择和视口，不保存到玩家关卡进度。 */
-    private trialSnapshot: { document: LevelDocument; selected: number; scrollY: number } | null = null;
+    private trialSnapshot: { document: LevelDocument; selected: number; scrollY: number; scrollX: number } | null = null;
 
     /** @param text 原版单关 JSON 字符串；解析失败不覆盖已有草稿。 */
     importText(text: string): void {
         const document = readLevelDocument(JSON.parse(text));
         this.document = document;
+        this.layoutBlackHoleMembers();
         this.selected = -1;
         this.scrollY = 0;
+        this.scrollX = 0;
     }
 
     /** 返回可直接导入原版的 JSON，检查配对、坐标距离和黑洞关系。 */
@@ -55,6 +59,7 @@ export class EditorDraft {
         const item = this.current();
         this.document.d = this.document.d.filter(value => value !== item
             && !(item.BlackHoleID && value.FatherBlackHoleID === item.BlackHoleID));
+        this.layoutBlackHoleMembers();
         this.selected = -1;
     }
 
@@ -62,6 +67,7 @@ export class EditorDraft {
     moveSelected(x: number, y: number): void {
         if (!Number.isFinite(x) || !Number.isFinite(y)) throw new Error('坐标无效');
         this.current().p = [x, y];
+        if (this.current().BlackHoleID) this.layoutBlackHoleMembers();
     }
 
     /** 切换当前水果的原版花朵遮罩。 */
@@ -108,6 +114,21 @@ export class EditorDraft {
         member.FatherBlackHoleID = id;
         member.SequenceID = sequence;
         host.BlackHole = this.document.d.filter(value => value.FatherBlackHoleID === id).length + 1;
+        this.layoutBlackHoleMembers();
+    }
+
+    /** 沿用原版编辑布局：成员按序号围绕宿主，半径六十设计像素，至少六个等分槽位；导出仍使用宿主坐标。 */
+    private layoutBlackHoleMembers(): void {
+        for (const host of this.document.d) {
+            if (!host.BlackHoleID) continue;
+            const members = this.document.d.filter(item => item.FatherBlackHoleID === host.BlackHoleID);
+            members.sort((a, b) => a.SequenceID! - b.SequenceID!);
+            host.BlackHole = members.length + 1;
+            members.forEach((member, index) => {
+                const angle = 2 * Math.PI * index / Math.max(6, members.length);
+                member.p = [host.p[0] + 60 * Math.cos(angle), host.p[1] + 60 * Math.sin(angle)];
+            });
+        }
     }
 
     /** 在纵向和横向模式间切换，不改变水果原始坐标。 */
@@ -115,11 +136,19 @@ export class EditorDraft {
         this.document.m = this.document.m === 1 ? 2 : 1;
     }
 
+    /** @param delta 原始滚轮增量；沿用原版小增量放大五十倍、滚动倍率零点二和各模式边界。 */
+    scroll(delta: number): void {
+        if (!Number.isFinite(delta)) return;
+        const movement = (Math.abs(delta) < 5 ? delta * 50 : delta) * 0.2;
+        if (this.document.m === 2) this.scrollX = Math.max(0, Math.min(1500, this.scrollX + movement));
+        else this.scrollY = Math.max(-2000, Math.min(0, this.scrollY + movement));
+    }
+
     /** 保存编辑快照并返回独立试玩数据；不允许未完成配对的草稿开始试玩。 */
     beginTrial(): LevelDocument {
         const document = this.buildDocument();
         validateLevelForExport(document);
-        this.trialSnapshot = { document: cloneLevelDocument(this.document), selected: this.selected, scrollY: this.scrollY };
+        this.trialSnapshot = { document: cloneLevelDocument(this.document), selected: this.selected, scrollY: this.scrollY, scrollX: this.scrollX };
         return document;
     }
 
@@ -129,6 +158,7 @@ export class EditorDraft {
         this.document = cloneLevelDocument(this.trialSnapshot.document);
         this.selected = this.trialSnapshot.selected;
         this.scrollY = this.trialSnapshot.scrollY;
+        this.scrollX = this.trialSnapshot.scrollX;
         this.trialSnapshot = null;
     }
 
