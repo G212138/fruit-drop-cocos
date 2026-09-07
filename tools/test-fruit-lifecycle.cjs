@@ -47,7 +47,7 @@ const {BoardEvents}=load(base+'/board/BoardEvents.ts');
 /** 构造真实组件和独立遮罩，保留生产事件绑定逻辑。 */
 function fixture(dynamic){
     const fruit=new FruitItem();fruit.node=new Signal();fruit.collider=new Signal();
-    fruit.body={type:dynamic?2:0};fruit.visual={playRemoval(){}};
+    fruit.body={type:dynamic?2:0,wakeUp(){this.awakened=true;}};fruit.visual={playRemoval(){},clearWarning(){}};
     const cover=new HiddenFruitView();cover.node=new Signal();cover.node.parent=fruit.node;
     fruit.onLoad();cover.onLoad();cover.onEnable();
     return {fruit,cover};
@@ -90,3 +90,21 @@ fruit.reduceIce();assert.equal(fruit.iceLayers,1);
 fruit.reduceIce();assert.equal(fruit.iceLayers,0);
 fruit.reduceIce();assert.deepEqual(updates,[2,1,0]);
 console.log('通过：冰层状态减层、清零、不重复碎冰。');
+
+({fruit}=fixture(true));
+fruit.touchedFloor=true;fruit.removing=true;fruit.body.enabled=true;
+fruit.prepareRevive();
+assert.equal(fruit.body.enabled,false,'回收动画期间刚体关闭');
+assert.equal(fruit.body.type,0);assert.equal(fruit.touchedFloor,false);
+assert.equal(fruit.removing,false);assert.equal(fruit.waiting,true);
+fruit.finishRevive();
+assert.equal(fruit.body.enabled,true);assert.equal(fruit.body.type,0,'回收完成等待点击，不自动下落');
+fruit.touchedFloor=true;fruit.body.angularVelocity=20;
+fruit.resumeAfterRevive();
+assert.equal(fruit.body.type,2);assert.equal(fruit.waiting,false);
+assert.equal(fruit.body.awakened,true);assert.equal(fruit.body.angularVelocity,0);
+fruit.touchedFloor=false;fruit.spawning=true;fruit.resumeAfterRevive();
+assert.equal(fruit.body.enabled,false,'出现中的成员继续由黑洞流程保护');
+assert.equal(fruit.body.type,0);assert.equal(fruit.waiting,true);
+fruit.onDestroy();
+console.log('通过：复活回收关闭碰撞、静态等待、未回收触底动态恢复和黑洞出现保护。');

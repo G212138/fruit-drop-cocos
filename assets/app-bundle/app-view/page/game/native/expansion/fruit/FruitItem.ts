@@ -107,6 +107,43 @@ export class FruitItem extends Component {
         return !this.released && !this.removing;
     }
 
+    /** 回收前关闭整颗刚体并恢复下落前外观，避免移动途中与槽壁碰撞。 */
+    prepareRevive(): void {
+        this.body.enabled = false;
+        Tween.stopAllByTarget(this.node);
+        this.visual.clearWarning();
+        this.reviveVisual.restore();
+        this.touchedFloor = false;
+        this.removing = false;
+        this.released = false;
+        this.body.type = ERigidBody2DType.Static;
+        this.body.linearVelocity = new Vec2();
+        this.body.angularVelocity = 0;
+    }
+
+    /** 回收动画结束后恢复静态碰撞，不自动下落；下一次点击仍由棋盘批准。 */
+    finishRevive(): void {
+        this.body.type = ERigidBody2DType.Static;
+        this.body.linearVelocity = new Vec2();
+        this.body.angularVelocity = 0;
+        this.body.enabled = !this.spawning;
+    }
+
+    /**
+     * 复活时恢复未回收水果：已触底者继续动态模拟，其余按原版恢复静态等待。
+     * 黑洞出现中的刚体继续禁用，交给出现流程完成碰撞保护。
+     */
+    resumeAfterRevive(): void {
+        this.visual.clearWarning();
+        this.removing = false;
+        this.released = this.touchedFloor;
+        this.body.type = this.touchedFloor ? ERigidBody2DType.Dynamic : ERigidBody2DType.Static;
+        this.body.linearVelocity = new Vec2();
+        this.body.angularVelocity = 0;
+        this.body.enabled = !this.spawning;
+        if (this.touchedFloor && !this.spawning) this.body.wakeUp();
+    }
+
     /** @param shifting 为真时由动画驱动刚体，结束后恢复静态悬停。 */
     setShifting(shifting: boolean): void {
         this.body.type = shifting ? ERigidBody2DType.Animated : ERigidBody2DType.Static;
