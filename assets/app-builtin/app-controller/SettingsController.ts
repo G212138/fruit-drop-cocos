@@ -13,7 +13,7 @@ export class SettingsController extends BaseController<SettingsController, {}>()
         this.active = true;
         this.applyAudio();
         app.manager.sound.playMusic({ name: 'audio/music', bundle: 'page-game-res', onPlay: () => {
-            if (!this.active) app.manager.sound.stopMusic();
+            if (!this.active) this.releaseMusic();
             else this.applyAudio();
         } });
     }
@@ -39,6 +39,12 @@ export class SettingsController extends BaseController<SettingsController, {}>()
     /** 页面退出时释放本局背景音乐，避免资源包卸载后继续持有声音。 */
     end(): void {
         this.active = false;
+        this.releaseMusic();
+    }
+
+    /** 清理播放器和 XForge 音频缓存，防止资源包卸载后下一局复用已失效的 AudioClip。 */
+    private releaseMusic(): void {
         app.manager.sound.stopMusic();
+        app.manager.sound.release('audio/music', 'page-game-res');
     }
 }

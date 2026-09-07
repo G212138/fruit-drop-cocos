@@ -15,6 +15,7 @@ const calls = [];
 let onPlay;
 const sound = {setEffectMute:value=>calls.push(['effect',value]),setMusicMute:value=>calls.push(['music',value]),
     resumeMusic:()=>calls.push(['resume']),pauseMusic:()=>calls.push(['pause']),stopMusic:()=>calls.push(['stop']),
+    release:(name,bundle)=>calls.push(['release',name,bundle]),
     playMusic:options=>{onPlay=options.onPlay;calls.push(['play',options.name,options.bundle]);}};
 const {SettingsController} = load('assets/app-builtin/app-controller/SettingsController.ts',name =>
     name.includes('BaseController') ? {default:()=>class{}} : name.endsWith('/app') ? {app:{manager:{sound}}} : settings);
@@ -32,7 +33,7 @@ controller.toggle('sound');
 assert.equal(preferences.snapshot.sound,false);
 assert.ok(calls.some(call=>call[0]==='effect' && call[1]===true));
 controller.end();calls.length=0;onPlay();
-assert.deepEqual(calls,[['stop']],'退出后迟到的音频完成回调不能重新播放');
+assert.deepEqual(calls,[['stop'],['release','audio/music','page-game-res']],'退出后迟到的音频回调不能保留播放器或失效缓存');
 const cc = {_decorator:{ccclass:()=>value=>value,property:()=>()=>{}},Component:class{},sp:{Skeleton:class{}},Tween:{stopAllByTarget(){}},Vec3:class{}};
 const {IceFruitView} = load('assets/app-bundle/app-view/page/game/native/expansion/ice/IceFruitView.ts',name=>name==='cc'?cc:settings);
 /** 骨骼和音源只记录调用，不模拟实际听感。 */
