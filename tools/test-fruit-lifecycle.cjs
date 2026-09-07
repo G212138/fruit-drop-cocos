@@ -49,7 +49,7 @@ function fixture(dynamic){
     const fruit=new FruitItem();fruit.node=new Signal();fruit.collider=new Signal();
     fruit.body={type:dynamic?2:0};fruit.visual={playRemoval(){}};
     const cover=new HiddenFruitView();cover.node=new Signal();cover.node.parent=fruit.node;
-    fruit.onLoad();cover.onLoad();
+    fruit.onLoad();cover.onLoad();cover.onEnable();
     return {fruit,cover};
 }
 const floor={node:{name:'Floor'},getComponent(){return null;}};
@@ -59,6 +59,11 @@ fruit.collider.emit('begin',fruit.collider,otherFruit);
 assert.equal(cover.node.active,true,'接触其他水果不能揭示');
 fruit.collider.emit('begin',fruit.collider,floor);
 assert.equal(cover.node.active,false,'首次动态接触地形揭示');
+cover.onDisable();cover.node.active=true;cover.onEnable();cover.onEnable();
+assert.equal(fruit.node.listeners.filter(item=>item.target===cover).length,2,'复活显示后重新监听且不重复绑定');
+fruit.touchedFloor=false;
+fruit.collider.emit('begin',fruit.collider,floor);
+assert.equal(cover.node.active,false,'复活恢复花朵后再次下落仍能揭示');
 fruit.onDestroy();cover.onDestroy();
 assert.equal(fruit.collider.listeners.length,0,'首次和持续接触监听必须完整解除');
 assert.equal(fruit.node.listeners.length,0);

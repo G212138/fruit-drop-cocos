@@ -9,6 +9,7 @@ import { BoardEvents } from '../board/BoardEvents';
 import { MatchCandidate } from '../matching/MatchRules';
 import { FloorFruit } from '../failure/FloorFailureRules';
 import { FruitVisual } from './FruitVisual';
+import { ReviveVisualState } from '../revive/ReviveVisualState';
 const { ccclass, property } = _decorator;
 
 /** 水果单体负责输入和物理，上报接触而不裁决消除。 */
@@ -56,6 +57,8 @@ export class FruitItem extends Component {
     removing = false;
     /** 是否已经点击释放；释放后不参与整体补位。 */
     private released = false;
+    /** 每次实际下落前记录独立视觉快照，复活摆放与刚体恢复由流程层协调。 */
+    readonly reviveVisual = new ReviveVisualState();
 
     /**
      * 初始化水果数据，默认悬停等待点击。
@@ -69,6 +72,7 @@ export class FruitItem extends Component {
         this.touchedFloor = false;
         this.removing = false;
         this.released = false;
+        this.reviveVisual.clear();
 
         this.body.type = ERigidBody2DType.Static;
     }
@@ -89,6 +93,8 @@ export class FruitItem extends Component {
 
     /** 棋盘批准后启动动态刚体。 */
     drop(): void {
+        this.visual.clearWarning();
+        this.reviveVisual.capture(this.node);
         this.released = true;
         this.body.type = ERigidBody2DType.Dynamic;
         // 原版像素每秒已经在 PhysicsRules 换算为 Creator 3.8 所需的物理米每秒。
@@ -177,6 +183,7 @@ export class FruitItem extends Component {
 
     /** 解除单体注册的所有监听。 */
     onDestroy(): void {
+        this.reviveVisual.clear();
         this.node.targetOff(this);
         this.collider?.off(Contact2DType.BEGIN_CONTACT, this.onContactBegan, this);
         this.collider?.off(Contact2DType.PRE_SOLVE, this.onContact, this);

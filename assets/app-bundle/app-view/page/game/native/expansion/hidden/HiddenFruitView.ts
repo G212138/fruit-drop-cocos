@@ -9,11 +9,21 @@ export class HiddenFruitView extends Component {
     /** 所属水果节点，绑定后用于解除局部事件监听。 */
     private owner: Node | null = null;
 
-    /** 挂入水果后监听首次地形接触与消除；图片和尺寸均来自预制体。 */
+    /** 挂入水果后保存所属实例，图片和尺寸均来自预制体。 */
     onLoad(): void {
         this.owner = this.node.parent;
+    }
+
+    /** 首次显示和复活重新显示时都恢复监听，先解除旧绑定避免重复回调。 */
+    onEnable(): void {
+        this.owner?.targetOff(this);
         this.owner?.on(BoardEvents.FirstFloorContact, this.onFloorContact, this);
         this.owner?.on(BoardEvents.Removing, this.onRemoving, this);
+    }
+
+    /** 隐藏或页面退出时解除监听，复活激活时由 onEnable 重新绑定。 */
+    onDisable(): void {
+        this.owner?.targetOff(this);
     }
 
     /** @param dynamic 首次接触地形时是否处于真实动态下落状态。 */
