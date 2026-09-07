@@ -1,0 +1,22 @@
+[
+    {
+        "target":  "assets/app-bundle/app-view/page/game/resources/spine/explosion/baozha.json",
+        "sha256":  "C2DD8E6207F9B605818E3F6F32A9BC06BEA80F5FEFB1C514CEDCDAE93C2B2A34",
+        "source":  "E:\\Pc\\Downloads\\逆向_缤纷消水果_2.4.15js\\逆向_缤纷消水果_2.4.15js\\assets\\_res\\resources\\Skeleton\\baozha\\baozha.json"
+    },
+    {
+        "target":  "assets/app-bundle/app-view/page/game/resources/spine/explosion/baozha.atlas",
+        "sha256":  "A1F27B42DBF7FE7DDEFB28D4EB5AE3EADB086C96540420D588C2F4EAFF1DB8E7",
+        "source":  "E:\\Pc\\Downloads\\逆向_缤纷消水果_2.4.15js\\逆向_缤纷消水果_2.4.15js\\assets\\_res\\resources\\Skeleton\\baozha\\baozha.atlas"
+    },
+    {
+        "target":  "assets/app-bundle/app-view/page/game/resources/spine/explosion/baozha.png",
+        "sha256":  "EF3A5111E1D6887B45B94897671134F9700301520446DC548A520138058AA914",
+        "source":  "E:\\Pc\\Downloads\\逆向_缤纷消水果_2.4.15js\\逆向_缤纷消水果_2.4.15js\\assets\\_res\\resources\\Skeleton\\baozha\\baozha.png"
+    },
+    {
+        "target":  "assets/app-bundle/app-view/page/game/resources/audio/bomb.mp3",
+        "sha256":  "9F7498527146BB2DC2BA59F81946EBD229F63361C96F7E9C6C2077A38482ABF3",
+        "source":  "E:\\Pc\\Downloads\\逆向_缤纷消水果_2.4.15js\\逆向_缤纷消水果_2.4.15js\\assets\\_res\\main\\Audio\\watermelonGame\\bomb.mp3"
+    }
+]

@@ -14,11 +14,19 @@ import { MatchQueue } from '../matching/MatchQueue';
 import { BoardEvents } from './BoardEvents';
 import { FruitSpawner } from './FruitSpawner';
 import { BoardReviveFlow } from '../revive/BoardReviveFlow';
+import { RemovalEffects } from '../effects/RemovalEffects';
 const { ccclass, property } = _decorator;
 
 /** 棋盘只协调配对、补位与判负，不包含 UI 布局和单体表现。 */
 @ccclass('GameBoard')
 export class GameBoard extends Component {
+    /** 独立消除特效预制体实例，视觉位于水果上层，不参与物理和水果计数。 */
+    @property(Node)
+    removalEffectsRoot: Node = null!;
+    /** 从独立预制体读取特效组件，避免跨预制体组件绑定丢失。 */
+    private get removalEffects(): RemovalEffects | null {
+        return this.removalEffectsRoot?.getComponent(RemovalEffects) ?? null;
+    }
     /** 独立锁墙预制体节点，保持原版位置并由奖励流程解锁。 */
     @property(Node)
     lockWallRoot: Node = null!;
@@ -99,6 +107,7 @@ export class GameBoard extends Component {
     /** 奖励与权威状态校验后，恢复当前实例；不重新载入关卡配置。 */
     revive(): boolean {
         if (!this.canRevive) return false;
+        this.removalEffects?.beginRevive();
         this.failed = false;
         return this.revival.begin(this.mode, this.spawner, (first, second) => this.removePair(first, second, true), () => {
             this.matches.clear();
@@ -224,6 +233,7 @@ export class GameBoard extends Component {
 
     /** @param first 第一颗实例。 @param second 同类伙伴。 @param forced 是否为复活强制配对。 */
     private removePair(first: FruitItem, second: FruitItem, forced: boolean): void {
+        if (forced) this.removalEffects?.showRevivePair(first.node, second.node);
         first.removing = second.removing = true;
         this.spawner.remove(first);
         this.spawner.remove(second);
@@ -257,6 +267,7 @@ export class GameBoard extends Component {
 
     /** 清理旧局实例及排队通知。 */
     clear(): void {
+        this.removalEffects?.clear();
         this.failed = false;
         this.revival.cancel();
         this.warning.reset();

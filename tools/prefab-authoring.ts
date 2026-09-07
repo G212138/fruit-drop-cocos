@@ -283,6 +283,9 @@ const methods = {
         }
         const board = root.addComponent('GameBoard');
         board.spawner = spawner;
+        const effects=cc.instantiate(await asset(base+'page/game/resources/prefabs/RemovalEffects.prefab'));
+        effects.parent=root;
+        board.removalEffectsRoot=effects;
         board.lockWallRoot = lockNode;
         board.leftBoundary = root.getChildByName('LeftEdge');
         board.rightLine = await sprite('RightLine',root,base + 'page/game/resources/textures/right-line.png',4,1023,313.357,179.307);
@@ -292,6 +295,26 @@ const methods = {
         board.levelHintRoot = hint;
         hint.active = false;
         return save(root, base + 'page/game/resources/prefabs/GameBoard.prefab');
+    },
+
+    /** 按原 baozha 预制体制作爆炸与独立特效层，所有节点和音源仅在编辑器创建。 */
+    async createRemovalEffects() {
+        const root=node('ExplosionView',null,945.82,2328.04);
+        const view=root.addComponent('ExplosionView');
+        view.skeleton=root.addComponent(cc.sp.Skeleton);
+        view.skeleton.skeletonData=await asset(base+'page/game/resources/spine/explosion/baozha.json');
+        view.skeleton.premultipliedAlpha=false;
+        view.skeleton.timeScale=1.2;
+        view.skeleton.setAnimation(0,'1',false);
+        await save(root,base+'page/game/resources/prefabs/ExplosionView.prefab');
+        const layer=node('RemovalEffects');
+        const effects=layer.addComponent('RemovalEffects');
+        effects.explosionPrefab=await asset(base+'page/game/resources/prefabs/ExplosionView.prefab');
+        effects.audio=layer.addComponent(cc.AudioSource);
+        effects.audio.playOnAwake=false;
+        effects.audio.clip=await asset(base+'page/game/resources/audio/bomb.mp3');
+        effects.audio.loop=false;
+        return save(layer,base+'page/game/resources/prefabs/RemovalEffects.prefab');
     },
 
     /** 制作独立 HUD；错误说明与导航按钮始终由预制体提供。 */
