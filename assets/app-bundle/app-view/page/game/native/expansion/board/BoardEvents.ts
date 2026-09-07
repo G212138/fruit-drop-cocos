@@ -2,6 +2,7 @@
 export const BoardEvents = {
     ReleaseRequested: 'release-request',
     FruitContact: 'fruit-contact',
+    FruitContactBegan: 'fruit-contact-began',
     Matched: 'matched',
     Failed: 'failed',
 } as const;

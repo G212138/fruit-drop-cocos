@@ -61,3 +61,55 @@ game.removePair();
 assert.equal(game.phase, 'lost');
 assert.equal(game.remaining, 4);
 console.log('通过：配对边界、重复接触锁定、队列清空、关卡校验、胜负终态与重开。');
+
+const { FloorFailureRules, canEliminateAtFloor } = load(expansion + '/failure/FloorFailureRules.ts');
+/** 构造互不相同且已经触底静止的水果，隔离计时和接触边界。 */
+function pile(count) {
+    return Array.from({ length: count }, (_, index) => ({
+        id: String(index), kind: index + 1, y: -300 - index * 70,
+        touchedFloor: true, removing: false, settled: true,
+    }));
+}
+const failure = new FloorFailureRules();
+assert.equal(failure.tick(pile(3), 10), false);
+assert.equal(failure.tick(pile(4), 0.49), false);
+assert.equal(failure.tick(pile(4), 0.011), true);
+assert.equal(failure.tick(pile(5), 0.14), false);
+assert.equal(failure.tick(pile(5), 0.011), true);
+failure.reset();
+assert.equal(failure.tick(pile(4), 0.4), false);
+const moving = pile(4);
+moving[0].settled = false;
+assert.equal(failure.tick(moving, 1), false);
+assert.equal(failure.tick(pile(4), 0.2), false);
+assert.equal(failure.tick(pile(3), 1), false);
+assert.equal(failure.tick(pile(4), 0.3), false);
+const merging = pile(4);
+merging[0].removing = true;
+assert.equal(failure.tick(merging, 1), false);
+assert.equal(failure.tick(pile(4), 0.3), false);
+const pair = pile(4);
+pair[1].kind = pair[0].kind;
+assert.equal(canEliminateAtFloor(pair), true);
+assert.equal(failure.tick(pair, 1), false);
+assert.equal(failure.losesOnContact(pair, '0', '1'), false);
+assert.equal(failure.losesOnContact(pile(4), '0', '1'), true);
+assert.equal(failure.losesOnContact(pile(4), '1', '0'), true);
+assert.equal(failure.losesOnContact(pile(4), '1', '2'), false);
+assert.equal(failure.losesOnContact(pile(3), '0', '1'), false);
+const boundary = pile(4);
+boundary[0].y = -250;
+assert.equal(failure.losesOnContact(boundary, '1', '2'), false);
+const airborne = pile(4).map(fruit => ({ ...fruit, touchedFloor: false }));
+assert.equal(failure.tick(airborne, 10), false);
+assert.equal(failure.losesOnContact(airborne, '0', '1'), true);
+assert.equal(failure.losesOnContact(pile(4), '0', '1', 5), false);
+failure.reset();
+assert.equal(failure.tick(pile(4), 10, 5), false);
+assert.equal(failure.tick(pile(5), 0.49, 5), false);
+assert.equal(failure.tick(pile(5), 0.011, 5), true);
+failure.reset();
+assert.equal(failure.tick(pile(4), 0.3), false);
+failure.reset();
+assert.equal(failure.tick(pile(4), 0.3), false);
+console.log('通过：原版接触判负、触底与高度区别、静止计时、移动/数量/消除重置、扩槽阈值和重开。');

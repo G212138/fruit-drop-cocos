@@ -4,6 +4,7 @@ import {
 } from 'cc';
 import { BoardEvents } from '../board/BoardEvents';
 import { MatchCandidate } from '../matching/MatchRules';
+import { FloorFruit } from '../failure/FloorFailureRules';
 import { FruitVisual } from './FruitVisual';
 const { ccclass, property } = _decorator;
 
@@ -37,7 +38,7 @@ export class FruitItem extends Component {
     /** 注册单体输入和物理通知。 */
     onLoad(): void {
         this.node.on(Node.EventType.TOUCH_END, this.requestRelease, this);
-        this.collider.on(Contact2DType.BEGIN_CONTACT, this.onContact, this);
+        this.collider.on(Contact2DType.BEGIN_CONTACT, this.onContactBegan, this);
         this.collider.on(Contact2DType.PRE_SOLVE, this.onContact, this);
     }
 
@@ -53,6 +54,24 @@ export class FruitItem extends Component {
         this.released = true;
         this.body.type = ERigidBody2DType.Dynamic;
         this.body.wakeUp();
+    }
+
+    /** 新接触先进入配对队列，再记录原版即时失败检查所需的接触双方。 */
+    private onContactBegan(self: Collider2D, other: Collider2D): void {
+        this.onContact(self, other);
+        const fruit = other.getComponent(FruitItem);
+        if (fruit) this.node.emit(BoardEvents.FruitContactBegan, this, fruit);
+    }
+
+    /** 提供判负快照，沿用原版线速度平方二十五和角速度五的静止阈值。 */
+    getFloorSnapshot(): FloorFruit {
+        const velocity = this.body.linearVelocity;
+        return {
+            ...this.getMatchCandidate(),
+            id: this.node.uuid,
+            settled: this.body.type !== ERigidBody2DType.Dynamic
+                || (velocity.lengthSqr() <= 25 && Math.abs(this.body.angularVelocity) <= 5),
+        };
     }
 
     /** 记录触底并将水果接触交给棋盘处理。 */

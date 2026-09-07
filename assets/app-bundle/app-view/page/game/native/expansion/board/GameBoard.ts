@@ -1,4 +1,5 @@
 import { _decorator, Component, PhysicsSystem2D, Vec2 } from 'cc';
+import { FloorFailureRules } from '../failure/FloorFailureRules';
 import { FruitItem } from '../fruit/FruitItem';
 import { LevelDefinition } from '../level/LevelDefinition';
 import { MatchQueue } from '../matching/MatchQueue';
@@ -13,6 +14,8 @@ export class GameBoard extends Component {
     spawner: FruitSpawner = null!;
 
     private readonly matches = new MatchQueue<FruitItem>();
+    private readonly failure = new FloorFailureRules();
+    private readonly contacts: [string, string][] = [];
     private playing = false;
     private waveIndex = 0;
     private level: LevelDefinition = { waves: [] };
@@ -37,6 +40,7 @@ export class GameBoard extends Component {
     private bindFruit(fruit: FruitItem): void {
         fruit.node.on(BoardEvents.ReleaseRequested, this.release, this);
         fruit.node.on(BoardEvents.FruitContact, this.contact, this);
+        fruit.node.on(BoardEvents.FruitContactBegan, this.recordContact, this);
     }
 
     /** 只有正在进行的棋盘允许下落。 */
@@ -53,13 +57,21 @@ export class GameBoard extends Component {
         }
     }
 
+    /** 保存新接触，等本帧配对优先处理完毕后再检查失败。 */
+    private recordContact(first: FruitItem, second: FruitItem): void {
+        if (this.playing) this.contacts.push([first.node.uuid, second.node.uuid]);
+    }
+
     /** 在物理回调之外结算配对并检查下一批次。 */
-    lateUpdate(): void {
+    lateUpdate(dt: number): void {
         if (!this.playing) return;
         this.resolveMatches();
         if (!this.playing) return;
         this.advanceWave();
-        if (this.spawner.hasEscaped(-650)) {
+        const fruits = this.spawner.getFloorSnapshots();
+        const contactFailure = this.contacts.splice(0).some(([first, second]) =>
+            this.failure.losesOnContact(fruits, first, second));
+        if (contactFailure || this.failure.tick(fruits, dt)) {
             this.stop();
             this.node.emit(BoardEvents.Failed);
         }
@@ -91,6 +103,8 @@ export class GameBoard extends Component {
     stop(): void {
         this.playing = false;
         this.matches.clear();
+        this.contacts.length = 0;
+        this.failure.reset();
         this.spawner.freeze();
     }
 
@@ -98,6 +112,8 @@ export class GameBoard extends Component {
     clear(): void {
         this.playing = false;
         this.matches.clear();
+        this.contacts.length = 0;
+        this.failure.reset();
         this.spawner.clear();
     }
 
@@ -105,5 +121,7 @@ export class GameBoard extends Component {
     onDestroy(): void {
         this.playing = false;
         this.matches.clear();
+        this.contacts.length = 0;
+        this.failure.reset();
     }
 }

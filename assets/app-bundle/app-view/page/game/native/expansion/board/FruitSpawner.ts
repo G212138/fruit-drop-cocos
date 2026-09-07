@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, Prefab, SpriteFrame, instantiate, isValid } from 'cc';
+import { FloorFruit } from '../failure/FloorFailureRules';
 import { FruitItem } from '../fruit/FruitItem';
 import { FruitDefinition } from '../level/LevelDefinition';
 const { ccclass, property } = _decorator;
@@ -45,9 +46,13 @@ export class FruitSpawner extends Component {
         this.live.delete(fruit);
     }
 
-    /** 检查验证版出界条件，暂不代表原版完整失败规则。 */
-    hasEscaped(bottom: number): boolean {
-        return [...this.live].some(fruit => fruit.node.position.y < bottom);
+    /** 包含消除动画中的水果，避免动画尚未结束时误判失败。 */
+    getFloorSnapshots(): FloorFruit[] {
+        return this.fruitRoot.children
+            .filter(node => isValid(node, true))
+            .map(node => node.getComponent(FruitItem))
+            .filter((fruit): fruit is FruitItem => !!fruit)
+            .map(fruit => fruit.getFloorSnapshot());
     }
 
     /** 冻结本局存活水果。 */
