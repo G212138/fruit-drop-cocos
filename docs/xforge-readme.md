@@ -38,7 +38,7 @@
 - 无需过多关心，就可实现极小的首包体积
 - 天然支持大厅子游戏模式，不需要任何额外配置
 
-> 查看文档：[微信小游戏分包策略最佳实践](https://gitee.com/cocos2d-zp/xforge/wikis/pages?sort_id=13017432&doc_id=6236543) 
+> 查看文档：[微信小游戏分包策略最佳实践](https://gitee.com/cocos2d-zp/xforge/wikis/pages?sort_id=13017432&doc_id=6236543)
 
 ### UI类型与安全
 - 简化 UI 管理，支持 多Scene 和 多Prefab 配置。
