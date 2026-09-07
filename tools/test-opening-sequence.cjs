@@ -18,6 +18,7 @@ board.entry = {busy: true, tick: () => {calls.push('入场'); board.entry.busy =
 board.shift = {busy: false, begin: () => calls.push('补位')};
 board.spawner = {updateBlackHoles: () => {}, getWaiting: () => [], getFloorSnapshots: () => [], releaseBlackHole: () => calls.push('释放')};
 board.failure = {tick: () => false};
+board.warning = {tick: () => 'wait'};
 board.matches = {drain: () => []};
 board.lateUpdate(0.1);
 board.release({waiting: true, spawning: false, iceLayers: 0, drop: () => calls.push('下落')});

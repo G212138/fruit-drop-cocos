@@ -6,6 +6,7 @@ import { LockWallView } from '../reward/LockWallView';
 import { HorizontalFlow } from '../movement/HorizontalFlow';
 import { PHYSICS_RULES } from '../physics/PhysicsRules';
 import { FloorFailureRules } from '../failure/FloorFailureRules';
+import { FloorWarningRules } from '../failure/FloorWarningRules';
 import { FruitItem } from '../fruit/FruitItem';
 import { FruitShift } from '../movement/FruitShift';
 import { LevelDefinition } from '../level/LevelDefinition';
@@ -76,6 +77,8 @@ export class GameBoard extends Component {
     private readonly matches = new MatchQueue<FruitItem>();
     /** 独立底部失败计时器，每局重置。 */
     private readonly failure = new FloorFailureRules();
+    /** 独立危险提醒计时，不与判负延时共享状态。 */
+    private readonly warning = new FloorWarningRules();
     /** 本帧新接触双方的节点标识，物理步结束后检查。 */
     private readonly contacts: [string, string][] = [];
     /** 是否允许当前棋盘处理输入和物理结果。 */
@@ -172,6 +175,13 @@ export class GameBoard extends Component {
         this.resolveMatches();
         if (!this.playing) return;
         const fruits = this.spawner.getFloorSnapshots();
+        const warning = this.warning.tick(fruits, dt, this.floorThreshold === 5);
+        if (warning === 'clear') this.restoreWarnings();
+        else if (warning === 'flash') {
+            for (const fruit of this.spawner.getLive()) {
+                if (fruit.touchedFloor && !fruit.removing) fruit.visual.flashWarning();
+            }
+        }
         const contactFailure = this.contacts.splice(0).some(([first, second]) =>
             this.failure.losesOnContact(fruits, first, second, this.floorThreshold));
         if (contactFailure || this.failure.tick(fruits, dt, this.floorThreshold)) {
@@ -200,6 +210,8 @@ export class GameBoard extends Component {
 
     /** 停止棋盘输入和本局水果模拟。 */
     stop(): void {
+        this.warning.reset();
+        this.restoreWarnings();
         this.levelHint?.stop();
         this.entry.cancel();
         this.horizontal.reset();
@@ -213,6 +225,8 @@ export class GameBoard extends Component {
 
     /** 清理旧局实例及排队通知。 */
     clear(): void {
+        this.warning.reset();
+        this.restoreWarnings();
         this.initialShiftPending = false;
         this.levelHint?.stop();
         this.entry.cancel();
@@ -227,10 +241,16 @@ export class GameBoard extends Component {
 
     /** 页面销毁时清理本棋盘，不关闭全局物理系统。 */
     onDestroy(): void {
+        this.warning.reset();
         this.playing = false;
         this.shift.stop();
         this.matches.clear();
         this.contacts.length = 0;
         this.failure.reset();
+    }
+
+    /** 恢复当前存活水果颜色，消除中的水果由自身表现组件清理。 */
+    private restoreWarnings(): void {
+        for (const fruit of this.spawner.getLive()) fruit.visual.clearWarning();
     }
 }
