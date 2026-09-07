@@ -57,3 +57,13 @@ Thumbs.db
 
 .vscode/
 !.vscode/settings.json
+# Local editor services and private configuration
+/extensions/cocos-mcp-server/
+/settings/.mcp-port.json
+/settings/.mcp-version
+/settings/mcp-server.json
+/settings/tool-manager.json
+**/node_modules/
+.env
+.env.*
+!.env.example

@@ -1,0 +1,62 @@
+[
+  {
+    "source": "resources/sprite/fruitIcon/21.png",
+    "target": "assets/app-bundle/app-view/page/game/resources/textures/fruit-21.png",
+    "sha256": "3e77a57d079b3835313686d2e5200918fb8fb3bf958e516226587c8b68b6d288"
+  },
+  {
+    "source": "resources/sprite/fruitIcon/22.png",
+    "target": "assets/app-bundle/app-view/page/game/resources/textures/fruit-22.png",
+    "sha256": "939ad870ef4ece03c26e7cbef0bc28bc489895eee1e4b43f87a91b3a13ca01e3"
+  },
+  {
+    "source": "resources/sprite/fruitIcon/6.png",
+    "target": "assets/app-bundle/app-view/page/game/resources/textures/fruit-6.png",
+    "sha256": "23acc0719a33fc7a73b1f1848dbd5dc1d5859c95499e2ffc92e2a9b284802bef"
+  },
+  {
+    "source": "resources/sprite/fruitIcon/17.png",
+    "target": "assets/app-bundle/app-view/page/game/resources/textures/fruit-17.png",
+    "sha256": "2c135ce4881e32f468a4bd79c16248a57689c39ad9ab9c65f204af2f9648bc43"
+  },
+  {
+    "source": "resources/sprite/Theme/fruit/bg1.png",
+    "target": "assets/app-bundle/app-view/page/game/resources/textures/background.png",
+    "sha256": "3e4f9ab699ed617d383069b8d1dd1bfe8b8e4f055de97e851dd9a1efe7ce41d3"
+  },
+  {
+    "source": "resources/sprite/Theme/fruit/BgDown1.png",
+    "target": "assets/app-bundle/app-view/page/game/resources/textures/terrain.png",
+    "sha256": "739a7cc43c29ee8ba5ee2f7026999408848e82f227986cd31c58ac1b24471444"
+  },
+  {
+    "source": "resources/sprite/Theme/fruit/bg1.png",
+    "target": "assets/app-bundle/app-view/page/home/resources/textures/background.png",
+    "sha256": "3e4f9ab699ed617d383069b8d1dd1bfe8b8e4f055de97e851dd9a1efe7ce41d3"
+  },
+  {
+    "source": "resources/sprite/fruitIcon/21.png",
+    "target": "assets/app-bundle/app-view/page/home/resources/textures/mango.png",
+    "sha256": "3e77a57d079b3835313686d2e5200918fb8fb3bf958e516226587c8b68b6d288"
+  },
+  {
+    "source": "_res/main/textures/home/StartBtn.png",
+    "target": "assets/app-bundle/app-view/page/home/resources/textures/start-button.png",
+    "sha256": "c0e8f1352c7df8f6f6d2e95fe162e460009ec8a016ab787275d83f804ec3851e"
+  },
+  {
+    "source": "_res/main/textures/watermelonGame/btn重新挑战.png",
+    "target": "assets/app-bundle/app-view/pop/result/resources/textures/restart-button.png",
+    "sha256": "3ec985d328b4411a4b3143c89ea7909a412cec1a36e41f1e7cd4fb26cafec2b3"
+  },
+  {
+    "source": "_res/main/textures/watermelonGame/btn返回主页.png",
+    "target": "assets/app-bundle/app-view/pop/result/resources/textures/home-button.png",
+    "sha256": "066d2f94bfd0dda4b932fc7c974574a34ff38b4e711d4edfafc9188008c7b900"
+  },
+  {
+    "source": "_res/main/textures/watermelonGame/_idx1/Bg.png",
+    "target": "assets/app-bundle/app-view/pop/result/resources/textures/panel.png",
+    "sha256": "e3d7d3ac73d8e21ea7b05dd3a3c09727f25a0aa30aa45b047f8e03d138beb26c"
+  }
+]
