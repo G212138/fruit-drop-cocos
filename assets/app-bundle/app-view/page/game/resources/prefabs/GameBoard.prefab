@@ -1101,12 +1101,12 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 750,
-      "height": 2000
+      "height": 1334
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
       "x": 0.5,
-      "y": 0.75
+      "y": 0.5
     },
     "_id": ""
   },

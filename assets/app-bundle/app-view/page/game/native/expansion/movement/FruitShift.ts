@@ -13,8 +13,8 @@ export class FruitShift {
     }
 
     /** @param fruits 本次点击后仍未释放的水果实例。 */
-    begin(fruits: FruitItem[]): void {
-        const plan = planVerticalShift(fruits.map(fruit => fruit.node.position.y));
+    begin(fruits: FruitItem[], reachableTop?: number): void {
+        const plan = planVerticalShift(fruits.map(fruit => fruit.node.position.y), reachableTop);
         if (!plan || this.busy) return;
         this.moving = [...fruits];
         for (const fruit of fruits) {

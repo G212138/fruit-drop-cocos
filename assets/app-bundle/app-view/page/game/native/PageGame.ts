@@ -1,3 +1,4 @@
+import { FruitViewportLayout } from './expansion/board/FruitViewportLayout';
 import { ScreenLayout } from '../../../../../app-builtin/app-controller/expansion/ScreenLayout';
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
 import { DEV } from 'cc/env';
@@ -21,10 +22,16 @@ const { ccclass, property } = _decorator;
 export class PageGame extends BaseView.BindController(GameController) {
     /** ????????????????????? */
     private readonly screenLayout = new ScreenLayout();
+    /** ????????????????? */
+    private readonly fruitViewport = new FruitViewportLayout();
 
     /** ????????????????????????????? */
     lateUpdate(): void {
         this.screenLayout.apply(this.node, -900, 700);
+        if (this.board && this.hud) {
+            this.board.fruitDisplayTop = this.fruitViewport.apply(
+                this.node, this.board.node, this.board.spawner.fruitRoot, this.hud.status.node);
+        }
     }
 
     /** 页面预制体中的棋盘挂载点，加载完成后实例化到这里。 */

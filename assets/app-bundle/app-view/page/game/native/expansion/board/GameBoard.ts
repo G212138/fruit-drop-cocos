@@ -99,6 +99,8 @@ export class GameBoard extends Component {
     private playing = false;
     /** 原版纵向补位协调器；动画期间锁定点击。 */
     private readonly shift = new FruitShift();
+    /** ????????????????500?????????????? */
+    fruitDisplayTop = 500;
     /** 等本批已释放水果全部到达洞口后再请求纵向补位。 */
     private readonly shiftGate = new VerticalShiftGate();
     /** 独立复活实例流程，包含回收动画及旧局取消。 */
@@ -207,7 +209,7 @@ export class GameBoard extends Component {
         }
         if (this.initialShiftPending) {
             this.initialShiftPending = false;
-            this.shift.begin(this.spawner.getWaiting());
+            this.shift.begin(this.spawner.getWaiting(), this.fruitDisplayTop - 60);
         }
         if (this.mode === 2) this.horizontal.tick(dt, this.spawner.getLive(), this.spawner.getWaiting(), this.rightLine, fruit => this.release(fruit));
         this.spawner.updateBlackHoles(dt);
@@ -215,7 +217,7 @@ export class GameBoard extends Component {
         if (!this.playing) return;
         if (this.mode === 1 && this.shiftGate.consume(
             this.spawner.getLive().map(fruit => ({ id: fruit.node.uuid, y: fruit.node.position.y })), this.shift.busy,
-        )) this.shift.begin(this.spawner.getWaiting());
+        )) this.shift.begin(this.spawner.getWaiting(), this.fruitDisplayTop - 60);
         if (this.collectingPairs > 0) return;
         const fruits = this.spawner.getFloorSnapshots();
         const warning = this.warning.tick(fruits, dt, this.floorThreshold === 5);

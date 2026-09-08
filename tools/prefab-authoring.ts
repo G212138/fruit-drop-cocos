@@ -270,8 +270,8 @@ const methods = {
         wall('RightEdge', root, 379.916, 0, 10, 1280);
         const spawner = root.addComponent('FruitSpawner');
         // 迁移适配：顶部裁剪线 y=500，避免场外水果遮住 HUD；水果坐标不变。
-        const viewport = node('FruitViewport', root, 750, 2000);
-        viewport.getComponent(cc.UITransform).setAnchorPoint(0.5, 0.75);
+        const viewport = node('FruitViewport', root, 750, 1334);
+        viewport.getComponent(cc.UITransform).setAnchorPoint(0.5, 0.5);
         viewport.addComponent(cc.Mask).type = cc.Mask.Type.GRAPHICS_RECT;
         spawner.fruitRoot = node('Fruits', viewport);
         spawner.iceFruitPrefab = await asset(base + 'page/game/resources/prefabs/IceFruitView.prefab');

@@ -65,12 +65,12 @@ export interface ShiftPlan {
 }
 
 /** @param heights 尚未点击水果的棋盘局部纵坐标，单位设计像素。 */
-export function planVerticalShift(heights: number[]): ShiftPlan | null {
+export function planVerticalShift(heights: number[], reachableTop: number = SHIFT_RULES.reachableTop): ShiftPlan | null {
     if (!heights.length) return null;
     const bottom = Math.min(...heights);
     if (bottom <= SHIFT_RULES.bottomThreshold) return null;
     // 只剩高处水果时不再要求最高点达到740，否则尾果会卡在500像素裁剪线上。
-    if (Math.max(...heights) < SHIFT_RULES.topThreshold && bottom <= SHIFT_RULES.reachableTop) return null;
+    if (Math.max(...heights) < SHIFT_RULES.topThreshold && bottom <= reachableTop) return null;
     const delta = SHIFT_RULES.targetBottom - bottom;
     return { delta, duration: Math.max(SHIFT_RULES.minDuration,
         Math.min(SHIFT_RULES.maxDuration, Math.abs(delta) / SHIFT_RULES.speed)) };
