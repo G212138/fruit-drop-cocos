@@ -60,17 +60,17 @@ assert.deepEqual(selectHorizontalRevivePair(refreshed), ['next', 'new-member'], 
 
 assert.deepEqual(planRevivePlacement([], [circle('waiting', 0, -100)]), { targets: [], lift: 0 });
 assert.deepEqual(planRevivePlacement([circle('a', 0, -500), circle('b', 0, -600), circle('c', 0, -700)], []),
-    { targets: [{ id: 'a', x: 0, y: 90 }, { id: 'b', x: 0, y: 10 }, { id: 'c', x: 0, y: -70 }], lift: 240 });
+    { targets: [{ id: 'a', x: 0, y: 230 }, { id: 'b', x: 0, y: 150 }, { id: 'c', x: 0, y: 70 }], lift: 380 });
 const crowded = [circle('waiting', 0, 100, { radius: 60 })];
 const crowdedBefore = JSON.stringify(crowded);
 const spread = planRevivePlacement([circle('a', 0, -500, { radius: 60 })], crowded);
-assert.deepEqual(spread.targets, [{ id: 'a', x: 160, y: 20 }], '同列和左右八十像素均重叠时，先尝试右侧一百六十像素');
+assert.deepEqual(spread.targets, [{ id: 'a', x: 160, y: 70 }], '同列和左右八十像素均重叠时，先尝试右侧一百六十像素');
 assert.equal(JSON.stringify(crowded), crowdedBefore);
 const fallback = planRevivePlacement([circle('a', 0, -500, { radius: 10000 })], [circle('obstacle', 0, 100)]);
-assert.equal(fallback.lift, 3110, '首行二十像素减三千二百后为负三千一百八十，抬升三千一百一十到负七十');
-assert.deepEqual(fallback.targets, [{ id: 'a', x: 0, y: -70 }]);
+assert.equal(fallback.lift, 3250, '首行二十像素减三千二百后为负三千一百八十，抬升三千二百五十到七十');
+assert.deepEqual(fallback.targets, [{ id: 'a', x: 0, y: 70 }]);
 const group = planRevivePlacement([circle('a', 0, -500)], [circle('member', 0, -300, { insideBlackHole: true })], [-400]);
-assert.equal(group.lift, 660, '黑洞容器的半速抬升也必须达到负七十像素');
-assert.equal(group.targets[0].y, 280);
+assert.equal(group.lift, 940, '黑洞容器的半速抬升也必须达到七十像素');
+assert.equal(group.targets[0].y, 560);
 assert.equal(REVIVE_PLACEMENT.duration, 0.5);
 console.log('通过：纵向回收、黑洞回退互斥、横向动态重采样、同类优先级、占位搜索、保底位置、黑洞抬升及输入不变性。');

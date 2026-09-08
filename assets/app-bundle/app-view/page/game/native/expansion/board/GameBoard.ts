@@ -9,6 +9,7 @@ import { FloorFailureRules } from '../failure/FloorFailureRules';
 import { FloorWarningRules } from '../failure/FloorWarningRules';
 import { FruitItem } from '../fruit/FruitItem';
 import { FruitShift } from '../movement/FruitShift';
+import { VerticalShiftGate } from '../movement/VerticalShiftRules';
 import { LevelDefinition } from '../level/LevelDefinition';
 import { MatchQueue } from '../matching/MatchQueue';
 import { BoardEvents } from './BoardEvents';
@@ -98,6 +99,8 @@ export class GameBoard extends Component {
     private playing = false;
     /** 原版纵向补位协调器；动画期间锁定点击。 */
     private readonly shift = new FruitShift();
+    /** 等本批已释放水果全部到达洞口后再请求纵向补位。 */
+    private readonly shiftGate = new VerticalShiftGate();
     /** 独立复活实例流程，包含回收动画及旧局取消。 */
     private readonly revival = new BoardReviveFlow();
     /** 只有确实由当前棋盘判负的局才可复活。 */
@@ -166,7 +169,7 @@ export class GameBoard extends Component {
             this.spawner.releaseBlackHole(fruit);
             fruit.drop();
             if (this.mode === 2) this.horizontal.afterDrop(this.spawner.getWaiting(), this.rightLine);
-            else this.shift.begin(this.spawner.getWaiting());
+            else this.shiftGate.request(fruit.node.uuid);
         }
     }
 
@@ -210,6 +213,9 @@ export class GameBoard extends Component {
         this.spawner.updateBlackHoles(dt);
         this.resolveMatches();
         if (!this.playing) return;
+        if (this.mode === 1 && this.shiftGate.consume(
+            this.spawner.getLive().map(fruit => ({ id: fruit.node.uuid, y: fruit.node.position.y })), this.shift.busy,
+        )) this.shift.begin(this.spawner.getWaiting());
         if (this.collectingPairs > 0) return;
         const fruits = this.spawner.getFloorSnapshots();
         const warning = this.warning.tick(fruits, dt, this.floorThreshold === 5);
@@ -277,6 +283,7 @@ export class GameBoard extends Component {
         this.horizontal.reset();
         this.playing = false;
         this.shift.stop();
+        this.shiftGate.reset();
         this.matches.clear();
         this.contacts.length = 0;
         this.failure.reset();
@@ -298,6 +305,7 @@ export class GameBoard extends Component {
         this.horizontal.reset();
         this.playing = false;
         this.shift.stop();
+        this.shiftGate.reset();
         this.matches.clear();
         this.contacts.length = 0;
         this.failure.reset();
@@ -311,6 +319,7 @@ export class GameBoard extends Component {
         this.warning.reset();
         this.playing = false;
         this.shift.stop();
+        this.shiftGate.reset();
         this.matches.clear();
         this.contacts.length = 0;
         this.failure.reset();

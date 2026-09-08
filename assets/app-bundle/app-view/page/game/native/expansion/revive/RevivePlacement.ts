@@ -8,8 +8,8 @@ export const REVIVE_PLACEMENT = Object.freeze({
     emptyStartY: -150,
     /** 原版最多向下搜索四十行，超过后使用保底位置。 */
     rows: 40,
-    /** 原版普通等待区域抬升后的最低纵坐标，单位像素。 */
-    minimumY: -70,
+    /** 回收后的最低纵坐标，单位设计像素；原版-70，按等待区上移需求增加140，避免复活后再次贴近斜坡。 */
+    minimumY: 70,
     /** 原版黑洞容器抬升比例；容器中的成员还会获得自身的移动量。 */
     wrapperShiftRatio: 0.5,
     /** 原版回收动画时长，单位秒，配合 sineOut 缓动。 */

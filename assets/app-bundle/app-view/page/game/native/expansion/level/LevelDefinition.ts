@@ -29,8 +29,8 @@ export interface LevelDefinition {
     fruits: FruitDefinition[];
 }
 
-/** 原版首次生成时纵向增加七百设计像素，不是调难度参数。 */
-export const INITIAL_OFFSET_Y = 700;
+/** 首次生成纵向偏移，单位设计像素；原版700，按水果区上移需求增加140，给斜坡留出空间。 */
+export const INITIAL_OFFSET_Y = 840;
 /** 原版完整四十五关；普通、隐藏、冰层、黑洞和横向均已接入，逐关实玩验证仍单独记录。 */
 export const SUPPORTED_LEVEL_COUNT = 45;
 /** 原版完整三十种水果编号，必须具有对应预制体。 */
