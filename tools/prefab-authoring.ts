@@ -95,6 +95,154 @@ function wall(name, parent, x, y, width, height, angle = 0) {
 }
 
 const methods = {
+    /** 隐藏机制提示在两种主题下使用原版各自文字图片。 */
+    async bindDessertHint() {
+        const url=base+'page/game/resources/prefabs/LevelHintView.prefab';const root=cc.instantiate(await asset(url));
+        cce.Prefab.removePrefabInfoFromNode(root,false);
+        const text=root.getComponent('LevelHintView').hiddenText;
+        const view=text.getComponent('ThemeSprite')||text.addComponent('ThemeSprite');
+        view.target=text.getComponent(cc.Sprite);view.fruitFrame=view.target.spriteFrame;
+        view.dessertFrame=await asset(base+'page/game/resources/textures/hints/hidden-dessert-text.png',true);
+        return save(root,url);
+    },
+    /** 首页遮罩覆盖适配后的整个画面，不受内容等比缩放导致两侧漏光。 */
+    async finishHomeMask() {
+        const url=base+'page/home/native/PageHome.prefab';const page=cc.instantiate(await asset(url));
+        cce.Prefab.removePrefabInfoFromNode(page,false);
+        const home=page.getComponent('PageHome');
+        home.themePanel.node.getChildByName('Mask').getComponent(cc.UITransform).setContentSize(2500,3000);
+        home.settingsPanel.node.getChildByName('Mask').getComponent(cc.UITransform).setContentSize(2500,3000);
+        return save(page,url);
+    },
+    /** 主题绑定限定在各自预制体内，消除跨嵌套组件引用丢失。 */
+    async localizeThemeBindings() {
+        const find=(root,name)=>root.name===name?root:root.children.map(child=>find(child,name)).find(Boolean);
+        for(const name of ['LockWallView','FruitBagView']) {
+            const url=base+'page/game/resources/prefabs/'+name+'.prefab';
+            const root=cc.instantiate(await asset(url));cce.Prefab.removePrefabInfoFromNode(root,false);
+            const pairs=name==='LockWallView'?[[root.getComponent('LockWallView').visual,2]]:[[find(root,'BagTop'),3],[find(root,'BagBottom'),4]];
+            for(const [target,index] of pairs) {
+                const view=target.getComponent('ThemeSprite')||target.addComponent('ThemeSprite');
+                view.target=target.getComponent(cc.Sprite);view.mouth=index===3;
+                view.fruitFrame=await asset(base+'page/game/resources/textures/themes/part-'+index+'.png',true);
+                view.dessertFrame=await asset(base+'page/game/resources/textures/themes/part-'+(index+5)+'.png',true);
+            }
+            await save(root,url);
+        }
+        const url=base+'page/game/native/PageGame.prefab';
+        const page=cc.instantiate(await asset(url));cce.Prefab.removePrefabInfoFromNode(page,false);
+        page.getComponent('GameThemeView').targets=page.getComponent('GameThemeView').targets.slice(0,2);
+        return save(page,url);
+    },
+    /** 为编辑器绑定已导入的甜品图片，保留原有布局。 */
+    async bindEditorDesserts() {
+        const page=cc.instantiate(await asset(base+'page/editor/native/PageEditor.prefab'));
+        cce.Prefab.removePrefabInfoFromNode(page,false);
+        const view=page.getComponent('PageEditor');view.dessertFrames=[];
+        for(let kind=1;kind<=30;kind++) view.dessertFrames.push(await asset(base+'page/game/resources/textures/dessert-'+kind+'.png',true));
+        return save(page,base+'page/editor/native/PageEditor.prefab');
+    },
+    /** 修复主题中锁墙子图片的引用，不改变布局或重复创建内容。 */
+    async fixThemeWall() {
+        const page=cc.instantiate(await asset(base+'page/game/native/PageGame.prefab'));
+        cce.Prefab.removePrefabInfoFromNode(page,false);
+        const theme=page.getComponent('GameThemeView');
+        theme.targets=theme.targets.slice(0,2);
+        return save(page,base+'page/game/native/PageGame.prefab');
+    },
+    /** 补齐主题和首页，使用编辑器序列化器保存；保留现有游戏页面布局。 */
+    async completeThemeAssets() {
+        const source = {"home":{"background":{"url":"db://assets/app-bundle/app-view/page/home/resources/original/background.png","width":750,"height":1334},"title":{"url":"db://assets/app-bundle/app-view/page/home/resources/original/title.png","width":500,"height":189},"settings":{"url":"db://assets/app-bundle/app-view/page/home/resources/original/settings.png","width":78,"height":99},"themeButton":{"url":"db://assets/app-bundle/app-view/page/home/resources/original/themeButton.png","width":87,"height":112},"start":{"url":"db://assets/app-bundle/app-view/page/home/resources/original/start.png","width":411,"height":166},"panel":{"url":"db://assets/app-bundle/app-view/page/home/resources/original/panel.png","width":669,"height":836},"inner":{"url":"db://assets/app-bundle/app-view/page/home/resources/original/inner.png","width":627,"height":665},"themeTitle":{"url":"db://assets/app-bundle/app-view/page/home/resources/original/themeTitle.png","width":122,"height":64},"cell":{"url":"db://assets/app-bundle/app-view/page/home/resources/original/cell.png","width":86,"height":88},"close":{"url":"db://assets/app-bundle/app-view/page/home/resources/original/close.png","width":79,"height":87},"fruitOff":{"url":"db://assets/app-bundle/app-view/page/home/resources/original/fruitOff.png","width":107,"height":115},"fruitOn":{"url":"db://assets/app-bundle/app-view/page/home/resources/original/fruitOn.png","width":107,"height":115},"dessertOff":{"url":"db://assets/app-bundle/app-view/page/home/resources/original/dessertOff.png","width":107,"height":115},"dessertOn":{"url":"db://assets/app-bundle/app-view/page/home/resources/original/dessertOn.png","width":107,"height":115}},"desserts":[{"kind":1,"width":91,"height":85,"points":[[-8.5,42.5],[-26.5,34.5],[-33.16,29.11],[-39.17,23.02],[-44.29,9.17],[-44.45,-13.56],[-40.84,-23.69],[-35.84,-28.43],[-17.32,-39.54],[-5.5,-41.9],[10,-41.72],[17.25,-39.4],[25.85,-34.75],[27.5,-33.5],[36.38,-28.26],[41.95,-21.27],[44.14,-11.33],[44.39,3.68],[42.96,12.46],[36.73,24.79],[34.45,29.11],[26.3,35],[12.7,40.6]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-1.png"},{"kind":2,"width":91,"height":79,"points":[[-10.56,38.26],[-27.26,32.44],[-34.55,24.67],[-42.43,4.01],[-44.06,-6.22],[-44.82,-16.67],[-41.78,-23.46],[-30.92,-31.93],[-19.82,-36.77],[7.76,-38.82],[27.72,-34.41],[36.03,-29.48],[40.5,-25.5],[44.22,-19.41],[45.26,-7.4],[39.5,13.1],[34.79,25.91],[28.58,31.7],[19.03,36.32],[10,38.46]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-2.png"},{"kind":3,"width":91,"height":79,"points":[[-1.5,39.5],[-3.5,37.5],[-11,34.7],[-15.4,30.8],[-22.08,29.31],[-26.28,26.19],[-32.8,23.8],[-35.5,21.5],[-37.34,18.4],[-42.24,13.29],[-42.7,7.11],[-44.14,1.69],[-44.26,-4.52],[-42.44,-16.32],[-39.7,-21.8],[-34.3,-27.9],[-30.3,-29.5],[-26.2,-33.5],[-22.2,-34.8],[-19.5,-35.5],[-13.52,-38.09],[-6,-37.8],[-1.1,-39.4],[6.3,-37.5],[12.5,-38.5],[15.3,-38],[18.2,-35.7],[25.19,-33.89],[31.5,-29.5],[37.9,-23.8],[41.31,-18.5],[42.99,-12.22],[44.29,-7.13],[45.5,0.64],[44.67,4.09],[43.09,7.4],[44.1,12.1],[36.5,20.5],[34.4,24.21],[25.5,27.5],[20.5,31.5],[10.5,32.5],[3.5,39.5]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-3.png"},{"kind":4,"width":87,"height":85,"points":[[2.5,42.5],[-1.5,40.5],[-5.5,35.5],[-10.5,33.5],[-15.65,26.86],[-21.68,22.18],[-28.5,17.5],[-39.42,7.68],[-42.95,-3.45],[-42.31,-17.63],[-40.31,-23.99],[-32.92,-32.01],[-23.38,-35.32],[1.33,-41.32],[10.8,-42.4],[17.07,-40.93],[35.2,-27.2],[42.85,-18.6],[42.5,0.39],[40.09,5.57],[36.52,13.36],[28.5,22.5],[22.5,26.5],[13.5,30.5],[10.5,33.5],[11.84,37.5],[10.56,41.38]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-4.png"},{"kind":5,"width":87,"height":88,"points":[[-4.5,44],[-6.5,40],[-11.28,40.93],[-17.55,40.64],[-22.11,35.83],[-23.72,28.43],[-26.5,23],[-37.5,6],[-42.45,-1.07],[-42.71,-2.51],[-42.38,-39.77],[-40.4,-42.1],[-37.2,-43.5],[37.4,-28.7],[40.8,-24],[41.15,5.53],[43.5,9],[43.21,19.05],[38.98,23.67],[33.47,24.88],[34.5,27],[25.55,33.68],[19.5,33],[14.67,37.41],[9.85,37.7],[7.5,40.11],[2.5,40],[0.33,42.71]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-5.png"},{"kind":6,"width":91,"height":82,"points":[[-10.71,39.87],[-20.68,36.78],[-30.5,31],[-33.09,28.99],[-39.64,20.73],[-44.18,10.02],[-45.04,-0.65],[-43.2,-11.53],[-38.2,-22.35],[-29.02,-31.85],[-13.75,-38.52],[1.93,-40.57],[14.34,-38.93],[28.17,-33.01],[38.59,-23.18],[45.5,-8],[44.52,11],[40.5,20],[36.2,26.1],[29.5,32],[22.5,36],[14.4,39.12],[5.06,40.58]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-6.png"},{"kind":7,"width":91,"height":83,"points":[[-5,40.1],[-14.5,36.5],[-27.5,27.5],[-42.17,16.36],[-44.55,12.44],[-44.14,3.39],[-43.4,1.9],[-42,-20],[-36.4,-26],[5,-39],[10.7,-40.1],[16.3,-38],[43.5,-18.5],[45.5,5.5],[44,17.4],[40.5,23.5],[33.85,30.13],[17.5,38.94],[12.98,38.76],[7.5,41.5]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-7.png"},{"kind":8,"width":93,"height":79,"points":[[-7.5,39.5],[-21.5,33.5],[-27.13,27.08],[-30.5,21.5],[-38.57,17.26],[-41.5,12.5],[-43.8,8.71],[-45.58,0.68],[-44.5,-5.5],[-41.28,-13.93],[-39.46,-19.89],[-36.93,-24.75],[-30.68,-30.68],[-19.85,-35.92],[-7.85,-38.32],[10.4,-38.25],[23.5,-34.5],[31.08,-31.04],[37.82,-24.31],[45.99,-1.28],[44.55,8.91],[42.5,11.5],[39.49,17.03],[30.5,22.5],[29.38,24.64],[17.27,35.49],[9.5,39.5]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-8.png"},{"kind":9,"width":91,"height":87,"points":[[-7.15,42.97],[-14.01,37.17],[-15.67,29.15],[-29.5,21.5],[-34.8,16],[-41.5,6.5],[-44.36,-4.37],[-44.05,-15.95],[-43.18,-22.14],[-40.75,-28.05],[-31.79,-35.91],[-11.2,-42.6],[12.71,-42.52],[22.94,-39.82],[31.5,-35.5],[36.4,-31.9],[41.8,-25.7],[43.03,-17.74],[44.61,-14.91],[44.41,-2.8],[38.79,11.26],[29.79,21.03],[20.85,26.75],[24.2,33.58],[23.31,39.5],[20.17,41.2],[12.74,40.61],[6.62,37.15],[0.29,42.57]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-9.png"},{"kind":10,"width":93,"height":83,"points":[[-5.5,41.5],[-8.5,38.5],[-16,38.5],[-21.55,35],[-24.5,30.5],[-30.5,24.5],[-35.22,4.17],[-37.5,2.5],[-39.89,0.75],[-41.5,-1.5],[-46.25,-10.68],[-45.55,-19.5],[-42.72,-25.5],[-30.3,-35.2],[-17.7,-39.8],[1.2,-41.6],[15.2,-40.73],[26.38,-37.23],[38.5,-29.5],[40.5,-27.5],[46.44,-17.98],[45.42,-5.64],[35.5,4.5],[29.23,25.96],[22.5,33.5],[15.11,38.75],[8.5,38.5],[5.5,41.5]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-10.png"},{"kind":11,"width":91,"height":82,"points":[[-11.03,39.23],[-22.75,33.35],[-25.3,29.3],[-27.5,24],[-32,20.8],[-35.7,16.5],[-38.2,15.1],[-42.5,8.4],[-43.5,5],[-45.01,-3.59],[-42.96,-15.75],[-41.38,-21.23],[-39.5,-24],[-33.5,-31],[-26.3,-36.1],[-19.5,-38],[-14.44,-39.88],[5.2,-40.7],[16.5,-39],[30.5,-33],[37.5,-27],[42.23,-19.49],[44.73,-9],[44.61,3.21],[41.43,12.61],[36.35,19.05],[27.5,24],[24.25,32.15],[17.4,36.72],[8.01,39.76]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-11.png"},{"kind":12,"width":91,"height":82,"points":[[-9.5,41],[-22.34,36.09],[-30.85,31.4],[-39.7,20.8],[-42.5,15],[-44.85,3.69],[-43.33,-10.9],[-40.2,-19.8],[-35.5,-26],[-29.85,-31.3],[-23.5,-35],[-8.4,-39.9],[8.29,-40.04],[17.55,-37.8],[24.5,-35],[35.5,-27],[41.55,-17.7],[44.81,-6.38],[45.1,2.66],[44.48,9.92],[42.69,16.04],[35.96,26.88],[25.1,34.94],[10.5,41]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-12.png"},{"kind":13,"width":88,"height":85,"points":[[-3.14,41.88],[-38.6,23.2],[-40.7,21.5],[-42.63,19.46],[-43.39,17.14],[-43.6,-15.4],[-42.9,-18.5],[-40.2,-21.1],[-5.6,-40.5],[-2.23,-42.37],[1,-42.63],[4.49,-41.85],[7.27,-40.41],[40.9,-21.3],[43.15,-18.95],[43.61,-16.33],[43.17,14.93],[43.17,18.98],[41.03,21.05],[4.99,41.25],[0.86,42.65]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-13.png"},{"kind":14,"width":93,"height":83,"points":[[-9.5,40.5],[-20.4,39],[-33.4,31.7],[-37.4,28.3],[-41.1,22.7],[-43.5,17.5],[-45,13],[-45.7,8.3],[-45.66,3.37],[-44.37,0.16],[-46.25,-7.41],[-44.85,-16.92],[-35.3,-30.2],[-25.7,-35.8],[-11.72,-40.5],[13.1,-39.9],[23.5,-36.9],[33.8,-31],[40.4,-24.3],[42.97,-19.74],[44.7,-14.9],[46,-9.5],[46.2,2.8],[44.9,14],[43.5,18.5],[40.1,26.1],[34,32.8],[20.5,38.7],[10.21,40.62]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-14.png"},{"kind":15,"width":91,"height":75,"points":[[-14.5,37.5],[-22.5,31.5],[-25.62,29.01],[-32.87,27.01],[-35.5,23.5],[-43.15,15.01],[-43.84,8.51],[-45.51,3.82],[-43.73,-9.56],[-41.5,-16.84],[-36.4,-25.1],[-31.5,-27.5],[-25.8,-32],[-19.5,-33.5],[-12.5,-36.44],[0.19,-37.29],[12.32,-36.67],[20.5,-33.5],[26.3,-31.63],[30.5,-28.5],[33.41,-26.61],[37.45,-23.36],[39.5,-19.5],[41.87,-14.98],[43.85,-8.57],[44.94,2],[43.2,8.6],[42.92,15.43],[37.5,21.5],[33.42,26.84],[24.5,29.5],[19.5,35.5],[15.5,37.5]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-15.png"},{"kind":16,"width":85,"height":85,"points":[[-10.82,41.17],[-21,38.5],[-27.5,33.5],[-32.5,29.5],[-38.11,23.77],[-40.68,17.67],[-41.5,7.5],[-41.3,-5.5],[-41.05,-18.91],[-38.08,-27.08],[-33.61,-31.29],[-24.42,-37.91],[-16.5,-40.5],[-13.2,-41.7],[14.42,-41.68],[22.5,-38.5],[32.5,-32.5],[38.2,-26.5],[41.2,-17.44],[41.24,-5.13],[41.66,3.01],[41.82,13.21],[36.01,25.62],[30.52,30.92],[26.2,34.6],[18,38.7],[8.5,40.5],[1.94,41.17]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-16.png"},{"kind":17,"width":75,"height":91,"points":[[-12.5,36.5],[-19.85,32.52],[-26.5,23.5],[-31.99,18.04],[-34.93,11.5],[-34.5,1.5],[-35.93,0.07],[-37.5,-10.5],[-26.31,-38.11],[-20.31,-42.11],[-10.68,-44.73],[8.12,-45.01],[17.18,-43.01],[27.3,-36.8],[37.5,-11.5],[37.5,-0.5],[34.5,2.5],[34.5,17.5],[31.5,20.5],[27.5,21.5],[26.9,23.4],[24.5,25.5],[24.5,30.5],[22.5,33.5],[11.5,35.5],[8.5,39.5],[5.91,39.97],[3.2,41.7],[-4.3,41.9]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-17.png"},{"kind":18,"width":93,"height":86,"points":[[-3,39],[-10.5,34],[-32.5,15],[-41.07,7.44],[-45.93,-3.33],[-45.54,-16.87],[-40.8,-26.93],[-35.22,-32.16],[-19.09,-38.09],[-10.5,-40],[-3.21,-42.32],[10.5,-41.8],[15.5,-39],[27.5,-28],[43.08,-13.02],[46.5,-8],[45.97,5.94],[44.2,12.3],[41.5,18.4],[36.5,25],[31.4,30.5],[20,37.6],[9.5,40],[5.86,40.85]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-18.png"},{"kind":19,"width":90,"height":87,"points":[[-1.8,42.5],[-6.5,41],[-39.3,24.8],[-42.46,21.35],[-44.05,16.86],[-43.76,-15.73],[-43.42,-21.17],[-40.02,-23.44],[-5.02,-42.28],[-0.62,-43.05],[4.26,-42.68],[41.78,-23.23],[43.95,-21.06],[44.26,-17.24],[44.31,18.44],[44.25,21.2],[42.02,23.48],[3.5,42.3]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-19.png"},{"kind":20,"width":93,"height":86,"points":[[-9.58,41.3],[-12.44,40.11],[-15.5,38],[-17.5,36],[-20.91,25.65],[-24.36,24.56],[-31.43,21.22],[-36.78,16.98],[-40.35,11.75],[-44.12,-4.87],[-45.37,-10.9],[-45.53,-22.89],[-42.7,-28.7],[-30.5,-37],[-22.5,-40],[-10.7,-42.2],[11.13,-42.38],[28.5,-38],[34.7,-35.5],[42.92,-27.96],[44.93,-24.26],[45.73,-15.96],[40.16,11.85],[36.5,17],[32.92,20.22],[20.75,25.49],[22.72,28.1],[24.65,31.9],[24.55,37.83],[22.82,39.54],[14.85,39.9],[8.45,36.15],[3.6,40.8],[-2.58,42.47]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-20.png"},{"kind":21,"width":85,"height":93,"points":[[-9.35,41.25],[-17.5,38.6],[-26.03,33.2],[-35.92,22.76],[-39.74,14.65],[-41.53,7.92],[-42.5,-8.5],[-37.67,-20.09],[-33.97,-26.32],[-24.6,-35.05],[-16.17,-39.18],[-8.85,-41.78],[10.32,-41.55],[26.36,-33.83],[37.12,-22.29],[41.22,-11.59],[41.82,9.82],[34.75,24.75],[29.15,30.74],[24.5,34.5],[17.72,38.62],[9.25,40.97]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-21.png"},{"kind":22,"width":87,"height":87,"points":[[2.43,41.93],[-9.51,41.08],[-13.9,36.55],[-24.08,31.15],[-31.58,25.37],[-37.4,12.9],[-41.7,-9.3],[-43,-20.3],[-41.2,-25],[-35.1,-30.5],[-26.5,-37],[-18.3,-40.1],[-8.85,-41.78],[10.32,-41.55],[29.8,-35.7],[39.4,-27.2],[43.19,-19.71],[40.3,-3.4],[32.7,23.3],[25.1,29.6],[16.53,37.08],[9.09,40.06]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-22.png"},{"kind":23,"width":87,"height":85,"points":[[-4.69,41.23],[-10.11,38.62],[-13.5,34.5],[-19.11,31.53],[-24.5,27.5],[-31.08,21.01],[-36.94,12.84],[-42.73,0.26],[-42.5,-19.4],[-39,-26.5],[-31.03,-34.22],[-15.55,-40.5],[-2.39,-41.6],[10,-40.91],[21.4,-38.4],[30.1,-34],[38.3,-26.7],[41.75,-19.5],[42.5,3.5],[38.5,11.5],[31.21,22.11],[22.5,29.5],[13.5,33.84],[8.11,39.62],[3.92,41.33]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-23.png"},{"kind":24,"width":87,"height":90,"points":[[-7.08,43.25],[-14.29,41.09],[-17.94,37.44],[-20.01,30.86],[-23.2,28.6],[-29.67,22.41],[-32.15,13.18],[-36.05,8.95],[-39.5,-1],[-41.5,-3],[-42.37,-6.63],[-42.14,-15.34],[-40,-25.8],[-36,-32.5],[-28.2,-38.3],[-22.2,-39.5],[-15.5,-42.2],[-5.9,-43.6],[-2.2,-44.4],[15.1,-42.5],[22.3,-40.7],[31.5,-36],[36.5,-32],[39.2,-27.5],[42.1,-18.7],[42.59,-5.15],[38.43,-0.74],[36.79,9.05],[32.84,13.25],[32.26,18.08],[29.59,23.59],[25.11,28.12],[20.01,30.81],[17.86,37.61],[13.9,41.35],[6.61,43.11]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-24.png"},{"kind":25,"width":91,"height":85,"points":[[-11.45,41.1],[-19.12,39.4],[-27.95,36.3],[-35.6,31.9],[-41.57,25.26],[-44.29,19.87],[-44.32,-19.83],[-41.24,-25.38],[-33.71,-33.1],[-20.4,-38.9],[-11.1,-41.21],[10.36,-41.52],[20.2,-39.41],[31.3,-34.8],[40.37,-27.42],[44.44,-19.49],[44.1,20.25],[41.76,25.43],[33.2,33.81],[18.52,39.69],[9.91,41.52],[-3.08,42.28]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-25.png"},{"kind":26,"width":88,"height":85,"points":[[-5,42.5],[-9,40.5],[-11,37.5],[-18.75,38.9],[-29,34.5],[-31,28.5],[-37.17,25.65],[-41.07,18.83],[-41.22,8.57],[-41.84,-2.36],[-42.34,-20.44],[-40.52,-23.85],[-31.65,-28.85],[-28,-34.5],[-25.4,-36],[-17,-38.7],[-10.6,-37.4],[-4.54,-41.53],[6.32,-41.53],[11.5,-37.7],[22.74,-37.87],[27.28,-35.77],[30.17,-33.03],[32.12,-29.09],[37.59,-28.17],[43.35,-21.5],[43.8,-6.6],[42.5,4.85],[41.25,20.08],[38.4,25.1],[32,28.5],[26.7,35],[19.5,38.6],[14,38.5],[5,42.5]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-26.png"},{"kind":27,"width":85,"height":87,"points":[[11.3,41.7],[-12.5,39],[-17.5,39.5],[-21.3,38.1],[-24.5,34.5],[-34.1,29],[-38.6,21.8],[-39.8,17.6],[-39.3,-25.2],[-35.2,-31.2],[-33.2,-32.7],[-25.92,-38.35],[-12.6,-41.2],[10.4,-40.8],[19.9,-38.6],[29.2,-34.5],[36.8,-29.8],[36.99,-29.65],[39.56,-24.24],[39.8,18.5],[36.1,25.2],[23.5,35.5],[21.2,39.4],[16.5,40.5]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-27.png"},{"kind":28,"width":90,"height":87,"points":[[-4,43.5],[-13,40.5],[-16,37.5],[-16,35.5],[-21.86,36.43],[-32.12,31.41],[-32.68,28.89],[-43.63,17.17],[-43.99,-2.65],[-42.41,-5.56],[-41.96,-23.32],[-37.09,-31.13],[-30.91,-35.95],[-24.7,-39.3],[-11.84,-42.59],[11.85,-42.35],[26,-38.9],[32.6,-34.9],[40.58,-26.03],[42.06,-22.32],[42.35,-5.85],[44.25,-1.5],[43.51,15.49],[39.65,22.87],[33,28.5],[31.81,31.29],[27.8,35.15],[21,38.31],[17.7,38.7],[15,41.5],[6.3,38.1],[4,43.5]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-28.png"},{"kind":29,"width":87,"height":87,"points":[[5.43,42.31],[-5.5,39.5],[-9.5,33.5],[-22.5,30.9],[-35.2,24],[-38,20.9],[-39.76,17.68],[-42.18,9.42],[-42.23,-8.54],[-40.5,-11.5],[-39.38,-25.22],[-37.52,-29.08],[-28.22,-37.31],[-14,-42],[14.22,-42.52],[21.5,-40.5],[25.21,-39.43],[31.5,-35.5],[33.2,-34.91],[39.44,-26.03],[40.43,-11.87],[42.45,-8.5],[42.4,14.31],[37.06,21.97],[33.5,25.18],[29.3,27.8],[20.19,31.76],[15.2,39.8],[9.29,41.82]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-29.png"},{"kind":30,"width":86,"height":93,"points":[[11,44],[3,42.5],[1,39.5],[-15,37.5],[-22.68,35.53],[-30.4,31.6],[-37.3,25.5],[-41.5,19.5],[-41.6,-27.5],[-36.6,-34],[-31.9,-37.82],[-25.58,-41.42],[-12.47,-44.97],[11.35,-45.27],[27.1,-40.5],[38.5,-32],[41.1,-27.7],[41.44,20.21],[40,23.5],[37.75,26.72],[32.39,31.72],[25,34.5],[23,36.5],[19.3,41.1],[15.3,43.8]],"offset":[0,0],"url":"db://assets/app-bundle/app-view/page/game/resources/textures/dessert-30.png"}],"theme":["db://assets/app-bundle/app-view/page/game/resources/textures/themes/part-0.png","db://assets/app-bundle/app-view/page/game/resources/textures/themes/part-1.png","db://assets/app-bundle/app-view/page/game/resources/textures/themes/part-2.png","db://assets/app-bundle/app-view/page/game/resources/textures/themes/part-3.png","db://assets/app-bundle/app-view/page/game/resources/textures/themes/part-4.png","db://assets/app-bundle/app-view/page/game/resources/textures/themes/part-5.png","db://assets/app-bundle/app-view/page/game/resources/textures/themes/part-6.png","db://assets/app-bundle/app-view/page/game/resources/textures/themes/part-7.png","db://assets/app-bundle/app-view/page/game/resources/textures/themes/part-8.png","db://assets/app-bundle/app-view/page/game/resources/textures/themes/part-9.png"]};
+        const find = (root, name) => root.name === name ? root : root.children.map(child => find(child, name)).find(Boolean);
+        const bind = (root, target, componentName, handler) => {
+            const button = root.getComponent(cc.Button) || root.addComponent(cc.Button);
+            button.transition = cc.Button.Transition.SCALE; button.zoomScale = 0.94;
+            const event = new cc.EventHandler(); event.target = target; event.component = componentName; event.handler = handler;
+            button.clickEvents = [event];
+        };
+        const desserts = [];
+        for (const definition of source.desserts) {
+            const name = 'Dessert' + String(definition.kind).padStart(2, '0');
+            const root = node(name, null, definition.width, definition.height);
+            const body = root.addComponent(cc.RigidBody2D); body.type = cc.ERigidBody2DType.Static;
+            body.bullet = true; body.enabledContactListener = true;
+            root.addComponent(cc.UIOpacity);
+            const collider = root.addComponent(cc.PolygonCollider2D);
+            collider.points = definition.points.map(point => new cc.Vec2(...point));
+            collider.offset = new cc.Vec2(...definition.offset); collider.restitution = 0;
+            const visualNode = await sprite('Visual', root, definition.url, definition.width, definition.height);
+            const visual = visualNode.addComponent('FruitVisual'); visual.sprite = visualNode.getComponent(cc.Sprite);
+            const item = root.addComponent('FruitItem'); item.kind = definition.kind;
+            item.body = body; item.collider = collider; item.visual = visual;
+            const url = base + 'page/game/resources/prefabs/' + name + '.prefab';
+            await save(root, url); desserts.push(url);
+        }
+        for (let kind = 1; kind <= 30; kind++) {
+            const name = kind === 21 ? 'FruitItem' : 'Fruit' + String(kind).padStart(2, '0');
+            const url = base + 'page/game/resources/prefabs/' + name + '.prefab';
+            const root = cc.instantiate(await asset(url)); cce.Prefab.removePrefabInfoFromNode(root, false);
+            if (!root.getComponent(cc.UIOpacity)) root.addComponent(cc.UIOpacity);
+            root.getComponent(cc.RigidBody2D).bullet = true;
+            await save(root, url);
+        }
+        const page = cc.instantiate(await asset(base + 'page/game/native/PageGame.prefab'));
+        cce.Prefab.removePrefabInfoFromNode(page, false);
+        const spawner = page.getComponentInChildren('FruitSpawner');
+        spawner.dessertPrefabs = [];
+        for (const url of desserts) spawner.dessertPrefabs.push(await asset(url));
+        const theme = page.getComponent('GameThemeView') || page.addComponent('GameThemeView');
+        const board = find(page, 'GameBoard');
+        const wall = page.getComponentInChildren('LockWallView');
+        const bag = page.getComponentInChildren('FruitBagView');
+        theme.targets = [find(board, 'Background').getComponent(cc.Sprite), find(board, 'Floor').getComponent(cc.Sprite)];
+        theme.frames = [];
+        for (const url of source.theme) theme.frames.push(await asset(url, true));
+        const result = page.getComponentInChildren('PopResult');
+        result.successAudio = result.successAudio || result.node.addComponent(cc.AudioSource);
+        result.successAudio.playOnAwake = false; result.successAudio.clip = await asset(base + 'page/game/resources/audio/success.mp3');
+        await save(page, base + 'page/game/native/PageGame.prefab');
+
+        const home = cc.instantiate(await asset(base + 'page/home/native/PageHome.prefab'));
+        cce.Prefab.removePrefabInfoFromNode(home, false);
+        for (const child of [...home.children]) { child.removeFromParent(); child.destroy(); }
+        const homeView = home.getComponent('PageHome');
+        const art = async (key, name, parent, x=0, y=0) => { const info=source.home[key]; return sprite(name,parent,info.url,info.width,info.height,x,y); };
+        await art('background','Background',home);
+        await art('title','Title',home,0,351.338);
+        bind(await art('start','StartButton',home,0,-317.794),home,'PageHome','startGame');
+        homeView.levelLabel = label('LevelLabel',home,'第1关',45,-209.415);
+        bind(await art('settings','SettingsButton',home,-233.022,555.521),home,'PageHome','openSettings');
+        bind(await art('themeButton','ThemeButton',home,-131.864,558.605),home,'PageHome','openTheme');
+        const editor = label('EditorButton',home,'关卡编辑器',26,-520).node; bind(editor,home,'PageHome','openEditor');
+        const settings = cc.instantiate(await asset(base+'page/game/resources/prefabs/SettingsPanel.prefab'));
+        cce.Prefab.removePrefabInfoFromNode(settings,false); settings.parent=home; settings.active=false;
+        homeView.settingsPanel=settings.getComponent('SettingsPanel');
+        for(const b of settings.getComponentsInChildren(cc.Button)) if(b.clickEvents.some(e=>['restartGame','returnHome'].includes(e.handler))) b.node.active=false;
+        const panel=node('ThemePanel',home); const view=panel.addComponent('ThemePanel'); homeView.themePanel=view;
+        const mask=await sprite('Mask',panel,base+'page/game/resources/textures/settings/mask.png',750,2500);
+        mask.getComponent(cc.Sprite).color=new cc.Color(0,0,0,150); mask.addComponent(cc.BlockInputEvents);
+        const content=await art('panel','Content',panel); view.content=content; content.addComponent(cc.BlockInputEvents);
+        await art('inner','Inner',content,0,-40.265);
+        label('Heading',content,'主题图鉴',44,368.48);
+        view.title=label('ThemeTitle',content,'水果',36,232.605);
+        view.status=label('Status',content,'已使用',22,205,400); view.status.node.setPosition(110,205);
+        view.icons=[]; view.frames=[]; view.tabs=[];
+        for(let i=0;i<30;i++) {
+            const cell=await art('cell','Cell'+String(i+1).padStart(2,'0'),content,-247+(i%6)*99,129.059-Math.floor(i/6)*101);
+            const icon=await sprite('Icon',cell,base+'page/game/resources/textures/fruit-'+(i+1)+'.png',80,80);
+            view.icons.push(icon.getComponent(cc.Sprite));
+            view.frames.push(await asset(base+'page/game/resources/textures/fruit-'+(i+1)+'.png',true));
+        }
+        for(const definition of source.desserts) view.frames.push(await asset(definition.url,true));
+        for(const [index,key] of ['fruitOff','fruitOn','dessertOff','dessertOn'].entries()) {
+            const tab=await art(key,'Tab'+index,content,index<2?-218.918:-91.187,-429.124);
+            bind(tab,panel,'ThemePanel',index<2?'chooseFruit':'chooseDessert'); view.tabs.push(tab);
+        }
+        bind(await art('close','CloseButton',content,316.225,336.516),panel,'ThemePanel','close');
+        panel.active=false;
+        return save(home,base+'page/home/native/PageHome.prefab');
+    },
+
     /** 在用户现有布局上添加首层复活提示并绑定光圈，不重建已有节点。 */
     async finishResultDetails() {
         const page=cc.instantiate(await asset(base+'page/game/native/PageGame.prefab'));

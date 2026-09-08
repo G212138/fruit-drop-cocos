@@ -1,3 +1,5 @@
+import { GameTheme } from '../../../../../app-builtin/app-model/expansion/GameTheme';
+import { findEditorPlacement } from '../../../../../app-builtin/app-model/expansion/level/EditorPlacement';
 import { ScreenLayout } from '../../../../../app-builtin/app-controller/expansion/ScreenLayout';
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
 import { _decorator, Node, Label, EditBox, Prefab, SpriteFrame, instantiate, input, Input, EventKeyboard, KeyCode, EventMouse, JsonAsset } from 'cc';
@@ -26,6 +28,8 @@ export class PageEditor extends BaseView {
     /** 按一至三十顺序绑定原版图片，不读取运行时节点名称。 */
     @property([SpriteFrame])
     fruitFrames: SpriteFrame[] = [];
+    /** 按原编号对应的甜品图标，编辑器预览与当前主题一致。 */
+    @property([SpriteFrame]) dessertFrames: SpriteFrame[] = [];
     /** 水果编号或冰层数输入，整数。 */
     @property(EditBox)
     numberInput: EditBox = null!;
@@ -48,6 +52,7 @@ export class PageEditor extends BaseView {
 
     /** 显示时恢复已有编辑内容并注册键盘与滚轮。 */
     onShow(): void {
+        GameTheme.refresh();
         EditorSession.finishTrial();
         const generation = ++this.loadGeneration;
         app.manager.loader.load({ bundle: 'page-game-res', path: 'levels/original-levels', type: JsonAsset,
@@ -79,7 +84,7 @@ export class PageEditor extends BaseView {
             node.setPosition(item.p[0], item.p[1], 0);
             const marker = node.getComponent(EditorFruitMarker)!;
             marker.index = index;
-            marker.icon.spriteFrame = this.fruitFrames[Number(item.n) - 1];
+            marker.icon.spriteFrame = this.activeFrames[Number(item.n) - 1];
             const scale = item.FatherBlackHoleID ? 0.5 : 1;
             node.setScale(scale, scale, 1);
             marker.badge.string = (item.h === 't' ? '隐藏 ' : '') + (item.ice ? '冰' + item.ice + ' ' : '')
@@ -119,11 +124,22 @@ export class PageEditor extends BaseView {
     /** 在视口中央附近放置新水果，避免默认重合。 */
     addFruit(): void {
         this.operate(() => {
-            const count = this.draft.document.d.length;
+            const kind = Number(this.numberInput.string);
+            if (!Number.isInteger(kind) || kind < 1 || kind > 30) throw new Error('水果编号必须在1至30之间');
             const x = this.draft.document.m === 2 ? this.draft.scrollX : 0;
             const y = this.draft.document.m === 1 ? this.draft.scrollY : 0;
-            this.draft.add(Number(this.numberInput.string), -240 + (count % 5) * 120 - x, 220 - Math.floor(count / 5) * 120 - y);
+            const existing = this.draft.document.d.map(item => ({ x: item.p[0], y: item.p[1],
+                radius: this.fruitRadius(Number(item.n)) * (item.FatherBlackHoleID ? 0.5 : 1) }));
+            const position = findEditorPlacement(-x, -y, this.fruitRadius(kind), this.draft.document.m, existing);
+            this.draft.add(kind, position[0], position[1]);
         });
+    }
+    /** 当前主题对应的图标，不改变导出的逻辑编号。 */
+    private get activeFrames(): SpriteFrame[] { return GameTheme.active === 2 ? this.dessertFrames : this.fruitFrames; }
+    /** @param kind 逻辑编号；以原图片最大边长的一半估算放置半径，单位设计像素。 */
+    private fruitRadius(kind: number): number {
+        const size = this.activeFrames[kind - 1]?.originalSize;
+        return size ? Math.max(size.width, size.height) / 2 : 45;
     }
     /** 删除当前选中水果及其黑洞成员。 */
     deleteFruit(): void {

@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, UITransform, Vec3, Tween, tween, AudioSource, isValid } from 'cc';
+import { _decorator, Component, Node, UITransform, Vec3, Tween, tween, AudioSource, UIOpacity, isValid } from 'cc';
 import { GameSettings } from '../../../../../../../app-builtin/app-model/expansion/GameSettings';
 const { ccclass, property } = _decorator;
 
@@ -29,6 +29,8 @@ export class FruitBagView extends Component {
         let pending = fruits.length;
         if (!pending) { completed(); return; }
         for (const fruit of fruits) {
+            const opacity = fruit.getComponent(UIOpacity);
+            const initialOpacity = opacity?.opacity ?? 255;
             const position = this.target.getComponent(UITransform)!.convertToNodeSpaceAR(fruit.worldPosition);
             // 保持世界变换，兼容黑洞容器及屏幕适配带来的父节点缩放差异。
             fruit.setParent(this.target, true);
@@ -38,7 +40,11 @@ export class FruitBagView extends Component {
                 .call(() => {
                     if (generation === this.generation) this.bounce();
                 })
-                .to(0.1, { scale: new Vec3() }, { easing: 'sineIn' })
+                .to(0.1, { scale: new Vec3() }, {
+                    easing: 'sineIn',
+                    // 与缩小共用同一补间，清局停止水果补间时也会停止渐隐。
+                    onUpdate: (_target, ratio) => { if (opacity) opacity.opacity = initialOpacity * (1 - ratio); },
+                })
                 .call(() => {
                     if (generation !== this.generation) return;
                     fruit.destroy();

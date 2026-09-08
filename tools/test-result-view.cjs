@@ -6,7 +6,7 @@ const cc={_decorator:{ccclass:()=>x=>x,property:(...args)=>args.length>1?undefin
 const exportsView={};
 const p='assets/app-bundle/app-view/pop/result/native/PopResult.ts';
 const code=ts.transpileModule(fs.readFileSync(p,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,experimentalDecorators:true}}).outputText;
-new Function('require','exports',code)(n=>n==='cc'?cc:n.includes('BaseView')?{default:Base}:n.includes('EditorSession')?{EditorSession:session}:n.includes('ScreenLayout')?{ScreenLayout:class{apply(){}}}:{app:{manager:{ui:{show:x=>shown.push(x)}}}},exportsView);
+new Function('require','exports',code)(n=>n==='cc'?cc:n.includes('BaseView')?{default:Base}:n.includes('GameSettings')?{GameSettings:{current:{snapshot:{sound:true}}}}:n.includes('EditorSession')?{EditorSession:session}:n.includes('ScreenLayout')?{ScreenLayout:class{apply(){}}}:{app:{manager:{ui:{show:x=>shown.push(x)}}}},exportsView);
 const v=new exportsView.PopResult();
 for(const name of ['nextButton','reviveButton','trialButton','trialReturn','successRoot','failureRoot','unlockRoot','revivePrompt'])v[name]={active:false,getComponent:()=>({opacity:255})};
 v.titleLabel={};v.unlockIcon={};v.unlockName={};v.unlockIcons=[{}];v.unlockNames=[{}];

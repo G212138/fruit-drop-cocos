@@ -42,10 +42,14 @@ export function readLevelDocument(value: unknown): LevelDocument {
     const mode = integer(source.m, '移动模式', 1);
     if (mode !== 1 && mode !== 2) throw new Error('移动模式仅支持 1 或 2');
     if (!Array.isArray(source.d)) throw new Error('水果列表必须是数组');
+    // 旧b字段只有宿主标记，没有编号时分配不与原数据冲突的新编号。
+    let nextBlackHoleId = source.d.reduce((maximum: number, entry: any) => Math.max(maximum,
+        Number.isSafeInteger(entry?.BlackHoleID) ? entry.BlackHoleID : 0,
+        Number.isSafeInteger(entry?.FatherBlackHoleID) ? entry.FatherBlackHoleID : 0), 0) + 1;
     const fruits: LevelFruitData[] = source.d.map((entry: unknown) => {
         if (!entry || typeof entry !== 'object') throw new Error('水果数据无效');
         const item = entry as Record<string, unknown>;
-        const allowed = ['n','p','h','ice','i','BlackHole','BlackHoleID','FatherBlackHoleID','SequenceID'];
+        const allowed = ['n','p','h','ice','i','b','BlackHole','BlackHoleID','FatherBlackHoleID','SequenceID'];
         if (Object.keys(item).some(key => allowed.indexOf(key) < 0)) throw new Error('存在未知水果字段');
         const kind = integer(item.n, '水果编号', 1);
         if (kind > 30) throw new Error('水果编号必须在 1 至 30 之间');
@@ -58,6 +62,12 @@ export function readLevelDocument(value: unknown): LevelDocument {
         if (item.ice !== undefined || item.i !== undefined) result.ice = integer(item.ice ?? item.i, '冰层数', 0);
         for (const key of ['BlackHole','BlackHoleID','FatherBlackHoleID','SequenceID'] as const) {
             if (item[key] !== undefined) result[key] = integer(item[key], key, key === 'BlackHole' ? 0 : 1);
+        }
+        if (item.b !== undefined && item.b !== true && item.b !== false && item.b !== 't' && item.b !== 'f') throw new Error('旧黑洞标记无效');
+        const isHost = item.b === true || item.b === 't' || result.BlackHole !== undefined || result.BlackHoleID !== undefined;
+        if (isHost) {
+            if (!result.BlackHoleID) result.BlackHoleID = integer(nextBlackHoleId++, '黑洞编号', 1);
+            if (result.BlackHole === undefined) result.BlackHole = 1;
         }
         if (result.BlackHoleID && result.FatherBlackHoleID) throw new Error('黑洞成员不能同时作为宿主');
         return result;

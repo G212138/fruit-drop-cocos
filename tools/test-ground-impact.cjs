@@ -12,7 +12,7 @@ const compiled = ts.transpileModule(fs.readFileSync(base + 'native/expansion/eff
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, experimentalDecorators: true },
 }).outputText;
 const result = { exports: {} };
-new Function('require', 'module', 'exports', compiled)(name => name === 'cc' ? cc : { GameSettings: settings }, result, result.exports);
+new Function('require', 'module', 'exports', compiled)(name => name === 'cc' ? cc : name.includes('GameHaptics') ? { GameHaptics: { impact() {} } } : { GameSettings: settings }, result, result.exports);
 for (const sound of [true, false]) {
     settings.current.snapshot.sound = sound;
     let completed, destroyed = 0, played = 0, stopped = 0;

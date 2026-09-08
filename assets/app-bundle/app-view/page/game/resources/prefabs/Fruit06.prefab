@@ -35,10 +35,13 @@
       },
       {
         "__id__": 16
+      },
+      {
+        "__id__": 18
       }
     ],
     "_prefab": {
-      "__id__": 18
+      "__id__": 20
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -148,7 +151,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "a5S5qVuHBGLIwtasrLZOb3"
+    "fileId": "e97IBVIalEnbNL9F2IwzB4"
   },
   {
     "__type__": "cc.Sprite",
@@ -193,7 +196,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "9eTFBH/UxDSI6pbSltzZfQ"
+    "fileId": "59KJlOt/FMtKrI+kz2dxX6"
   },
   {
     "__type__": "e16524AS/ZAqKwRsIb7pGex",
@@ -214,7 +217,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "4335WsBqhIeocpF2RKp8pv"
+    "fileId": "32TIN83tNDG4rBsTCd8/yZ"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -224,7 +227,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "faLqN1qaJGPqmJV+OzY6hN",
+    "fileId": "9fIdgqF7BHfJ8prfttVKwX",
     "instance": null,
     "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
@@ -255,7 +258,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "02Ip5+HytL/rSSkSH0C3um"
+    "fileId": "177S1cShtD34cFfWQ3vTHu"
   },
   {
     "__type__": "cc.RigidBody2D",
@@ -270,7 +273,7 @@
       "__id__": 13
     },
     "enabledContactListener": true,
-    "bullet": false,
+    "bullet": true,
     "awakeOnLoad": true,
     "_group": 1,
     "_type": 0,
@@ -289,7 +292,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "a94GUZIO5AXoiC2+SrD4Xy"
+    "fileId": "bazkA0VThAzavaZN8MoYHn"
   },
   {
     "__type__": "cc.PolygonCollider2D",
@@ -450,7 +453,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "aafuHeXXpPM5VxU2z5Dc+2"
+    "fileId": "71He+qTSNLeJxbwZzAmnsS"
   },
   {
     "__type__": "0fdc9fdj2pC179AdvG62x6n",
@@ -478,7 +481,26 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "f6/kTPYKJONLU8qyleaUEa"
+    "fileId": "652hq+AoJCaoHoG0S4t8v6"
+  },
+  {
+    "__type__": "cc.UIOpacity",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 19
+    },
+    "_opacity": 255,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "6bzh6hgs5GMbo+SttIYsdi"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -488,7 +510,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "bawc76e6pDm7Ih3NseILTG",
+    "fileId": "6bxXHE9RZBhafsOzo9Um3G",
     "targetOverrides": null
   }
 ]

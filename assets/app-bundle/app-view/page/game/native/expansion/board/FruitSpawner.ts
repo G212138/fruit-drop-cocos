@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, Prefab, instantiate, isValid } from 'cc';
+import { GameTheme } from '../../../../../../../app-builtin/app-model/expansion/GameTheme';
 import { IceFruitView } from '../ice/IceFruitView';
 import { FloorFruit } from '../failure/FloorFailureRules';
 import { FruitItem } from '../fruit/FruitItem';
@@ -16,6 +17,9 @@ export class FruitSpawner extends Component {
     /** 按原版类型制作的独立预制体，包含各自图片、尺寸和多边形碰撞体。 */
     @property([Prefab])
     fruitPrefabs: Prefab[] = [];
+
+    /** 原版甜品独立碰撞轮廓预制体；编号仍为1至30，匹配规则不变。 */
+    @property([Prefab]) dessertPrefabs: Prefab[] = [];
 
     /** 独立花朵遮罩预制体，仅为原配置标记隐藏的水果实例化。 */
     @property(Prefab)
@@ -62,7 +66,8 @@ export class FruitSpawner extends Component {
 
     /** @param definition 单颗水果定义；黑洞复用同一工厂，保证隐藏、冰层和事件绑定一致。 */
     private spawnOne(definition: FruitDefinition): FruitItem {
-        const prefab = this.fruitPrefabs.find(value => value.data.getComponent(FruitItem)?.kind === definition.kind);
+        const prefabs = GameTheme.active === 2 ? this.dessertPrefabs : this.fruitPrefabs;
+        const prefab = prefabs.find(value => value.data.getComponent(FruitItem)?.kind === definition.kind);
         if (!prefab) throw new Error('水果缺少预制体：' + definition.kind);
         const node = instantiate(prefab);
         const fruit = node.getComponent(FruitItem)!;

@@ -1,3 +1,4 @@
+import { GameHaptics } from './expansion/GameHaptics';
 import { app } from '../../app/app';
 import BaseController from 'db://app/base/BaseController';
 import { GameSettings } from '../app-model/expansion/GameSettings';
@@ -22,8 +23,10 @@ export class SettingsController extends BaseController<SettingsController, {}>()
     toggle(key: keyof PreferencesSnapshot): string {
         const enabled = GameSettings.current.toggle(key);
         this.applyAudio();
-        // 震动平台适配尚未接入；设置正常保存，但不能声称已经执行震动。
-        if (key === 'vibrate' && enabled) return GameSettings.current.warning || '震动偏好已保存，当前版本暂不提供震动反馈';
+        if (key === 'vibrate' && enabled) {
+            if (!GameHaptics.supported) return GameSettings.current.warning || '震动偏好已保存，当前设备不支持震动';
+            GameHaptics.impact();
+        }
         return GameSettings.current.warning;
     }
 

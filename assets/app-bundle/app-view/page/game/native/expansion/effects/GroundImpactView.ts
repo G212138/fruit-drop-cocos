@@ -1,4 +1,5 @@
 import { _decorator, Component, sp, AudioSource, isValid } from 'cc';
+import { GameHaptics } from '../../../../../../../app-builtin/app-controller/expansion/GameHaptics';
 import { GameSettings } from '../../../../../../../app-builtin/app-model/expansion/GameSettings';
 const { ccclass, property } = _decorator;
 
@@ -16,6 +17,7 @@ export class GroundImpactView extends Component {
     }
     /** 等全部组件完成onLoad后播放，避免AudioSource初始化清空提前排队的播放请求。 */
     start(): void {
+        GameHaptics.impact();
         if (GameSettings.current.snapshot.sound) this.audio.play();
     }
     /** 退出清局时停止声音和骨骼监听。 */

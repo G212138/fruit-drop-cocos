@@ -52,6 +52,7 @@ const compiled = ts.transpileModule(source, { compilerOptions: {
 const loaded = { exports: {} };
 new Function('require', 'module', 'exports', compiled)(name => {
     if (name === 'cc') return cc;
+    if (name.endsWith('/GameTheme')) return { GameTheme: { active: 1 } };
     if (name.endsWith('/FruitItem')) return { FruitItem };
     if (name.endsWith('/BlackHoleFlow')) return { BlackHoleFlow: class {} };
     return {};

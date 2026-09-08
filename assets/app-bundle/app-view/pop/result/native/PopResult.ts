@@ -1,6 +1,7 @@
 import { ScreenLayout } from '../../../../../app-builtin/app-controller/expansion/ScreenLayout';
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
-import { _decorator, Label, Node, Sprite, SpriteFrame, sp, Tween, tween, UIOpacity } from 'cc';
+import { _decorator, Label, Node, Sprite, SpriteFrame, sp, Tween, tween, UIOpacity, AudioSource } from 'cc';
+import { GameSettings } from '../../../../../app-builtin/app-model/expansion/GameSettings';
 import BaseView from 'db://app/base/BaseView';
 import { app } from '../../../../../app/app';
 const { ccclass, property } = _decorator;
@@ -39,6 +40,9 @@ export class PopResult extends BaseView {
     /** 预制体中的胜负结果标签。 */
     @property(Label)
     titleLabel: Label = null!;
+    /** 原版成功音效，随游戏页面提前加载。 */
+    @property(AudioSource) successAudio: AudioSource = null!;
+
     /** 仅胜利时显示的下一关按钮。 */
     @property(Node)
     nextButton: Node = null!;
@@ -107,6 +111,7 @@ export class PopResult extends BaseView {
         this.trialReturn.active = this.trialButton.active;
         this.nextButton.active = false;
         if (data.won) {
+            if (GameSettings.current.snapshot.sound) this.successAudio?.play();
             this.winAnimation.setCompleteListener(() => {
                 this.winAnimation.setCompleteListener(null);
                 this.winAnimation.setAnimation(0, '1.2', true);
@@ -140,6 +145,7 @@ export class PopResult extends BaseView {
 
     /** 隐藏后不保留旧关卡回调。 */
     onHide(): void {
+        this.successAudio?.stop();
         this.unscheduleAllCallbacks();
         this.winAnimation.setCompleteListener(null);
         Tween.stopAllByTarget(this.nextButton.getComponent(UIOpacity)!);

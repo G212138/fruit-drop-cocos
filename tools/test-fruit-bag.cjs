@@ -23,6 +23,7 @@ const flights=tracks.slice();assert.deepEqual(flights[0].steps.filter(s=>s.time)
 flights[0].steps[1].fn();flights[1].steps[1].fn();assert.equal(plays,1,'同时抵达只触发一次袋身回弹');
 assert.equal(tracks[2].steps[0].properties.scale.y,0.75);
 assert.equal(tracks[2].steps[0].properties.position.y,-22.75,'按高度与锚点补偿压缩位移');
+const fade=flights[0].steps[2].options.onUpdate;assert.equal(typeof fade,'function');fade(fruits[0],0.5);
 flights[0].steps[3].fn();assert.equal(done,0);flights[1].steps[3].fn();assert.equal(done,1);
 assert.equal(fruits.every(f=>f.destroyed),true);
 const staleFruit=node();bag.target.children=[staleFruit];bag.collect([staleFruit],()=>assert.fail('清局不能提交旧配对'));

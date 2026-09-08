@@ -60,7 +60,7 @@ function inspect(value, entries, location) {
     for (const [key, child] of Object.entries(value)) inspect(child, entries, location + '.' + key);
 }
 walk(root);
-assert.equal(prefabs.length, 51);
+assert.equal(prefabs.length, 81);
 for (const file of process.argv.length > 2 ? process.argv.slice(2).map(file => path.resolve(file)) : prefabs) {
     const entries = JSON.parse(fs.readFileSync(file, 'utf8'));
     inspect(entries, entries, path.basename(file));

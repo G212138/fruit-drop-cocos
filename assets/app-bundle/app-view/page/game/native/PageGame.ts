@@ -1,3 +1,4 @@
+import { GameTheme } from '../../../../../app-builtin/app-model/expansion/GameTheme';
 import { PopResult } from '../../../pop/result/native/PopResult';
 import { NewbieGuideView } from './expansion/effects/NewbieGuideView';
 import { PropToolbar } from './expansion/props/PropToolbar';
@@ -128,6 +129,7 @@ export class PageGame extends BaseView.BindController(GameController) {
      * @param data 页面传入的关卡或结算参数；未传关卡时读取存档。
      */
     onShow(data?: { level?: number }): void {
+        GameTheme.refresh();
         const generation = ++this.generation;
         this.levelNumber = EditorSession.trial ? 1 : data?.level ?? this.controller.progress.level;
         this.loadError = '';
