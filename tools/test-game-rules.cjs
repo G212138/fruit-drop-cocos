@@ -256,3 +256,8 @@ gate.request('old');
 gate.reset();
 assert.equal(gate.consume([], false), false, '重开清除旧局补位');
 console.log('洞口补位门控验证通过');
+assert.ok(planVerticalShift([510]), '最后一颗半露在裁剪线上时必须补位');
+assert.ok(planVerticalShift([600,700]), '仅剩裁剪区中的多颗水果也必须补位');
+assert.equal(planVerticalShift([440]), null, '完整处于可点击区的尾果不额外移动');
+assert.equal(510 + planVerticalShift([510]).delta, 70, '尾果补位后仍保持已约定等待区高度');
+console.log('通过：尾果半露、全部在屏外与可点击边界回归。');

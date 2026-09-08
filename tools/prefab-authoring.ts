@@ -253,7 +253,8 @@ const methods = {
     /** 使用原场景地形和独立锁墙预制体。 */
     async createBoard() {
         const root = node('GameBoard');
-        await sprite('Background', root, base + 'page/game/resources/textures/background.png', 750, 1667);
+        // ??????????????????????
+        (await sprite('Background', root, base + 'page/game/resources/textures/background.png', 750, 1667)).active = false;
         const definition = sourceGeometry.floor;
         const floor = await sprite('Floor', root, base + 'page/game/resources/textures/terrain.png', ...definition.size, ...definition.position);
         floor.addComponent(cc.RigidBody2D).type = cc.ERigidBody2DType.Static;
@@ -390,12 +391,12 @@ const methods = {
         const component = root.addComponent('GameHud');
         component.title = label('LevelTitle', root, '第 1 关', 36, 595);
         component.status = label('Progress', root, '正在加载关卡…', 28, 545);
-        component.hint = label('Hint', root, '点击同类水果；整体移动时请稍候', 24, -550);
+        component.hint = label('Hint', root, '点击同类水果；整体移动时请稍候', 24, -785);
         component.hint.node.getComponent(cc.UITransform).setContentSize(650,100);
-        const home = label('HomeButton', root, '返回首页', 28, -625, 180).node;
-        home.setPosition(-200, -625);
-        const replay = label('ReplayButton', root, '重玩第 1 关', 28, -625, 230).node;
-        replay.setPosition(180, -625);
+        const home = label('HomeButton', root, '返回首页', 28, -855, 180).node;
+        home.setPosition(-200, -855);
+        const replay = label('ReplayButton', root, '重玩第 1 关', 28, -855, 230).node;
+        replay.setPosition(180, -855);
         for (const [target, handler] of [[home, 'home'], [replay, 'replay']]) {
             const event = new cc.EventHandler();
             event.target = root;
@@ -417,6 +418,7 @@ const methods = {
         const root = node('PageGame');
         const component = root.addComponent('PageGame');
         if (component.resetInEditor) component.resetInEditor();
+        await sprite('Background', root, base + 'page/game/resources/textures/background.png', 750, 1667);
         component.boardRoot = node('BoardRoot', root);
         component.hudRoot = node('HudRoot', root);
         return save(root, base + 'page/game/native/PageGame.prefab');

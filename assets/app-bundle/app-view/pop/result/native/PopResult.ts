@@ -1,3 +1,4 @@
+import { ScreenLayout } from '../../../../../app-builtin/app-controller/expansion/ScreenLayout';
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
 import { _decorator, Label, Node } from 'cc';
 import BaseView from 'db://app/base/BaseView';
@@ -7,6 +8,14 @@ const { ccclass, property } = _decorator;
 /** 结算界面只展示结果，不在此处判定胜利或发放广告奖励。 */
 @ccclass('PopResult')
 export class PopResult extends BaseView {
+    /** ????????????????????? */
+    private readonly screenLayout = new ScreenLayout();
+
+    /** ????????????????????????????? */
+    lateUpdate(): void {
+        this.screenLayout.apply(this.node);
+    }
+
     /** 预制体中的胜负结果标签。 */
     @property(Label)
     titleLabel: Label = null!;

@@ -1,3 +1,4 @@
+import { ScreenLayout } from '../../../../../app-builtin/app-controller/expansion/ScreenLayout';
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
 import { DEV } from 'cc/env';
 import { RewardGate } from '../../../../../app-builtin/app-model/expansion/RewardGate';
@@ -18,6 +19,14 @@ const { ccclass, property } = _decorator;
 /** 游戏页面负责装配预制体、连接状态和切换结算界面。 */
 @ccclass('PageGame')
 export class PageGame extends BaseView.BindController(GameController) {
+    /** ????????????????????? */
+    private readonly screenLayout = new ScreenLayout();
+
+    /** ????????????????????????????? */
+    lateUpdate(): void {
+        this.screenLayout.apply(this.node, -900, 700);
+    }
+
     /** 页面预制体中的棋盘挂载点，加载完成后实例化到这里。 */
     @property(Node)
     boardRoot: Node = null!;

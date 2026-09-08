@@ -142,8 +142,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 650,
-      "height": 72
+      "width": 112.025390625,
+      "height": 55.44
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -181,7 +181,7 @@
     "_string": "第 1 关",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 0,
+    "_actualFontSize": 36,
     "_fontSize": 36,
     "_fontFamily": "Arial",
     "_lineHeight": 44,
@@ -301,8 +301,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 650,
-      "height": 56
+      "width": 196,
+      "height": 45.36
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -340,7 +340,7 @@
     "_string": "正在加载关卡…",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 0,
+    "_actualFontSize": 28,
     "_fontSize": 28,
     "_fontFamily": "Arial",
     "_lineHeight": 36,
@@ -420,7 +420,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": -550,
+      "y": -785,
       "z": 0
     },
     "_lrot": {
@@ -460,8 +460,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 650,
-      "height": 100
+      "width": 360,
+      "height": 40.32
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -499,7 +499,7 @@
     "_string": "点击同类水果；整体移动时请稍候",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 0,
+    "_actualFontSize": 24,
     "_fontSize": 24,
     "_fontFamily": "Arial",
     "_lineHeight": 32,
@@ -582,7 +582,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": -200,
-      "y": -625,
+      "y": -855,
       "z": 0
     },
     "_lrot": {
@@ -622,8 +622,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 180,
-      "height": 56
+      "width": 112,
+      "height": 45.36
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -661,7 +661,7 @@
     "_string": "返回首页",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 0,
+    "_actualFontSize": 28,
     "_fontSize": 28,
     "_fontFamily": "Arial",
     "_lineHeight": 36,
@@ -814,7 +814,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 180,
-      "y": -625,
+      "y": -855,
       "z": 0
     },
     "_lrot": {
@@ -1086,8 +1086,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 100,
-      "height": 56
+      "width": 56,
+      "height": 45.36
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1125,7 +1125,7 @@
     "_string": "设置",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 0,
+    "_actualFontSize": 28,
     "_fontSize": 28,
     "_fontFamily": "Arial",
     "_lineHeight": 36,
@@ -1318,6 +1318,7 @@
       "__id__": 0
     },
     "fileId": "4fAhpjybdG4I0A2BU7I7xx",
+    "instance": null,
     "targetOverrides": null
   }
 ]

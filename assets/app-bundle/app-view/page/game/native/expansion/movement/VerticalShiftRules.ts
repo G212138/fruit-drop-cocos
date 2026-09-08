@@ -2,6 +2,8 @@
 export const SHIFT_RULES = {
     /** 最上方未点击水果至少达到此高度才需要补位。 */
     topThreshold: 740,
+    /** 等待水果中心的完整可点击上限：裁剪上沿500减去60像素外形余量；适配值，防止尾果卡在裁剪区。 */
+    reachableTop: 440,
     /** 最下方未点击水果高于此高度才触发补位。 */
     bottomThreshold: 240,
     /** 补位后最低水果的目标高度。 */
@@ -66,7 +68,9 @@ export interface ShiftPlan {
 export function planVerticalShift(heights: number[]): ShiftPlan | null {
     if (!heights.length) return null;
     const bottom = Math.min(...heights);
-    if (Math.max(...heights) < SHIFT_RULES.topThreshold || bottom <= SHIFT_RULES.bottomThreshold) return null;
+    if (bottom <= SHIFT_RULES.bottomThreshold) return null;
+    // 只剩高处水果时不再要求最高点达到740，否则尾果会卡在500像素裁剪线上。
+    if (Math.max(...heights) < SHIFT_RULES.topThreshold && bottom <= SHIFT_RULES.reachableTop) return null;
     const delta = SHIFT_RULES.targetBottom - bottom;
     return { delta, duration: Math.max(SHIFT_RULES.minDuration,
         Math.min(SHIFT_RULES.maxDuration, Math.abs(delta) / SHIFT_RULES.speed)) };
