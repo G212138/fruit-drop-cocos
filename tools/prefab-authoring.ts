@@ -95,19 +95,89 @@ function wall(name, parent, x, y, width, height, angle = 0) {
 }
 
 const methods = {
+    /** 将底部UI直接制作在游戏页面，无子预制体链接，脚本仍按职责拆分。 */
+    async embedGameBottom() {
+        const url=base+'page/game/native/PageGame.prefab';
+        const root=cc.instantiate(await asset(url));
+        const page=root.getComponent('PageGame');
+        const previous=page.hudRoot.getChildByName('BottomHud');
+        if(previous) { previous.removeFromParent(); previous.destroy(); }
+        const bottom=node('BottomHud',page.hudRoot);
+        page.bottomProgressRoot=await methods.buildFruitProgress();
+        page.bottomProgressRoot.parent=bottom;
+        page.propToolbarRoot=await methods.buildPropToolbar();
+        page.propToolbarRoot.parent=bottom;
+        return save(root,url);
+    },
+    /** 通过编辑器序列化原版Spine引导和草叶特效，禁止运行时拼装节点。 */
+    async createContactFeedback() {
+        for (const [name,folder,file,animation] of [
+            ['NewbieGuideView','guide','shouzhi','1'],
+            ['GroundImpactView','ground','yezi','box3_paly']
+        ]) {
+            const root=node(name,null,200,220);
+            const view=root.addComponent(name);
+            view.skeleton=root.addComponent(cc.sp.Skeleton);
+            view.skeleton.skeletonData=await asset(base+'page/game/resources/effects/'+folder+'/'+file+'.json');
+            view.skeleton.premultipliedAlpha=false;
+            view.skeleton.animation=animation;
+            view.skeleton.loop=name==='NewbieGuideView';
+            if (name==='GroundImpactView') {
+                view.audio=root.addComponent(cc.AudioSource);
+                view.audio.clip=await asset(base+'page/game/resources/effects/ground/yezi.mp3');
+                view.audio.playOnAwake=false;
+            }
+            await save(root,base+'page/game/resources/prefabs/'+name+'.prefab');
+        }
+        return '原版手指与草叶已制作';
+    },
     /** 制作独立道具栏，复制原版按钮图片，不在运行时创建节点。 */
-    async createPropToolbar() {
+    async buildPropToolbar() {
         const root=node('PropToolbar');
         const component=root.addComponent('PropToolbar');
-        for (const [kind,x] of [['shuffle',-245],['eliminate',245]]) {
-            const item=await sprite(kind==='shuffle'?'ShuffleButton':'EliminateButton',root,base+'page/game/resources/textures/prop-'+kind+'.png',120,120,x,-655);
+        const textures=base+'page/game/resources/textures/';
+        const font=await asset(textures+'hud/number-bold.ttf');
+        for (const [kind,x,y,height,badgeX,badgeY,adFile,adWidth,adHeight] of [
+            ['eliminate',-240,-569,176,67.296,35.126,'video',44,32],
+            ['shuffle',240,-581.5,151,70.271,50.136,'ad',42,31]
+        ]) {
+            const item=await sprite(kind==='shuffle'?'ShuffleButton':'EliminateButton',root,textures+'prop-'+kind+'.png',162,height,x,y);
             const event=new cc.EventHandler();event.target=root;event.component='PropToolbar';event.handler=kind;
-            item.addComponent(cc.Button).clickEvents=[event];
-            const count=label(kind+'Count',root,kind==='shuffle'?'刷新 ×2':'消除 ×2',24,-740,210);
-            count.node.setPosition(x,-740,0);
+            const button=item.addComponent(cc.Button);button.transition=cc.Button.Transition.SCALE;button.zoomScale=0.94;button.clickEvents=[event];
+            const badge=await sprite(kind+'Badge',item,textures+'hud/count-badge.png',42,42,badgeX,badgeY);
+            const count=label(kind+'Count',badge,'2',40,0,80);
+            count.font=font;count.color=new cc.Color(0,0,0,255);
             component[kind+'Count']=count;
+            const ad=await sprite(kind+'Ad',item,textures+'hud/'+adFile+'.png',adWidth,adHeight,badgeX,badgeY);
+            ad.active=false;component[kind+'Ad']=ad;
         }
-        return save(root,base+'page/game/resources/prefabs/PropToolbar.prefab');
+        return root;
+    },
+    /** 复刻原场景Hint下的剩余、双层进度图片及描边文字，单位设计像素。 */
+    async buildFruitProgress() {
+        // 现有棋盘地形上移后的适配补偿140像素，使信息位于洞口两侧。
+        const root=node('FruitProgressView',null,750,1334,0,140);
+        const view=root.addComponent('FruitProgressView');
+        const textures=base+'page/game/resources/textures/hud/';
+        await sprite('RemainingCaption',root,textures+'remaining.png',73,38,-308.768,-400.394);
+        view.remaining=label('RemainingCount',root,'0',40,-467.227,150);
+        view.remaining.node.setPosition(-308.768,-467.227);
+        view.progressRoot=node('Progress',root,83,90,276.512,-408.832);
+        for (const field of ['dark','bright']) {
+            const picture=await sprite(field==='dark'?'Unfilled':'Filled',view.progressRoot,textures+'progress-31.png',83,90);
+            const image=picture.getComponent(cc.Sprite);image.type=cc.Sprite.Type.FILLED;
+            image.fillType=cc.Sprite.FillType.VERTICAL;image.fillRange=field==='dark'?1:0;image.fillStart=0;
+            image.color=field==='dark'?new cc.Color(110,110,110,255):new cc.Color(255,255,255,255);
+            view[field]=image;
+        }
+        view.percentage=label('Percentage',view.progressRoot,'0%',40,-83.06,180);
+        for (const value of [view.remaining,view.percentage]) {
+            value.color=new cc.Color(255,255,255,255);
+            value.enableOutline=true;value.outlineWidth=3;value.outlineColor=new cc.Color(64,36,15,255);
+        }
+        view.frames=[];
+        for(let n=31;n<=60;n++) view.frames.push(await asset(textures+'progress-'+n+'.png',true));
+        return root;
     },
     /** 通过 Creator 官方消息重新编译预览引擎，不修改引擎源码。 */
     async rebuildEngine() {
@@ -414,7 +484,8 @@ const methods = {
         const root = node('GameHud');
         const component = root.addComponent('GameHud');
         component.title = label('LevelTitle', root, '第 1 关', 36, 595);
-        component.status = label('Progress', root, '正在加载关卡…', 28, 545);
+        component.fruitTopBoundary=node('FruitTopBoundary',root,650,56,0,545);
+
         component.hint = label('Hint', root, '点击同类水果；整体移动时请稍候', 24, -785);
         component.hint.node.getComponent(cc.UITransform).setContentSize(650,100);
         const home = label('HomeButton', root, '返回首页', 28, -855, 180).node;

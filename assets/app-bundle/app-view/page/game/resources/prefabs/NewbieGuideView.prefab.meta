@@ -2,12 +2,12 @@
   "ver": "1.1.50",
   "importer": "prefab",
   "imported": true,
-  "uuid": "b5b3b214-09aa-4601-8708-163ef707ee6c",
+  "uuid": "f9701747-8533-40a1-93fc-b6ec9f8a8cff",
   "files": [
     ".json"
   ],
   "subMetas": {},
   "userData": {
-    "syncNodeName": "PropToolbar"
+    "syncNodeName": "NewbieGuideView"
   }
 }

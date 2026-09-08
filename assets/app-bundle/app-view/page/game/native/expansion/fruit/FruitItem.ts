@@ -1,6 +1,6 @@
 import {
     _decorator, Component, Node, RigidBody2D, ERigidBody2DType,
-    PolygonCollider2D, Contact2DType, Collider2D, Vec2, Tween,
+    PolygonCollider2D, Contact2DType, Collider2D, Vec2, Vec3, Tween, IPhysics2DContact,
 } from 'cc';
 import { IceFruitView } from '../ice/IceFruitView';
 import { reduceIceLayers } from '../ice/IceRules';
@@ -57,6 +57,8 @@ export class FruitItem extends Component {
     removing = false;
     /** 是否已经点击释放；释放后不参与整体补位。 */
     private released = false;
+    /** 原版每颗水果仅首次动态触地播放草叶，复活不重复。 */
+    private floorEffectPlayed = false;
     /** 每次实际下落前记录独立视觉快照，复活摆放与刚体恢复由流程层协调。 */
     readonly reviveVisual = new ReviveVisualState();
 
@@ -72,6 +74,7 @@ export class FruitItem extends Component {
         this.touchedFloor = false;
         this.removing = false;
         this.released = false;
+        this.floorEffectPlayed = false;
         this.reviveVisual.clear();
 
         this.body.type = ERigidBody2DType.Static;
@@ -153,10 +156,18 @@ export class FruitItem extends Component {
 
     /**
      * 新接触先进入配对队列，再记录原版即时失败检查所需的接触双方。
+     * @param contact 引擎提供的世界接触点，不可用时回退水果中心。
      * @param self 物理引擎回调中的本水果碰撞体。
      * @param other 物理引擎回调中的另一方碰撞体。
      */
-    private onContactBegan(self: Collider2D, other: Collider2D): void {
+    private onContactBegan(self: Collider2D, other: Collider2D, contact?: IPhysics2DContact | null): void {
+        if (other.node.name === 'Floor' && !this.floorEffectPlayed && !this.removing
+            && this.body.type === ERigidBody2DType.Dynamic) {
+            this.floorEffectPlayed = true;
+            const point = contact?.getWorldManifold()?.points[0];
+            const position = point ? new Vec3(point.x, point.y, 0) : this.node.worldPosition.clone();
+            this.node.emit(BoardEvents.GroundImpact, position);
+        }
         this.onContact(self, other);
         const fruit = other.getComponent(FruitItem);
         if (fruit) this.node.emit(BoardEvents.FruitContactBegan, this, fruit);

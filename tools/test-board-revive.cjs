@@ -75,3 +75,32 @@ effects.length=0;board.removePair(flyingFruit(),flyingFruit(),false);
 assert.equal(board.collectingPairs,1);assert.equal(effects.includes('event'),false);
 collected();assert.equal(board.collectingPairs,0);assert.equal(effects.at(-1),'event');
 console.log('通过：普通配对等待入袋完成再发布计数通知。');
+
+// 首关引导必须等待入场结束，只选择仍可点击且显示完整的水果。
+board.playing=true;board.guideDismissed=false;board.initialShiftPending=false;
+board.entry={busy:true};board.shift={busy:false};board.fruitDisplayTop=500;
+const guideFruit={node:{position:{x:100,y:70}},iceLayers:0,spawning:false};
+board.spawner.getWaiting=()=>[guideFruit,{node:{position:{x:200,y:900}},iceLayers:0,spawning:false}];
+assert.equal(board.guideTarget,null);
+board.entry.busy=false;assert.equal(board.guideTarget,guideFruit.node);
+board.guideDismissed=true;assert.equal(board.guideTarget,null);
+console.log('通过：首关引导入场门控、屏外目标排除与首次点击后关闭。');
+
+// 接触点使用引擎世界坐标；同颗水果重复碰撞及静态接触不重复播放草叶。
+const itemFile=path.resolve('assets/app-bundle/app-view/page/game/native/expansion/fruit/FruitItem.ts');
+const itemExports={};
+const events={GroundImpact:'ground-impact',FirstFloorContact:'first-floor-contact'};
+const itemCode=ts.transpileModule(fs.readFileSync(itemFile,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.CommonJS,experimentalDecorators:true}}).outputText;
+new Function('require','exports',itemCode)(name=>name==='cc'?{
+    _decorator:{ccclass:()=>value=>value,property:(...args)=>args.length>1?undefined:()=>{}},
+    Component:class{},ERigidBody2DType:{Dynamic:2,Static:0},Vec3:class{constructor(x,y,z){Object.assign(this,{x,y,z});}}
+}:name.endsWith('BoardEvents')?{BoardEvents:events}:new Proxy({},{get:()=>class{}}),itemExports);
+const item=new itemExports.FruitItem(),impact=[];
+item.body={type:2};item.node={emit:(name,value)=>{if(name==='ground-impact')impact.push(value);},worldPosition:{clone:()=>({x:9,y:8,z:0})}};
+const floor={node:{name:'Floor'},getComponent:()=>null};
+item.onContactBegan(null,floor,{getWorldManifold:()=>({points:[{x:12,y:34}]})});
+item.onContactBegan(null,floor,{getWorldManifold:()=>({points:[{x:99,y:99}]})});
+assert.equal(impact.length,1);assert.equal(impact[0].x,12);assert.equal(impact[0].y,34);
+item.floorEffectPlayed=false;item.body.type=0;item.onContactBegan(null,floor);assert.equal(impact.length,1);
+item.body.type=2;item.onContactBegan(null,floor);assert.equal(impact.length,2);assert.equal(impact[1].x,9);
+console.log('通过：首次动态触地、重复接触去重、静态接触排除与缺少接触点回退。');

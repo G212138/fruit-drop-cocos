@@ -1,3 +1,4 @@
+import { GroundImpactView } from './GroundImpactView';
 import { _decorator, Component, Node, Prefab, instantiate, UITransform, AudioSource, isValid, Vec3 } from 'cc';
 import { ExplosionView } from './ExplosionView';
 import { FruitBagView } from './FruitBagView';
@@ -19,6 +20,16 @@ export class RemovalEffects extends Component {
     /** 独立袋子预制体实例，通过节点读取组件避免跨预制体组件绑定丢失。 */
     @property(Node)
     bagRoot: Node = null!;
+
+    /** 页面预加载的原版触地草叶预制体。 */
+    groundImpactPrefab: Prefab | null = null;
+    /** @param position 世界接触坐标，转换到独立特效层后播放。 */
+    showGroundImpact(position: Vec3): void {
+        if (!this.groundImpactPrefab) return;
+        const effect = instantiate(this.groundImpactPrefab);
+        effect.setPosition(this.node.getComponent(UITransform)!.convertToNodeSpaceAR(position));
+        effect.parent = this.node;
+    }
 
     /** 页面连接的进度反馈；无页面连接时保持入袋即通知的独立预览能力。 */
     collectionFeedback: ((source: Node, completed: () => void) => void) | null = null;
@@ -70,7 +81,7 @@ export class RemovalEffects extends Component {
         if (isValid(this.mergeAudio, true)) this.mergeAudio.stop();
         this.bagRoot?.getComponent(FruitBagView)?.clear();
         for (const child of [...this.node.children]) {
-            if (child.getComponent(ExplosionView)) child.destroy();
+            if (child.getComponent(ExplosionView) || child.getComponent(GroundImpactView)) child.destroy();
         }
         this.soundHandled = false;
     }

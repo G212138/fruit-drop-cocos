@@ -65,7 +65,7 @@ function load(file) {
 const root = path.resolve('assets/app-bundle/app-view/page/game/native/expansion');
 const { StarFlightView } = load(root + '/effects/StarFlightView.ts');
 const { CollectionFeedback } = load(root + '/effects/CollectionFeedback.ts');
-const { GameHud } = load(root + '/hud/GameHud.ts');
+const { FruitProgressView } = load(root + '/hud/FruitProgressView.ts');
 /** 创建带坐标换算与可观察销毁的引擎节点替身。 */
 function makeNode() {
     return {
@@ -77,33 +77,53 @@ function makeNode() {
     };
 }
 const feedback = new CollectionFeedback();
-const hud = new GameHud();
-hud.status = { node: makeNode(), color: new Color(37, 61, 85, 255) };
-const original = hud.status.color.clone();
+const hud = new FruitProgressView();
+hud.remaining = {}; hud.percentage = {}; hud.progressRoot = makeNode();
+hud.dark = {node: {active:true}, fillStart:0}; hud.bright = {fillStart:-1};
+hud.frames = ['first','second']; hud.render(2, 40, 40);
+assert.equal(hud.dark.spriteFrame, 'second');
+assert.equal(hud.remaining.string, '40'); assert.equal(hud.percentage.string, '0%');
 let completed = 0;
 /** 启动真实飞行与HUD高亮，最终通知模拟权威计数。 */
-function play(level = 2) { feedback.play({}, makeNode(), makeNode(), hud.status.node, level, () => hud.flashProgress(() => completed++)); }
+function play(level = 2) { feedback.play({}, makeNode(), makeNode(), hud.progressRoot, level, () => hud.flash(() => completed++)); }
 play();
 advance(0.63);
 assert.equal(completed, 0, '星星飞行中不能提前结算');
 advance(0.02);
 assert.equal(completed, 0, '抵达后等待进度反馈');
-assert.equal(hud.status.color.r, 255);
+assert.equal(hud.dark.node.active, false);
+assert.equal(hud.bright.fillStart, 0);
 advance(0.15);
 assert.equal(completed, 1);
-assert.deepEqual(hud.status.color, original);
+assert.equal(hud.dark.node.active, true);
+assert.equal(hud.bright.fillRange, 0);
 play(); advance(0.1); play(); advance(0.65);
 assert.equal(completed, 1, '连续消除分别等待完成');
 advance(0.04); assert.equal(completed, 2);
-assert.equal(hud.status.color.r, 255, '另一次高亮尚未完成');
+assert.equal(hud.dark.node.active, false, '另一次高亮尚未完成');
 advance(0.11); assert.equal(completed, 3);
-assert.deepEqual(hud.status.color, original);
-play(); advance(0.2); feedback.clear(); hud.clearFeedback(); advance(1);
+assert.equal(hud.dark.node.active, true);
+assert.equal(hud.bright.fillRange, 0);
+play(); advance(0.2); feedback.clear(); hud.clear(); advance(1);
 assert.equal(completed, 3, '清局取消尚在飞行的旧通知');
-play(); advance(0.65); feedback.clear(); hud.clearFeedback(); advance(1);
+play(); advance(0.65); feedback.clear(); hud.clear(); advance(1);
 assert.equal(completed, 3, '清局取消已抵达但仍在高亮的旧通知');
 play(); advance(1); assert.equal(completed, 4, '取消后新局仍可正常完成');
 let skipped = 0;
-feedback.play({}, makeNode(), makeNode(), hud.status.node, 31, () => skipped++);
+feedback.play({}, makeNode(), makeNode(), hud.progressRoot, 31, () => skipped++);
 assert.equal(skipped, 1, '原版第31关起跳过双星');
-console.log('通过：飞行和进度高亮后计数、连续消除颜色恢复、飞行中及抵达后清局、新局隔离、第31关跳过。');
+hud.render(2, 20, 40);
+assert.equal(hud.percentage.string, '50%'); assert.equal(hud.dark.fillStart, 0.5); assert.equal(hud.bright.fillRange, 0.5);
+hud.render(2, 0, 40); assert.equal(hud.percentage.string, '100%'); assert.equal(hud.bright.fillRange, 1);
+hud.render(61, 2, 4); assert.equal(hud.progressRoot.active, false);
+console.log('通过：双层0/50/100%填充、剩余数、60关隐藏边界、飞行和进度高亮后计数、连续消除颜色恢复、飞行中及抵达后清局、新局隔离、第31关跳过。');
+
+const { PropToolbar } = load(root + '/props/PropToolbar.ts');
+const toolbar = new PropToolbar();
+toolbar.shuffleCount={node:{parent:{active:true}}}; toolbar.eliminateCount={node:{parent:{active:true}}};
+toolbar.shuffleAd={}; toolbar.eliminateAd={};
+toolbar.render(2,0);
+assert.equal(toolbar.shuffleCount.string,'2');assert.equal(toolbar.shuffleCount.node.parent.active,true);assert.equal(toolbar.shuffleAd.active,false);
+assert.equal(toolbar.eliminateCount.node.parent.active,false);assert.equal(toolbar.eliminateAd.active,true);
+toolbar.render(0,1);assert.equal(toolbar.shuffleAd.active,true);assert.equal(toolbar.eliminateAd.active,false);assert.equal(toolbar.eliminateCount.string,'1');
+console.log('通过：道具数量角标、零库存广告标记和获得库存后的恢复。');

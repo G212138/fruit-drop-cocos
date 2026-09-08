@@ -1,39 +1,30 @@
-import { _decorator, Component, Label, Node, Color, isValid } from 'cc';
+import { _decorator, Component, Label, Node } from 'cc';
+import { FruitProgressView } from './FruitProgressView';
 const { ccclass, property } = _decorator;
 
 /** HUD 只展示传入数据，按钮与标签在预制体中制作。 */
 @ccclass('GameHud')
 export class GameHud extends Component {
-    /** 同时抵达的星星共用高亮，最后一组完成后恢复文字颜色。 */
-    private pendingFlashes = 0;
-    /** 进入高亮前的预制体文字颜色。 */
-    private progressColor: Color | null = null;
-
-    /** @param completed 原版0.15秒进度闪烁结束后的业务通知；文字HUD采用高亮避免读数消失。 */
+    /** 页面传入PageGame内的底部进度节点，HUD不拥有其生命周期。 */
+    progressViewRoot: Node = null!;
+    /** 顶部水果显示边界，与下方进度位置无关。 */
+    @property(Node) fruitTopBoundary: Node = null!;
+    /** 读取独立进度视图。 */
+    private get progressView(): FruitProgressView {
+        return this.progressViewRoot.getComponent(FruitProgressView)!;
+    }
+    /** 星星飞向右侧进度图中心。 */
+    get progressTarget(): Node {
+        return this.progressView.progressRoot;
+    }
+    /** @param completed 进度图全亮反馈结束后的业务通知。 */
     flashProgress(completed: () => void): void {
-        if (this.pendingFlashes++ === 0) this.progressColor = this.status.color.clone();
-        this.status.color = new Color(255, 255, 255, 255);
-        this.scheduleOnce(() => {
-            if (--this.pendingFlashes === 0 && this.progressColor) this.status.color = this.progressColor;
-            completed();
-        }, 0.15);
+        this.progressView.flash(completed);
     }
-
-    /** 清局取消高亮回调，避免下一局被旧的消除计数影响。 */
+    /** 清局取消旧的进度闪烁回调。 */
     clearFeedback(): void {
-        this.unscheduleAllCallbacks();
-        this.pendingFlashes = 0;
-        if (this.progressColor && isValid(this.status, true)) this.status.color = this.progressColor;
-        this.progressColor = null;
+        this.progressViewRoot?.getComponent(FruitProgressView)?.clear();
     }
-
-    /** 销毁HUD时使所有延迟进度通知失效。 */
-    onDestroy(): void {
-        this.clearFeedback();
-    }
-    /** 剩余水果与消除进度标签。 */
-    @property(Label)
-    status: Label = null!;
     /** 原版关卡序号标签。 */
     @property(Label)
     title: Label = null!;
@@ -53,8 +44,7 @@ export class GameHud extends Component {
      */
     render(level: number, remaining: number, total: number, warning = ''): void {
         this.title.string = '第 ' + level + ' 关';
-        const progress = total > 0 ? Math.floor((total - remaining) / total * 100) : 0;
-        this.status.string = total ? '剩余 '+remaining+' 个 · 进度 '+progress+'%' : '正在加载关卡…';
+        this.progressView.render(level, remaining, total);
         this.hint.string = warning || '点击同类水果；整体移动时请稍候';
         this.replayButton.active = false;
     }
@@ -62,7 +52,7 @@ export class GameHud extends Component {
     /** @param level 请求关卡编号。 @param message 阻止开局的具体原因。 */
     showError(level: number, message: string): void {
         this.title.string = '第 '+level+' 关';
-        this.status.string = '暂时无法开始';
+        this.progressView.render(level, 0, 0);
         this.hint.string = message;
         this.replayButton.active = true;
     }

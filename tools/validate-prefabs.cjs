@@ -46,16 +46,21 @@ function inspect(value, entries, location) {
         const required = {
             GameBoard: ['spawner', 'removalEffectsRoot', 'lockWallRoot', 'levelHintRoot', 'leftBoundary', 'rightLine'],
             FruitSpawner: ['fruitRoot', 'hiddenFruitPrefab', 'iceFruitPrefab', 'blackHolePrefab'],
-            PropToolbar: ['shuffleCount', 'eliminateCount'],
+            PageGame: ['bottomProgressRoot', 'propToolbarRoot', 'boardRoot', 'hudRoot'],
+            GameHud: ['fruitTopBoundary', 'title', 'hint', 'replayButton'],
+            FruitProgressView: ['remaining', 'percentage', 'progressRoot', 'dark', 'bright', 'frames'],
+            PropToolbar: ['shuffleCount', 'eliminateCount', 'shuffleAd', 'eliminateAd'],
             RemovalEffects: ['explosionPrefab', 'audio', 'mergeAudio', 'bagRoot'],
             FruitBagView: ['body', 'target', 'audio'],
+            NewbieGuideView: ['skeleton'],
+            GroundImpactView: ['skeleton', 'audio'],
         }[scriptTypes.get(value.__type__)] || [];
         for (const field of required) assert.ok(value[field], '必填绑定为空：' + location + '.' + field);
     }
     for (const [key, child] of Object.entries(value)) inspect(child, entries, location + '.' + key);
 }
 walk(root);
-assert.equal(prefabs.length, 52);
+assert.equal(prefabs.length, 53);
 for (const file of process.argv.length > 2 ? process.argv.slice(2).map(file => path.resolve(file)) : prefabs) {
     const entries = JSON.parse(fs.readFileSync(file, 'utf8'));
     inspect(entries, entries, path.basename(file));

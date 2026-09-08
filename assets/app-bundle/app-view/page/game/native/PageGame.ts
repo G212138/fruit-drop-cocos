@@ -1,3 +1,4 @@
+import { NewbieGuideView } from './expansion/effects/NewbieGuideView';
 import { PropToolbar } from './expansion/props/PropToolbar';
 import { CollectionFeedback } from './expansion/effects/CollectionFeedback';
 import { RemovalEffects } from './expansion/effects/RemovalEffects';
@@ -33,9 +34,10 @@ export class PageGame extends BaseView.BindController(GameController) {
     /** 每帧在布局变化后同步屏幕适配和水果显示区域。 */
     lateUpdate(): void {
         this.screenLayout.apply(this.node, -900, 700);
+        this.newbieGuide?.follow(this.board?.guideTarget ?? null);
         if (this.board && this.hud) {
             this.board.fruitDisplayTop = this.fruitViewport.apply(
-                this.node, this.board.node, this.board.spawner.fruitRoot, this.hud.status.node);
+                this.node, this.board.node, this.board.spawner.fruitRoot, this.hud.fruitTopBoundary);
         }
     }
 
@@ -46,25 +48,26 @@ export class PageGame extends BaseView.BindController(GameController) {
     /** 页面预制体中的 HUD 挂载点，独立于棋盘生命周期。 */
     @property(Node)
     hudRoot: Node = null!;
+    /** 游戏界面内直接制作的底部进度节点，不通过子预制体加载。 */
+    @property(Node) bottomProgressRoot: Node = null!;
+    /** 游戏界面内直接制作的道具栏节点。 */
+    @property(Node) propToolbarRoot: Node = null!;
 
     /** 本显示周期实例化的棋盘；退出页面后销毁。 */
     private board: GameBoard | null = null;
     /** 本局星星表现，清局时统一取消。 */
     private readonly collectionFeedback = new CollectionFeedback();
-    /** 独立道具栏实例，挂在已适配的HUD容器。 */
+    /** 当前局原版手指预制体，退出时独立销毁。 */
+    private newbieGuide: NewbieGuideView | null = null;
+    /** 游戏界面内现有道具栏组件，页面退出时只解除监听。 */
     private propToolbar: PropToolbar | null = null;
     /** 跨重开保留的独立库存。 */
     private readonly propInventory = new PropInventory();
-    /** 加载预制体并连接道具请求。 @param generation 当前页面代次。 */
-    private loadProps(generation: number): void {
-        this.loadRes('prefabs/PropToolbar', Prefab, prefab => {
-            if (!this.isCurrent(generation) || !prefab) return;
-            const node = instantiate(prefab);
-            node.parent = this.hudRoot;
-            this.propToolbar = node.getComponent(PropToolbar);
-            node.on('prop-request', this.requestProp, this);
-            this.refreshProps();
-        });
+    /** 连接PageGame内已有的道具栏，只注册事件，不实例化UI。 */
+    private bindProps(): void {
+        this.propToolbar = this.propToolbarRoot.getComponent(PropToolbar);
+        this.propToolbarRoot.on('prop-request', this.requestProp, this);
+        this.refreshProps();
     }
     /** 将库存映射为道具数量标签。 */
     private refreshProps(): void {
@@ -131,7 +134,7 @@ export class PageGame extends BaseView.BindController(GameController) {
         this.loadBoard(generation);
         this.loadHud(generation);
         this.loadSettings(generation);
-        this.loadProps(generation);
+        this.bindProps();
         if (DEV) this.loadDevelopmentReward(generation);
     }
 
@@ -202,6 +205,7 @@ export class PageGame extends BaseView.BindController(GameController) {
             const node = instantiate(prefab);
             node.parent = this.hudRoot;
             this.hud = node.getComponent(GameHud);
+            this.hud!.progressViewRoot = this.bottomProgressRoot;
             node.on('return-home', this.returnHome, this);
             node.on('replay-first', this.replayFirst, this);
             node.on('open-settings', this.openSettings, this);
@@ -223,12 +227,31 @@ export class PageGame extends BaseView.BindController(GameController) {
             effects.collectionFeedback = (source, completed) => {
                 if (!this.isCurrent(generation)) return;
                 if (!this.hud || this.levelNumber > 30) { completed(); return; }
-                this.collectionFeedback.play(prefab, this.hudRoot, source, this.hud.status.node,
+                this.collectionFeedback.play(prefab, this.hudRoot, source, this.hud.progressTarget,
                     this.levelNumber, () => {
                         if (this.isCurrent(generation)) this.hud?.flashProgress(completed);
                     });
             };
-            this.loadLevel(generation);
+            this.loadGroundFeedback(generation);
+        });
+    }
+
+    /** @param generation 触地特效准备完毕后再开始物理关卡。 */
+    private loadGroundFeedback(generation: number): void {
+        this.loadRes('prefabs/GroundImpactView', Prefab, prefab => {
+            if (!this.isCurrent(generation) || !this.board) return;
+            if (!prefab) { this.reportLoadError('触地特效加载失败'); return; }
+            this.board.removalEffectsRoot.getComponent(RemovalEffects)!.groundImpactPrefab = prefab;
+            if (this.levelNumber !== 1) { this.loadLevel(generation); return; }
+            this.loadRes('prefabs/NewbieGuideView', Prefab, guide => {
+                if (!this.isCurrent(generation)) return;
+                if (!guide) { this.reportLoadError('首关引导加载失败'); return; }
+                const node = instantiate(guide);
+                node.active = false;
+                node.parent = this.hudRoot;
+                this.newbieGuide = node.getComponent(NewbieGuideView);
+                this.loadLevel(generation);
+            });
         });
     }
 
@@ -368,11 +391,13 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 解除旧局监听并释放通过预制体创建的子界面。 */
     private releaseChildren(): void {
+        if (this.newbieGuide && isValid(this.newbieGuide.node)) this.newbieGuide.node.destroy();
+        this.newbieGuide = null;
         this.collectionFeedback.clear();
         this.hud?.clearFeedback();
         if (this.propToolbar && isValid(this.propToolbar.node)) {
             this.propToolbar.node.targetOff(this);
-            this.propToolbar.node.destroy();
+
         }
         this.propToolbar = null;
         this.rewardGate?.invalidate();

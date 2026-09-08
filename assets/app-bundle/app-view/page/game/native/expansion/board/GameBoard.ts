@@ -1,6 +1,6 @@
 import { BoardPropFlow } from '../props/BoardPropFlow';
 import { PropKind } from '../props/PropRules';
-import { _decorator, Component, PhysicsSystem2D, Vec2, Node, RigidBody2D, UITransform } from 'cc';
+import { _decorator, Component, PhysicsSystem2D, Vec2, Vec3, Node, RigidBody2D, UITransform } from 'cc';
 import { EntryFlow } from '../movement/EntryFlow';
 import { LevelHintView } from '../hint/LevelHintView';
 import { chooseHint } from '../hint/HintRules';
@@ -164,6 +164,7 @@ export class GameBoard extends Component {
         PhysicsSystem2D.instance.enable = true;
         PhysicsSystem2D.instance.gravity = new Vec2(0, PHYSICS_RULES.gravityY);
 
+        this.guideDismissed = level.number !== 1;
         this.playing = true;
         this.spawner.spawn(level.fruits, fruit => this.bindFruit(fruit));
         // 编辑草稿可能全部位于屏幕上方，按既有补位规则移入可点击区域。
@@ -176,11 +177,27 @@ export class GameBoard extends Component {
         this.initialShiftPending = this.mode === 1;
     }
 
+    /** 第一关第一次有效点击后永久隐藏本局手指。 */
+    private guideDismissed = true;
+    /** 入场和补位结束后选择可见的右侧水果，跟随实际位置避免适配后指向空处。 */
+    get guideTarget(): Node | null {
+        if (this.guideDismissed || !this.playing || this.levelHint?.busy || this.entry.busy || this.shift.busy || this.initialShiftPending) return null;
+        const candidates = this.spawner.getWaiting().filter(fruit => !fruit.spawning && fruit.iceLayers === 0
+            && fruit.node.position.y <= this.fruitDisplayTop - 60);
+        candidates.sort((a,b) => b.node.position.x - a.node.position.x);
+        return candidates[0]?.node ?? null;
+    }
+    /** @param position 首次动态触地的世界接触坐标，不在物理回调内改变任何刚体。 */
+    private showGroundImpact(position: Vec3): void {
+        if (this.playing) this.removalEffects?.showGroundImpact(position);
+    }
+
     /**
      * 为每个水果连接棋盘级事件。
      * @param fruit 本次操作的水果实例。
      */
     private bindFruit(fruit: FruitItem): void {
+        fruit.node.on(BoardEvents.GroundImpact, this.showGroundImpact, this);
         fruit.node.on(BoardEvents.ReleaseRequested, this.release, this);
         fruit.node.on(BoardEvents.FruitContact, this.contact, this);
         fruit.node.on(BoardEvents.FruitContactBegan, this.recordContact, this);
@@ -192,6 +209,7 @@ export class GameBoard extends Component {
      */
     private release(fruit: FruitItem): void {
         if (this.playing && !this.levelHint?.busy && !this.entry.busy && !this.shift.busy && !this.props.busy && fruit.waiting && !fruit.spawning && fruit.iceLayers === 0) {
+            this.guideDismissed = true;
             this.spawner.releaseBlackHole(fruit);
             fruit.drop();
             if (this.mode === 2) this.horizontal.afterDrop(this.spawner.getWaiting(), this.rightLine);
