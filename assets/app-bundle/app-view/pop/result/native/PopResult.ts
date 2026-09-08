@@ -8,6 +8,25 @@ const { ccclass, property } = _decorator;
 /** 结算界面只展示结果，不在此处判定胜利或发放广告奖励。 */
 @ccclass('PopResult')
 export class PopResult extends BaseView {
+    /** 为真时作为PageGame固定子节点，不使用弹窗管理器显示或关闭。 */
+    @property embedded = false;
+
+    /** 直接打开已有结算节点；参数与独立弹窗相同。 */
+    showEmbedded(data: { won: boolean; level: number; onRevive?: () => void; notice?: string }): void {
+        this.onHide();
+        this.node.active = true;
+        this.node.setSiblingIndex(this.node.parent!.children.length - 1);
+        this.onShow(data);
+    }
+
+    /** 清除旧回调并隐藏已有节点，重开后可再次使用。 */
+    closeResult(): void {
+        if (this.embedded) {
+            this.onHide();
+            this.node.active = false;
+        } else this.hide();
+    }
+
     /** 结算页面按设计尺寸等比适配。 */
     private readonly screenLayout = new ScreenLayout();
 
@@ -95,7 +114,7 @@ export class PopResult extends BaseView {
         if (this.won || !this.onRevive) return;
         const request = this.onRevive;
         this.onRevive = null;
-        this.hide();
+        this.closeResult();
         request();
     }
 
@@ -109,20 +128,20 @@ export class PopResult extends BaseView {
 
     /** 免费重开当前关卡，不改变进度或触发模拟广告。 */
     restart(): void {
-        this.hide();
+        this.closeResult();
         app.manager.ui.show({ name: 'PageGame', data: { level: this.level } });
     }
 
     /** 已获胜时进入下一累计关卡；超出原配置数量后由加载层按原版规则循环布局。 */
     next(): void {
         if (!this.won || EditorSession.trial) return;
-        this.hide();
+        this.closeResult();
         app.manager.ui.show({ name: 'PageGame', data: { level: this.level + 1 } });
     }
 
     /** 返回首页，下次开始读取已保存进度。 */
     home(): void {
-        this.hide();
+        this.closeResult();
         app.manager.ui.show({ name: EditorSession.trial ? 'PageEditor' : 'PageHome' });
     }
 }

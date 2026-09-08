@@ -95,6 +95,24 @@ function wall(name, parent, x, y, width, height, angle = 0) {
 }
 
 const methods = {
+    /** 将结算模板通过编辑器实例化为游戏页面的普通节点。 */
+    async embedResult() {
+        const page = cc.instantiate(await asset(base+'page/game/native/PageGame.prefab'));
+        cce.Prefab.removePrefabInfoFromNode(page, false);
+        const result = cc.instantiate(await asset(base+'pop/result/native/PopResult.prefab'));
+        cce.Prefab.removePrefabInfoFromNode(result, false);
+        result.name = 'GameResult';
+        result.parent = page;
+        result.setPosition(0,0,0);
+        result.getComponent('PopResult').embedded = true;
+        const mask = await sprite('Background',result,base+'pop/result/resources/textures/panel.png',750,1334);
+        mask.getComponent(cc.Sprite).color = new cc.Color(0,0,0,190);
+        mask.addComponent(cc.BlockInputEvents);
+        mask.setSiblingIndex(0);
+        result.active = false;
+        page.getComponent('PageGame').resultRoot = result;
+        return save(page,base+'page/game/native/PageGame.prefab');
+    },
     /** 将底部UI直接制作在游戏页面，无子预制体链接，脚本仍按职责拆分。 */
     async embedGameBottom() {
         const url=base+'page/game/native/PageGame.prefab';

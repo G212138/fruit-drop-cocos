@@ -1,3 +1,4 @@
+import { PopResult } from '../../../pop/result/native/PopResult';
 import { NewbieGuideView } from './expansion/effects/NewbieGuideView';
 import { PropToolbar } from './expansion/props/PropToolbar';
 import { CollectionFeedback } from './expansion/effects/CollectionFeedback';
@@ -26,6 +27,8 @@ const { ccclass, property } = _decorator;
 /** 游戏页面负责装配预制体、连接状态和切换结算界面。 */
 @ccclass('PageGame')
 export class PageGame extends BaseView.BindController(GameController) {
+    /** 页面内固定结算层，与游戏同步加载，胜负时直接显示。 */
+    @property(Node) resultRoot: Node = null!;
     /** 根据安全区域统一缩放页面内容。 */
     private readonly screenLayout = new GameScreenLayout();
     /** 水果裁剪区域与HUD下沿保持一致。 */
@@ -258,12 +261,12 @@ export class PageGame extends BaseView.BindController(GameController) {
     /** @param notice 广告取消或失败时在结算面板显示的说明，省略则显示胜负结果。 */
     private showResult(notice?: string): void {
         const generation = this.generation;
-        app.manager.ui.show({ name: 'PopResult', data: {
+        this.resultRoot.getComponent(PopResult)!.showEmbedded({
             won: app.store.game.phase === 'won', level: this.levelNumber, notice,
             onRevive: this.board?.canRevive ? () => {
                 if (this.isCurrent(generation)) void this.requestRevive();
             } : undefined,
-        } });
+        });
     }
 
     /** 在失败原局请求激励复活，只有有效完成结果才恢复状态和棋盘。 */
@@ -373,6 +376,7 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 固定棋盘和HUD只清局解绑，动态弹窗和特效才销毁。 */
     private releaseChildren(): void {
+        if (this.resultRoot && isValid(this.resultRoot, true)) this.resultRoot.getComponent(PopResult)?.closeResult();
         if (this.newbieGuide && isValid(this.newbieGuide.node)) this.newbieGuide.node.destroy();
         this.newbieGuide = null;
         this.collectionFeedback.clear();
