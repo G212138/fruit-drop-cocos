@@ -46,8 +46,8 @@ function inspect(value, entries, location) {
         const required = {
             GameBoard: ['spawner', 'removalEffectsRoot', 'lockWallRoot', 'levelHintRoot', 'leftBoundary', 'rightLine'],
             FruitSpawner: ['fruitRoot', 'hiddenFruitPrefab', 'iceFruitPrefab', 'blackHolePrefab'],
-            PageGame: ['bottomProgressRoot', 'propToolbarRoot', 'boardRoot', 'hudRoot', 'gameBoardNode', 'gameHudNode'],
-            GameHud: ['fruitTopBoundary', 'title', 'hint', 'replayButton'],
+            PageGame: ['bottomProgressRoot', 'propToolbarRoot', 'boardRoot', 'hudRoot', 'gameBoardNode', 'gameHudNode', 'backgroundNode'],
+            GameHud: ['topBar', 'direction', 'downFrame', 'rightFrame', 'fruitTopBoundary', 'title', 'hint', 'replayButton'],
             FruitProgressView: ['remaining', 'percentage', 'progressRoot', 'dark', 'bright', 'frames'],
             PropToolbar: ['shuffleCount', 'eliminateCount', 'shuffleAd', 'eliminateAd'],
             RemovalEffects: ['explosionPrefab', 'audio', 'mergeAudio', 'bagRoot'],

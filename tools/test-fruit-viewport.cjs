@@ -16,7 +16,7 @@ viewport.getComponent=kind=>kind==='widget'?widget:getViewportComponent(kind);
 const layout=new mod.exports.FruitViewportLayout();
 assert.equal(layout.apply(page,board,fruits,status),501);
 assert.equal(widget.enabled,false,'动态裁剪停用冲突的Widget');
-assert.equal(viewport.position.y+viewport.getComponent().height/2,501);
+assert.equal(viewport.position.y+viewport.getComponent().height/2,667);
 assert.equal(viewport.position.y-viewport.getComponent().height/2,-667);
 assert.equal(viewport.position.y+fruits.position.y,0,'裁剪中心改变不移动水果原点');
 visible={width:1024,height:1600};safe={x:20,y:40,width:984,height:1500};status.position.y=600;

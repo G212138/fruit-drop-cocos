@@ -5,7 +5,7 @@ import { RemovalEffects } from './expansion/effects/RemovalEffects';
 import { PropInventory } from './expansion/props/PropInventory';
 import { PropKind } from './expansion/props/PropRules';
 import { FruitViewportLayout } from './expansion/board/FruitViewportLayout';
-import { ScreenLayout } from '../../../../../app-builtin/app-controller/expansion/ScreenLayout';
+import { GameScreenLayout } from './expansion/board/GameScreenLayout';
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
 import { DEV } from 'cc/env';
 import { RewardGate } from '../../../../../app-builtin/app-model/expansion/RewardGate';
@@ -27,19 +27,22 @@ const { ccclass, property } = _decorator;
 @ccclass('PageGame')
 export class PageGame extends BaseView.BindController(GameController) {
     /** 根据安全区域统一缩放页面内容。 */
-    private readonly screenLayout = new ScreenLayout();
+    private readonly screenLayout = new GameScreenLayout();
     /** 水果裁剪区域与HUD下沿保持一致。 */
     private readonly fruitViewport = new FruitViewportLayout();
 
     /** 每帧在布局变化后同步屏幕适配和水果显示区域。 */
     lateUpdate(): void {
-        this.screenLayout.apply(this.node, -900, 700);
+        this.screenLayout.apply(this.node, this.boardRoot, this.hudRoot, this.hud?.topBar ?? null, this.backgroundNode);
         this.newbieGuide?.follow(this.board?.guideTarget ?? null);
         if (this.board && this.hud) {
             this.board.fruitDisplayTop = this.fruitViewport.apply(
                 this.node, this.board.node, this.board.spawner.fruitRoot, this.hud.fruitTopBoundary);
         }
     }
+
+    /** 页面背景节点，单独铺满屏幕，不参与玩法缩放。 */
+    @property(Node) backgroundNode: Node = null!;
 
     /** 页面内棋盘的布局容器。 */
     @property(Node)
@@ -185,6 +188,7 @@ export class PageGame extends BaseView.BindController(GameController) {
                 this.ready = true;
                 this.controller.begin(countFruits(level), level.number, !!EditorSession.trial);
                 this.board.begin(level);
+                this.hud?.setMode(level.mode);
             } catch (error) {
                 this.reportLoadError(String(error));
             }

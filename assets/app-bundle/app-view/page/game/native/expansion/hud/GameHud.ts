@@ -1,10 +1,22 @@
-import { _decorator, Component, Label, Node } from 'cc';
+import { _decorator, Component, Label, Node, Sprite, SpriteFrame } from 'cc';
 import { FruitProgressView } from './FruitProgressView';
 const { ccclass, property } = _decorator;
 
 /** HUD 只展示传入数据，按钮与标签在预制体中制作。 */
 @ccclass('GameHud')
 export class GameHud extends Component {
+    /** 原版顶部栏，由屏幕适配定位到安全区顶部。 */
+    @property(Node) topBar: Node = null!;
+    /** 玩法方向图标。 */
+    @property(Sprite) direction: Sprite = null!;
+    /** 原版纵向下落箭头。 */
+    @property(SpriteFrame) downFrame: SpriteFrame = null!;
+    /** 原版横向移动箭头。 */
+    @property(SpriteFrame) rightFrame: SpriteFrame = null!;
+    /** @param mode 1为纵向下落，2为横向移动，与关卡配置一致。 */
+    setMode(mode: number): void {
+        this.direction.spriteFrame = mode === 2 ? this.rightFrame : this.downFrame;
+    }
     /** 页面传入PageGame内的底部进度节点，HUD不拥有其生命周期。 */
     progressViewRoot: Node = null!;
     /** 顶部水果显示边界，与下方进度位置无关。 */
@@ -43,15 +55,15 @@ export class GameHud extends Component {
      * @param warning 存档不可用时的提示，空字符串表示正常。
      */
     render(level: number, remaining: number, total: number, warning = ''): void {
-        this.title.string = '第 ' + level + ' 关';
+        this.title.string = '第' + level + '关';
         this.progressView.render(level, remaining, total);
-        this.hint.string = warning || '点击同类水果；整体移动时请稍候';
+        this.hint.string = warning;
         this.replayButton.active = false;
     }
 
     /** @param level 请求关卡编号。 @param message 阻止开局的具体原因。 */
     showError(level: number, message: string): void {
-        this.title.string = '第 '+level+' 关';
+        this.title.string = '第'+level+'关';
         this.progressView.render(level, 0, 0);
         this.hint.string = message;
         this.replayButton.active = true;

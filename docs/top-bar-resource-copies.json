@@ -1,0 +1,22 @@
+[
+  {
+    "source": "E:/Pc/Downloads/逆向_缤纷消水果_2.4.15js/逆向_缤纷消水果_2.4.15js/assets/_res/main/textures/watermelonGame/Settings.png",
+    "target": "assets/app-bundle/app-view/page/game/resources/textures/top-bar/settings.png"
+  },
+  {
+    "source": "E:/Pc/Downloads/逆向_缤纷消水果_2.4.15js/逆向_缤纷消水果_2.4.15js/assets/_res/main/textures/watermelonGame/bg关卡.png",
+    "target": "assets/app-bundle/app-view/page/game/resources/textures/top-bar/level-background.png"
+  },
+  {
+    "source": "E:/Pc/Downloads/逆向_缤纷消水果_2.4.15js/逆向_缤纷消水果_2.4.15js/assets/_res/main/textures/watermelonGame/bg箭头.png",
+    "target": "assets/app-bundle/app-view/page/game/resources/textures/top-bar/direction-background.png"
+  },
+  {
+    "source": "E:/Pc/Downloads/逆向_缤纷消水果_2.4.15js/逆向_缤纷消水果_2.4.15js/assets/resources/sprite/Others/xia.png",
+    "target": "assets/app-bundle/app-view/page/game/resources/textures/top-bar/direction-down.png"
+  },
+  {
+    "source": "E:/Pc/Downloads/逆向_缤纷消水果_2.4.15js/逆向_缤纷消水果_2.4.15js/assets/resources/sprite/Others/you.png",
+    "target": "assets/app-bundle/app-view/page/game/resources/textures/top-bar/direction-right.png"
+  }
+]
