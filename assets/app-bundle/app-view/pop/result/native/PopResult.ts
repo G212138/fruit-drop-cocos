@@ -30,9 +30,10 @@ export class PopResult extends BaseView {
     /** 结算页面按设计尺寸等比适配。 */
     private readonly screenLayout = new ScreenLayout();
 
-    /** 跟随屏幕尺寸变化调整结算页面。 */
-    lateUpdate(): void {
+    /** 跟随屏幕尺寸变化调整结算页面。@param deltaTime 本帧秒数；光圈按原版每秒顺时针90度旋转。 */
+    lateUpdate(deltaTime: number): void {
         this.screenLayout.apply(this.node);
+        if (this.won && this.unlockRoot.active && this.unlockGlow) this.unlockGlow.angle -= 90 * deltaTime;
     }
 
     /** 预制体中的胜负结果标签。 */
@@ -56,17 +57,33 @@ export class PopResult extends BaseView {
     @property(Node) unlockRoot: Node = null!;
     /** 解锁图标及对应中文名称图片。 */
     @property(Sprite) unlockIcon: Sprite = null!;
-    /** 当前解锁名称图片。 */
-    @property(Sprite) unlockName: Sprite = null!;
+    /** 当前解锁物名称文字。 */
+    @property(Label) unlockName: Label = null!;
     /** 按原资源31起顺序绑定的图标。 */
     @property([SpriteFrame]) unlockIcons: SpriteFrame[] = [];
-    /** 按原资源31-1起顺序绑定的名称。 */
-    @property([SpriteFrame]) unlockNames: SpriteFrame[] = [];
+    /** 原版31至60号解锁物名称，按图片核对；下标对应关卡减一。 */
+    private readonly unlockTitles = ['舒芙蕾','樱花布丁','黑糖饼','抹茶卷','草莓芝士','软心甜圈','磅蛋糕','糍粑饼','蓝莓芝士','树莓果冻','焦糖布丁','巧克力甜圈','枣泥糕','马卡龙','蓝莓饼','玛德琳蛋糕','纸杯蛋糕','瑞士卷','提拉米苏','柠檬布丁','黑森林','芝士布丁','抹茶栗子','马卡龙塔','布朗尼','树莓夏洛特','草莓布丁','香蕉蛋糕','草莓蛋糕','蓝莓慕斯'];
     /** 成功试玩的重新挑战入口。 */
     @property(Node) trialButton: Node = null!;
 
     /** 成功试玩返回编辑器入口，不影响正式关结算布局。 */
     @property(Node) trialReturn: Node = null!;
+
+    /** 解锁物背后的光圈，独立旋转，不改变图标方向。 */
+    @property(Node) unlockGlow: Node = null!;
+    /** 失败第一层复活提示，关闭后才进入失败结算。 */
+    @property(Node) revivePrompt: Node = null!;
+    /** 当前失败是否已主动关闭第一层；广告取消时保持所处层级。 */
+    private promptDismissed = false;
+
+    /** 点击第一层右上角关闭按钮，显示第二层失败结算。 */
+    dismissRevivePrompt(): void {
+        if (this.won) return;
+        this.promptDismissed = true;
+        this.revivePrompt.active = false;
+        this.failureRoot.active = true;
+        this.failAnimation.setAnimation(0, '2', true);
+    }
 
     /** 本次失败所属页面的请求回调，隐藏后清除，避免引用旧局。 */
     private onRevive: (() => void) | null = null;
@@ -82,7 +99,10 @@ export class PopResult extends BaseView {
         this.onRevive = data.onRevive ?? null;
         this.titleLabel.string = data.notice || '';
         this.successRoot.active = data.won;
-        this.failureRoot.active = !data.won;
+        if (!data.notice) this.promptDismissed = false;
+        const showPrompt = !data.won && !!this.onRevive && !this.promptDismissed;
+        this.revivePrompt.active = showPrompt;
+        this.failureRoot.active = !data.won && !showPrompt;
         this.trialButton.active = data.won && !!EditorSession.trial;
         this.trialReturn.active = this.trialButton.active;
         this.nextButton.active = false;
@@ -93,10 +113,10 @@ export class PopResult extends BaseView {
             });
             this.winAnimation.setAnimation(0, '1', false);
             const index = data.level - 1;
-            this.unlockRoot.active = !!this.unlockIcons[index] && !!this.unlockNames[index];
+            this.unlockRoot.active = !!this.unlockIcons[index] && !!this.unlockTitles[index];
             if (this.unlockRoot.active) {
                 this.unlockIcon.spriteFrame = this.unlockIcons[index];
-                this.unlockName.spriteFrame = this.unlockNames[index];
+                this.unlockName.string = this.unlockTitles[index];
             }
             this.scheduleOnce(() => {
                 if (EditorSession.trial) return;
@@ -105,7 +125,7 @@ export class PopResult extends BaseView {
                 opacity.opacity = 0;
                 tween(opacity).to(0.3, { opacity: 255 }).start();
             }, 0.7);
-        } else this.failAnimation.setAnimation(0, '2', true);
+        } else if (!showPrompt) this.failAnimation.setAnimation(0, '2', true);
         this.reviveButton.active = !data.won && !!this.onRevive;
     }
 

@@ -95,6 +95,31 @@ function wall(name, parent, x, y, width, height, angle = 0) {
 }
 
 const methods = {
+    /** 在用户现有布局上添加首层复活提示并绑定光圈，不重建已有节点。 */
+    async finishResultDetails() {
+        const page=cc.instantiate(await asset(base+'page/game/native/PageGame.prefab'));
+        cce.Prefab.removePrefabInfoFromNode(page,false);
+        const find=(root,name)=>root.name===name?root:root.children.map(child=>find(child,name)).find(Boolean);
+        const result=find(page,'GameResult');const c=result.getComponent('PopResult');
+        c.unlockGlow=find(result,'Glow');
+        c.unlockName=find(result,'UnlockName').getComponent(cc.Label);
+        const res=base+'pop/result/resources/original/';
+        const prompt=node('RevivePrompt',result,750,1334);
+        const content=node('Content',prompt,627,621,0,120);
+        await sprite('Panel',content,res+'revive-panel.png',627,621);
+        await sprite('Heart',content,res+'revive-heart.png',296,278,0,17.092);
+        await sprite('Title',content,res+'revive-title.png',124,65,0,258.85);
+        await sprite('Hint',content,res+'revive-hint.png',400,37,0,-185.833);
+        const close=await sprite('Close',content,res+'revive-close.png',79,87,284.606,225.009);
+        const revive=await sprite('Revive',content,res+'revive.png',327,124,0,-438.519);
+        await sprite('Video',revive,res+'video.png',44,32,141.236,46.179);
+        for(const [n,handler]of [[close,'dismissRevivePrompt'],[revive,'revive']]){
+            const b=n.addComponent(cc.Button);b.transition=cc.Button.Transition.SCALE;b.zoomScale=0.94;
+            const e=new cc.EventHandler();e.target=result;e.component='PopResult';e.handler=handler;b.clickEvents=[e];
+        }
+        c.revivePrompt=prompt;prompt.active=false;
+        return save(page,base+'page/game/native/PageGame.prefab');
+    },
     /** 将结算模板通过编辑器实例化为游戏页面的普通节点。 */
     async embedResult() {
         const page = cc.instantiate(await asset(base+'page/game/native/PageGame.prefab'));
@@ -577,17 +602,17 @@ const methods = {
         await makeButton('HomeButton',c.failureRoot,'home',-562.79,'home');
         c.unlockRoot=node('Unlock',c.successRoot,650,210,0,-285);
         await sprite('Glow',c.unlockRoot,res+'glow.png',191,190,145,0);
-        await sprite('UnlockText',c.unlockRoot,res+'unlock.png',162,34,-122,0);
+        const unlockText=label('UnlockText',c.unlockRoot,'恭喜解锁：',28,0,162);
+        unlockText.node.setPosition(-122,0);
         const icon=await sprite('UnlockIcon',c.unlockRoot,res+'31.png',128,128,145,0);
         c.unlockIcon=icon.getComponent(cc.Sprite);
-        const title=await sprite('UnlockName',c.unlockRoot,res+'31-1.png',149,48,0,0);
-        c.unlockName=title.getComponent(cc.Sprite);
-        c.unlockIcons=[];c.unlockNames=[];
+        c.unlockName=label('UnlockName',c.unlockRoot,'舒芙蕾',34,0,149);
+        c.unlockIcons=[];
         for(let i=31;i<=90;i++){
             const info=await Editor.Message.request('asset-db','query-asset-info',res+i+'.png');
             const name=await Editor.Message.request('asset-db','query-asset-info',res+i+'-1.png');
             c.unlockIcons.push(info?await asset(res+i+'.png',true):null);
-            c.unlockNames.push(name?await asset(res+i+'-1.png',true):null);
+
         }
         return save(root,base+'pop/result/native/PopResult.prefab');
     },
