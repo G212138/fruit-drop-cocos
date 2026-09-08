@@ -65,9 +65,11 @@ export class FruitSpawner extends Component {
         const prefab = this.fruitPrefabs.find(value => value.data.getComponent(FruitItem)?.kind === definition.kind);
         if (!prefab) throw new Error('水果缺少预制体：' + definition.kind);
         const node = instantiate(prefab);
-        node.parent = this.fruitRoot;
-        node.setPosition(definition.x, definition.y);
         const fruit = node.getComponent(FruitItem)!;
+        // 3.8.8 仅在创建物理刚体时读取 bullet；必须在挂入活动场景前开启连续检测，避免快速水果相互穿入。
+        fruit.body.bullet = true;
+        node.setPosition(definition.x, definition.y);
+        node.parent = this.fruitRoot;
         fruit.configure(definition.kind);
         this.attachHiddenView(node, definition.hidden);
         if (definition.iceLayers > 0) {
