@@ -113,7 +113,7 @@ const methods = {
     async createContactFeedback() {
         for (const [name,folder,file,animation] of [
             ['NewbieGuideView','guide','shouzhi','1'],
-            ['GroundImpactView','ground','yezi','box3_paly']
+            ['GroundImpactView','ground','yezi','1']
         ]) {
             const root=node(name,null,200,220);
             const view=root.addComponent(name);
