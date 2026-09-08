@@ -41,9 +41,13 @@ export class PageGame extends BaseView.BindController(GameController) {
         }
     }
 
-    /** 页面预制体中的棋盘挂载点，加载完成后实例化到这里。 */
+    /** 页面内棋盘的布局容器。 */
     @property(Node)
     boardRoot: Node = null!;
+    /** PageGame内固定的棋盘节点，重开不销毁。 */
+    @property(Node) gameBoardNode: Node = null!;
+    /** PageGame内固定的顶部HUD节点，重开不销毁。 */
+    @property(Node) gameHudNode: Node = null!;
 
     /** 页面预制体中的 HUD 挂载点，独立于棋盘生命周期。 */
     @property(Node)
@@ -53,7 +57,7 @@ export class PageGame extends BaseView.BindController(GameController) {
     /** 游戏界面内直接制作的道具栏节点。 */
     @property(Node) propToolbarRoot: Node = null!;
 
-    /** 本显示周期实例化的棋盘；退出页面后销毁。 */
+    /** 本显示周期连接的页面内棋盘；退出仅清局并解除监听。 */
     private board: GameBoard | null = null;
     /** 本局星星表现，清局时统一取消。 */
     private readonly collectionFeedback = new CollectionFeedback();
@@ -91,7 +95,7 @@ export class PageGame extends BaseView.BindController(GameController) {
             this.refreshProps();
         } else this.hud?.showNotice(result === 'cancelled' ? '已取消，道具数量未改变' : '广告暂不可用，道具数量未改变');
     }
-    /** 独立 HUD 实例，所有标签由预制体绑定。 */
+    /** 页面内固定HUD组件，所有标签由PageGame序列化绑定。 */
     private hud: GameHud | null = null;
     /** 本显示周期独立设置面板，关闭后保留至页面退出。 */
     private settings: SettingsPanel | null = null;
@@ -131,8 +135,8 @@ export class PageGame extends BaseView.BindController(GameController) {
         }}, DEV);
         this.controller.targetOff(this);
         this.controller.on(GameController.Event.Changed, this.refreshState, this);
-        this.loadBoard(generation);
-        this.loadHud(generation);
+        this.bindFixedViews();
+        this.loadCollectionFeedback(generation);
         this.loadSettings(generation);
         this.bindProps();
         if (DEV) this.loadDevelopmentReward(generation);
@@ -146,25 +150,21 @@ export class PageGame extends BaseView.BindController(GameController) {
         return isValid(this.node) && generation === this.generation;
     }
 
-    /**
-     * 实例化编辑器制作的棋盘预制体并连接业务通知。
-     * @param generation 发起异步加载时记录的页面代次。
-     */
-    private loadBoard(generation: number): void {
-        this.loadRes('prefabs/GameBoard', Prefab, prefab => {
-            if (!this.isCurrent(generation)) return;
-            if (!prefab) {
-                this.reportLoadError('棋盘预制体加载失败');
-                return;
-            }
-            const node = instantiate(prefab);
-            node.parent = this.boardRoot;
-            this.board = node.getComponent(GameBoard);
-            node.on(BoardEvents.Matched, this.onMatched, this);
-            node.on(BoardEvents.Failed, this.onFailed, this);
-            node.on('expand-request', this.requestExpansion, this);
-            this.loadCollectionFeedback(generation);
-        });
+    /** 连接页面内固定棋盘与HUD，重开时先解绑再注册，防止重复计数。 */
+    private bindFixedViews(): void {
+        this.board = this.gameBoardNode.getComponent(GameBoard);
+        this.hud = this.gameHudNode.getComponent(GameHud);
+        if (!this.board || !this.hud) throw new Error('游戏页面棋盘或HUD绑定缺失');
+        this.hud.progressViewRoot = this.bottomProgressRoot;
+        this.gameBoardNode.targetOff(this);
+        this.gameHudNode.targetOff(this);
+        this.gameBoardNode.on(BoardEvents.Matched, this.onMatched, this);
+        this.gameBoardNode.on(BoardEvents.Failed, this.onFailed, this);
+        this.gameBoardNode.on('expand-request', this.requestExpansion, this);
+        this.gameHudNode.on('return-home', this.returnHome, this);
+        this.gameHudNode.on('replay-first', this.replayFirst, this);
+        this.gameHudNode.on('open-settings', this.openSettings, this);
+        this.refreshState();
     }
 
     /**
@@ -188,28 +188,6 @@ export class PageGame extends BaseView.BindController(GameController) {
             } catch (error) {
                 this.reportLoadError(String(error));
             }
-        });
-    }
-
-    /**
-     * 实例化独立 HUD，节点和标签均来自预制体。
-     * @param generation 发起异步加载时记录的页面代次。
-     */
-    private loadHud(generation: number): void {
-        this.loadRes('prefabs/GameHud', Prefab, prefab => {
-            if (!this.isCurrent(generation)) return;
-            if (!prefab) {
-                this.reportLoadError('HUD 预制体加载失败');
-                return;
-            }
-            const node = instantiate(prefab);
-            node.parent = this.hudRoot;
-            this.hud = node.getComponent(GameHud);
-            this.hud!.progressViewRoot = this.bottomProgressRoot;
-            node.on('return-home', this.returnHome, this);
-            node.on('replay-first', this.replayFirst, this);
-            node.on('open-settings', this.openSettings, this);
-            this.refreshState();
         });
     }
 
@@ -389,7 +367,7 @@ export class PageGame extends BaseView.BindController(GameController) {
         this.onShow({ level: 1 });
     }
 
-    /** 解除旧局监听并释放通过预制体创建的子界面。 */
+    /** 固定棋盘和HUD只清局解绑，动态弹窗和特效才销毁。 */
     private releaseChildren(): void {
         if (this.newbieGuide && isValid(this.newbieGuide.node)) this.newbieGuide.node.destroy();
         this.newbieGuide = null;
@@ -397,7 +375,6 @@ export class PageGame extends BaseView.BindController(GameController) {
         this.hud?.clearFeedback();
         if (this.propToolbar && isValid(this.propToolbar.node)) {
             this.propToolbar.node.targetOff(this);
-
         }
         this.propToolbar = null;
         this.rewardGate?.invalidate();
@@ -416,11 +393,9 @@ export class PageGame extends BaseView.BindController(GameController) {
         if (this.board && isValid(this.board.node)) {
             this.board.clear();
             this.board.node.targetOff(this);
-            this.board.node.destroy();
         }
         if (this.hud && isValid(this.hud.node)) {
             this.hud.node.targetOff(this);
-            this.hud.node.destroy();
         }
         this.board = null;
         this.hud = null;

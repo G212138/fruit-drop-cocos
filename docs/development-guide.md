@@ -29,3 +29,6 @@ UI 资源放各页面 resources，脚本放 native/expansion；子预制体统�
 已接入原版前五关及隐藏水果、整体补位、判负、下一关、原关重开和进度持久化。后续特殊机制明确拒绝加载，最新验证见 phase-04-validation.md，前阶段记录见 phase-03-validation.md；phase-02-validation.md 保留上一阶段历史记录。
 
 运行 node tools/test-game-rules.cjs 和 node tools/validate-prefabs.cjs。全项目类型检查仍有 XForge 扩展原有严格类型报错；业务代码单独检查。平台 SDK、广告和平台构建不在本阶段交付范围。
+
+## 游戏界面固定节点（2026-09-08）
+GameBoard 和 GameHud 直接放在 PageGame/BoardRoot、PageGame/HudRoot 中，作为普通节点维护；底部进度和道具栏也在 PageGame 内编辑。脚本职责仍独立，固定节点重开时清理状态而不销毁。具体检查见 pagegame-embed-validation.md。

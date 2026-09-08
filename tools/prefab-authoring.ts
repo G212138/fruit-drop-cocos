@@ -334,53 +334,7 @@ const methods = {
         return save(panelRoot,base+'page/game/resources/prefabs/DevelopmentRewardPanel.prefab');
     },
 
-    /** 使用原场景地形和独立锁墙预制体。 */
-    async createBoard() {
-        const root = node('GameBoard');
-        // ??????????????????????
-        (await sprite('Background', root, base + 'page/game/resources/textures/background.png', 750, 1667)).active = false;
-        const definition = sourceGeometry.floor;
-        const floor = await sprite('Floor', root, base + 'page/game/resources/textures/terrain.png', ...definition.size, ...definition.position);
-        floor.addComponent(cc.RigidBody2D).type = cc.ERigidBody2DType.Static;
-        const polygon = floor.addComponent(cc.PolygonCollider2D);
-        polygon.points = definition.points.map(point => new cc.Vec2(...point));
-        polygon.offset = new cc.Vec2(...definition.offset);
-        polygon.restitution = 0;
-        const lock = sourceGeometry.lock;
-        const lockLayout=node('LockWallLayout',root,...lock.size,...lock.position);
-        const lockNode=cc.instantiate(await asset(base+'page/game/resources/prefabs/LockWallView.prefab'));
-        lockNode.parent=lockLayout;
-        wall('LeftEdge', root, -380.287, 0, 10, 1280);
-        wall('RightEdge', root, 379.916, 0, 10, 1280);
-        const spawner = root.addComponent('FruitSpawner');
-        // 迁移适配：顶部裁剪线 y=500，避免场外水果遮住 HUD；水果坐标不变。
-        const viewport = node('FruitViewport', root, 750, 1334);
-        viewport.getComponent(cc.UITransform).setAnchorPoint(0.5, 0.5);
-        viewport.addComponent(cc.Mask).type = cc.Mask.Type.GRAPHICS_RECT;
-        spawner.fruitRoot = node('Fruits', viewport);
-        spawner.iceFruitPrefab = await asset(base + 'page/game/resources/prefabs/IceFruitView.prefab');
-        spawner.blackHolePrefab = await asset(base + 'page/game/resources/prefabs/BlackHoleView.prefab');
-        spawner.hiddenFruitPrefab = await asset(base + 'page/game/resources/prefabs/HiddenFruitView.prefab');
-        spawner.fruitPrefabs = [];
-        for (const definition of sourceGeometry.fruits) {
-            const name = definition.kind === 21 ? 'FruitItem' : 'Fruit' + String(definition.kind).padStart(2, '0');
-            spawner.fruitPrefabs.push(await asset(base + 'page/game/resources/prefabs/' + name + '.prefab'));
-        }
-        const board = root.addComponent('GameBoard');
-        board.spawner = spawner;
-        const effects=cc.instantiate(await asset(base+'page/game/resources/prefabs/RemovalEffects.prefab'));
-        effects.parent=root;
-        board.removalEffectsRoot=effects;
-        board.lockWallRoot = lockNode;
-        board.leftBoundary = root.getChildByName('LeftEdge');
-        board.rightLine = await sprite('RightLine',root,base + 'page/game/resources/textures/right-line.png',4,1023,313.357,179.307);
-        board.rightLine.active = false;
-        const hint = cc.instantiate(await asset(base + 'page/game/resources/prefabs/LevelHintView.prefab'));
-        hint.parent = root;
-        board.levelHintRoot = hint;
-        hint.active = false;
-        return save(root, base + 'page/game/resources/prefabs/GameBoard.prefab');
-    },
+
 
     /** 按原 baozha 预制体制作爆炸与独立特效层，所有节点和音源仅在编辑器创建。 */
     async createRemovalEffects() {
@@ -479,45 +433,9 @@ const methods = {
         return save(root, base + 'page/game/resources/prefabs/StarFlightView.prefab');
     },
 
-    /** 制作独立HUD，所有按钮及事件在编辑器绑定。 */
-    async createHud() {
-        const root = node('GameHud');
-        const component = root.addComponent('GameHud');
-        component.title = label('LevelTitle', root, '第 1 关', 36, 595);
-        component.fruitTopBoundary=node('FruitTopBoundary',root,650,56,0,545);
 
-        component.hint = label('Hint', root, '点击同类水果；整体移动时请稍候', 24, -785);
-        component.hint.node.getComponent(cc.UITransform).setContentSize(650,100);
-        const home = label('HomeButton', root, '返回首页', 28, -855, 180).node;
-        home.setPosition(-200, -855);
-        const replay = label('ReplayButton', root, '重玩第 1 关', 28, -855, 230).node;
-        replay.setPosition(180, -855);
-        for (const [target, handler] of [[home, 'home'], [replay, 'replay']]) {
-            const event = new cc.EventHandler();
-            event.target = root;
-            event.component = 'GameHud';
-            event.handler = handler;
-            target.addComponent(cc.Button).clickEvents = [event];
-        }
-        component.replayButton = replay;
-        replay.active = false;
-        const settings=label('SettingsButton',root,'设置',28,595,100).node;
-        settings.setPosition(300,595,0);
-        const settingsEvent=new cc.EventHandler();settingsEvent.target=root;settingsEvent.component='GameHud';settingsEvent.handler='settings';
-        settings.addComponent(cc.Button).clickEvents=[settingsEvent];
-        return save(root, base + 'page/game/resources/prefabs/GameHud.prefab');
-    },
 
-    /** 制作页面根预制体，子预制体由 XForge 资源加载器实例化。 */
-    async createGamePage() {
-        const root = node('PageGame');
-        const component = root.addComponent('PageGame');
-        if (component.resetInEditor) component.resetInEditor();
-        await sprite('Background', root, base + 'page/game/resources/textures/background.png', 750, 1667);
-        component.boardRoot = node('BoardRoot', root);
-        component.hudRoot = node('HudRoot', root);
-        return save(root, base + 'page/game/native/PageGame.prefab');
-    },
+
 
     /** 制作首页完整节点树，并将开始按钮绑定到页面方法。 */
     async createEditor() {

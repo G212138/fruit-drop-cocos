@@ -46,7 +46,7 @@ function inspect(value, entries, location) {
         const required = {
             GameBoard: ['spawner', 'removalEffectsRoot', 'lockWallRoot', 'levelHintRoot', 'leftBoundary', 'rightLine'],
             FruitSpawner: ['fruitRoot', 'hiddenFruitPrefab', 'iceFruitPrefab', 'blackHolePrefab'],
-            PageGame: ['bottomProgressRoot', 'propToolbarRoot', 'boardRoot', 'hudRoot'],
+            PageGame: ['bottomProgressRoot', 'propToolbarRoot', 'boardRoot', 'hudRoot', 'gameBoardNode', 'gameHudNode'],
             GameHud: ['fruitTopBoundary', 'title', 'hint', 'replayButton'],
             FruitProgressView: ['remaining', 'percentage', 'progressRoot', 'dark', 'bright', 'frames'],
             PropToolbar: ['shuffleCount', 'eliminateCount', 'shuffleAd', 'eliminateAd'],
@@ -60,7 +60,7 @@ function inspect(value, entries, location) {
     for (const [key, child] of Object.entries(value)) inspect(child, entries, location + '.' + key);
 }
 walk(root);
-assert.equal(prefabs.length, 53);
+assert.equal(prefabs.length, 51);
 for (const file of process.argv.length > 2 ? process.argv.slice(2).map(file => path.resolve(file)) : prefabs) {
     const entries = JSON.parse(fs.readFileSync(file, 'utf8'));
     inspect(entries, entries, path.basename(file));

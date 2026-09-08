@@ -26,6 +26,14 @@ export class LockWallView extends Component {
         if (!this.expanded) this.node.emit('unlock-request');
     }
 
+    /** 页面复用时恢复未解锁状态、碰撞和按钮，不沿用上一局扩槽。 */
+    reset(): void {
+        this.expanded = false;
+        this.body.enabled = true;
+        this.visual.active = true;
+        this.button.interactable = true;
+    }
+
     /** 已验证奖励后执行一次扩槽，重复调用返回失败。 */
     unlock(): boolean {
         if (this.expanded) return false;

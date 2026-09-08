@@ -158,6 +158,7 @@ export class GameBoard extends Component {
     begin(level: LevelDefinition): void {
         this.clear();
         this.mode = level.mode;
+        this.lockWallRoot.getComponent(LockWallView)!.reset();
         // 左墙没有可见图片；仅停用刚体，避免节点与碰撞体同时停用时重复移除物理代理。
         this.leftBoundary.getComponent(RigidBody2D)!.enabled = this.mode !== 2;
         this.rightLine.active = this.mode === 2;
