@@ -30,11 +30,14 @@ export class FruitBagView extends Component {
         if (!pending) { completed(); return; }
         for (const fruit of fruits) {
             const position = this.target.getComponent(UITransform)!.convertToNodeSpaceAR(fruit.worldPosition);
-            fruit.parent = this.target;
+            // 保持世界变换，兼容黑洞容器及屏幕适配带来的父节点缩放差异。
+            fruit.setParent(this.target, true);
             fruit.setPosition(position);
             tween(fruit)
                 .to(0.25, { position: new Vec3() }, { easing: 'sineInOut' })
-                .call(() => this.bounce())
+                .call(() => {
+                    if (generation === this.generation) this.bounce();
+                })
                 .to(0.1, { scale: new Vec3() }, { easing: 'sineIn' })
                 .call(() => {
                     if (generation !== this.generation) return;

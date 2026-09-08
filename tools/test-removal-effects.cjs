@@ -36,3 +36,11 @@ const cancelled=new ExplosionView();cancelled.node={};cancelled.skeleton=timed.s
 cancelled.setMidpointCallback(()=>assert.fail('清局后不能继续入袋'));cancelled.onLoad();
 const stale=cancelled.scheduled.fn;cancelled.onDestroy();stale.call(cancelled);
 console.log('通过：世界坐标换算、每颗一次爆炸、每次复活一次音效、静音、清局与骨骼完成清理。');
+
+const early=new ExplosionView();let earlyComplete,earlyCount=0;
+early.node={destroy(){this.destroyed=true;}};
+early.skeleton={setCompleteListener(fn){earlyComplete=fn;},setAnimation(){return {animationEnd:0.1};}};
+early.setMidpointCallback(()=>earlyCount++);early.onLoad();
+const pendingMidpoint=early.scheduled.fn;
+earlyComplete();pendingMidpoint.call(early);
+assert.equal(earlyCount,1,'动画提前结束也必须启动入袋且只通知一次');

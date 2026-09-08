@@ -34,9 +34,10 @@ export class ExplosionView extends Component {
         callback?.();
     }
 
-    /** 骨骼完成时清理现有实例，防止重复完成事件触发重复销毁。 */
+    /** 骨骼提前完成时补发尚未执行的入袋通知，再清理实例；重复事件不会重复收集。 */
     private finish(): void {
         if (!isValid(this.node, true)) return;
+        this.notifyMidpoint();
         this.skeleton.setCompleteListener(null);
         this.node.destroy();
     }
