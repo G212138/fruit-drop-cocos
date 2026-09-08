@@ -1,0 +1,20 @@
+const fs=require('fs'),assert=require('node:assert/strict');
+const ts=require('C:/ProgramData/cocos/editors/Creator/3.8.8/resources/app.asar.unpacked/node_modules/typescript');
+const session={trial:null};let scheduled=[],shown=[];
+class Base {scheduleOnce(fn,time){scheduled.push({fn,time});}unscheduleAllCallbacks(){scheduled=[];}hide(){this.onHide();}}
+const cc={_decorator:{ccclass:()=>x=>x,property:()=>()=>{}},sp:{Skeleton:class{}},Tween:{stopAllByTarget(){}},tween:target=>({to(t,v){Object.assign(target,v);return this;},start(){}})};
+const exportsView={};
+const p='assets/app-bundle/app-view/pop/result/native/PopResult.ts';
+const code=ts.transpileModule(fs.readFileSync(p,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,experimentalDecorators:true}}).outputText;
+new Function('require','exports',code)(n=>n==='cc'?cc:n.includes('BaseView')?{default:Base}:n.includes('EditorSession')?{EditorSession:session}:n.includes('ScreenLayout')?{ScreenLayout:class{}}:{app:{manager:{ui:{show:x=>shown.push(x)}}}},exportsView);
+const v=new exportsView.PopResult();
+for(const name of ['nextButton','reviveButton','trialButton','trialReturn','successRoot','failureRoot','unlockRoot'])v[name]={active:false,getComponent:()=>({opacity:255})};
+v.titleLabel={};v.unlockIcon={};v.unlockName={};v.unlockIcons=[{}];v.unlockNames=[{}];
+const animations=[];v.winAnimation={setCompleteListener(fn){this.listener=fn;},setAnimation(...args){animations.push(args);}};v.failAnimation={setAnimation(...args){animations.push(args);}};
+v.onShow({won:true,level:1});assert.equal(v.successRoot.active,true);assert.equal(v.failureRoot.active,false);assert.equal(v.nextButton.active,false);assert.equal(scheduled[0].time,0.7);scheduled[0].fn();assert.equal(v.nextButton.active,true);v.winAnimation.listener();assert.deepEqual(animations.at(-1),[0,'1.2',true]);v.onHide();assert.equal(scheduled.length,0);
+let revived=0;v.onShow({won:false,level:3,onRevive:()=>revived++});assert.equal(v.reviveButton.active,true);v.next();assert.equal(shown.length,0);v.revive();v.revive();assert.equal(revived,1);
+session.trial={};v.onShow({won:true,level:1});scheduled[0].fn();assert.equal(v.nextButton.active,false);assert.equal(v.trialReturn.active,true);v.home();assert.equal(shown.at(-1).name,'PageEditor');
+const prefab=JSON.parse(fs.readFileSync('assets/app-bundle/app-view/pop/result/native/PopResult.prefab'));
+const view=prefab.find(x=>x.successRoot&&x.failureRoot);
+for(const name of ['successRoot','failureRoot','winAnimation','failAnimation','unlockIcon','unlockName','trialReturn'])assert.ok(prefab[view[name].__id__],name);
+console.log('通过：胜负分支、延迟下一关、动画切换、复活去重、试玩返回及预制体绑定。');

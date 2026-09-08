@@ -524,16 +524,54 @@ const methods = {
 
     /** 制作结算弹窗的标签和两枚独立按钮。 */
     async createResult() {
-        const root = node('PopResult', null, 620, 740);
-        const component = root.addComponent('PopResult');
-        if (component.resetInEditor) component.resetInEditor();
-        await sprite('Panel', root, base + 'pop/result/resources/textures/panel.png', 620, 740);
-        component.titleLabel = label('Title', root, '全部消除！', 44, 310, 560);
-        component.nextButton = await button('NextButton', root, base + 'pop/result/resources/textures/next-button.png', '下一关', 120, root, 'PopResult', 'next');
-        component.reviveButton = await button('ReviveButton', root, base + 'pop/result/resources/textures/revive-button.png', '复活', 120, root, 'PopResult', 'revive');
-        await button('RestartButton', root, base + 'pop/result/resources/textures/restart-button.png', '再玩一次', -20, root, 'PopResult', 'restart');
-        await button('HomeButton', root, base + 'pop/result/resources/textures/home-button.png', '返回首页', -150, root, 'PopResult', 'home');
-        return save(root, base + 'pop/result/native/PopResult.prefab');
+        const root = node('PopResult', null, 750, 1334);
+        const c = root.addComponent('PopResult');
+        const res = base + 'pop/result/resources/original/';
+        c.titleLabel = label('Notice', root, '', 26, -570);
+        c.successRoot = node('Success', root);
+        c.failureRoot = node('Failure', root);
+        const anim = async (name, parent, file, x, y, animation) => {
+            const n = node(name,parent,704,704,x,y);
+            const sk = n.addComponent(cc.sp.Skeleton);
+            sk.skeletonData = await asset(res+file+'.json');
+            sk.premultipliedAlpha = false;
+            sk.defaultAnimation = animation;
+            sk.animation = animation;
+            return sk;
+        };
+        await anim('WinTitle',c.successRoot,'skeleton',0,100.369,'animation');
+        c.winAnimation = await anim('WinCharacter',c.successRoot,'donghua',0,-154.906,'1');
+        c.failAnimation = await anim('FailCharacter',c.failureRoot,'donghua',0,-129.621,'2');
+        await sprite('FailTitle',c.failureRoot,res+'fail-title.png',621,269,0,464.534);
+        const makeButton = async (name,parent,file,y,handler) => {
+            const n=await sprite(name,parent,res+file+'.png',327,124,0,y);
+            const b=n.addComponent(cc.Button); b.transition=cc.Button.Transition.SCALE;b.zoomScale=0.94;
+            const e=new cc.EventHandler();e.target=root;e.component='PopResult';e.handler=handler;b.clickEvents=[e];
+            return n;
+        };
+        c.nextButton=await makeButton('NextButton',c.successRoot,'next',-432.077,'next');
+        c.nextButton.addComponent(cc.UIOpacity);
+        c.trialButton=await makeButton('TrialRestart',c.successRoot,'restart',-432.077,'restart');
+        c.trialReturn=await makeButton('TrialReturn',c.successRoot,'home',-576,'home');
+        await makeButton('RestartButton',c.failureRoot,'restart',-274.79,'restart');
+        c.reviveButton=await makeButton('ReviveButton',c.failureRoot,'revive',-418.79,'revive');
+        await sprite('Video',c.reviveButton,res+'video.png',44,32,136.949,48.738);
+        await makeButton('HomeButton',c.failureRoot,'home',-562.79,'home');
+        c.unlockRoot=node('Unlock',c.successRoot,650,210,0,-285);
+        await sprite('Glow',c.unlockRoot,res+'glow.png',191,190,145,0);
+        await sprite('UnlockText',c.unlockRoot,res+'unlock.png',162,34,-122,0);
+        const icon=await sprite('UnlockIcon',c.unlockRoot,res+'31.png',128,128,145,0);
+        c.unlockIcon=icon.getComponent(cc.Sprite);
+        const title=await sprite('UnlockName',c.unlockRoot,res+'31-1.png',149,48,0,0);
+        c.unlockName=title.getComponent(cc.Sprite);
+        c.unlockIcons=[];c.unlockNames=[];
+        for(let i=31;i<=90;i++){
+            const info=await Editor.Message.request('asset-db','query-asset-info',res+i+'.png');
+            const name=await Editor.Message.request('asset-db','query-asset-info',res+i+'-1.png');
+            c.unlockIcons.push(info?await asset(res+i+'.png',true):null);
+            c.unlockNames.push(name?await asset(res+i+'-1.png',true):null);
+        }
+        return save(root,base+'pop/result/native/PopResult.prefab');
     },
 
     /** 通知 XForge 按资产重新生成注册表。 */

@@ -1,0 +1,132 @@
+
+donghua.png
+size: 1477,648
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+嘴巴
+  rotate: false
+  xy: 1312, 79
+  size: 47, 68
+  orig: 47, 68
+  offset: 0, 0
+  index: -1
+嘴巴2
+  rotate: false
+  xy: 1204, 165
+  size: 117, 127
+  orig: 117, 127
+  offset: 0, 0
+  index: -1
+帽子
+  rotate: false
+  xy: 1061, 147
+  size: 141, 145
+  orig: 141, 145
+  offset: 0, 0
+  index: -1
+散光
+  rotate: false
+  xy: 2, 7
+  size: 638, 639
+  orig: 638, 639
+  offset: 0, 0
+  index: -1
+散光点
+  rotate: false
+  xy: 1050, 294
+  size: 352, 352
+  orig: 352, 352
+  offset: 0, 0
+  index: -1
+橙子
+  rotate: false
+  xy: 642, 246
+  size: 406, 400
+  orig: 406, 400
+  offset: 0, 0
+  index: -1
+橙子底
+  rotate: true
+  xy: 1323, 149
+  size: 143, 76
+  orig: 143, 76
+  offset: 0, 0
+  index: -1
+橙子把
+  rotate: true
+  xy: 1204, 77
+  size: 86, 106
+  orig: 86, 106
+  offset: 0, 0
+  index: -1
+滚筒
+  rotate: true
+  xy: 1361, 58
+  size: 88, 94
+  orig: 88, 94
+  offset: 0, 0
+  index: -1
+玩具
+  rotate: true
+  xy: 1401, 148
+  size: 125, 50
+  orig: 125, 50
+  offset: 0, 0
+  index: -1
+眉毛
+  rotate: false
+  xy: 642, 6
+  size: 196, 48
+  orig: 196, 48
+  offset: 0, 0
+  index: -1
+眉毛2
+  rotate: true
+  xy: 1404, 275
+  size: 173, 53
+  orig: 173, 53
+  offset: 0, 0
+  index: -1
+眼泪
+  rotate: true
+  xy: 1459, 427
+  size: 21, 16
+  orig: 21, 16
+  offset: 0, 0
+  index: -1
+眼泪右
+  rotate: false
+  xy: 642, 56
+  size: 219, 188
+  orig: 219, 188
+  offset: 0, 0
+  index: -1
+眼泪左
+  rotate: false
+  xy: 863, 43
+  size: 196, 201
+  orig: 196, 201
+  offset: 0, 0
+  index: -1
+眼睛
+  rotate: false
+  xy: 840, 2
+  size: 187, 39
+  orig: 187, 39
+  offset: 0, 0
+  index: -1
+眼睛2
+  rotate: true
+  xy: 1404, 450
+  size: 196, 66
+  orig: 196, 66
+  offset: 0, 0
+  index: -1
+高光
+  rotate: false
+  xy: 1061, 27
+  size: 126, 118
+  orig: 126, 118
+  offset: 0, 0
+  index: -1
