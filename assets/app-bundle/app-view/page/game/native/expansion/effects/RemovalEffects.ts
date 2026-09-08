@@ -20,6 +20,9 @@ export class RemovalEffects extends Component {
     @property(Node)
     bagRoot: Node = null!;
 
+    /** 页面连接的进度反馈；无页面连接时保持入袋即通知的独立预览能力。 */
+    collectionFeedback: ((source: Node, completed: () => void) => void) | null = null;
+
     /** @param first 第一颗退出物理的水果。 @param second 同类伙伴。 @param completed 入袋完成后的计数通知。 */
     showNormalPair(first: Node, second: Node, completed: () => void): void {
         const midpoint = Vec3.add(new Vec3(), first.worldPosition, second.worldPosition).multiplyScalar(0.5);
@@ -27,7 +30,11 @@ export class RemovalEffects extends Component {
         effect.setPosition(this.node.getComponent(UITransform)!.convertToNodeSpaceAR(midpoint));
         effect.getComponent(ExplosionView)!.setMidpointCallback(() => {
             if (!isValid(first, true) || !isValid(second, true)) return;
-            this.bagRoot.getComponent(FruitBagView)!.collect([first, second], completed);
+            const bag = this.bagRoot.getComponent(FruitBagView)!;
+            bag.collect([first, second], () => {
+                if (this.collectionFeedback) this.collectionFeedback(bag.target, completed);
+                else completed();
+            });
         });
         effect.parent = this.node;
         if (GameSettings.current.snapshot.sound) this.mergeAudio.play();

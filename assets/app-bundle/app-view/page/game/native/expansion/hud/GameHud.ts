@@ -1,9 +1,36 @@
-import { _decorator, Component, Label, Node } from 'cc';
+import { _decorator, Component, Label, Node, Color, isValid } from 'cc';
 const { ccclass, property } = _decorator;
 
 /** HUD 只展示传入数据，按钮与标签在预制体中制作。 */
 @ccclass('GameHud')
 export class GameHud extends Component {
+    /** 同时抵达的星星共用高亮，最后一组完成后恢复文字颜色。 */
+    private pendingFlashes = 0;
+    /** 进入高亮前的预制体文字颜色。 */
+    private progressColor: Color | null = null;
+
+    /** @param completed 原版0.15秒进度闪烁结束后的业务通知；文字HUD采用高亮避免读数消失。 */
+    flashProgress(completed: () => void): void {
+        if (this.pendingFlashes++ === 0) this.progressColor = this.status.color.clone();
+        this.status.color = new Color(255, 255, 255, 255);
+        this.scheduleOnce(() => {
+            if (--this.pendingFlashes === 0 && this.progressColor) this.status.color = this.progressColor;
+            completed();
+        }, 0.15);
+    }
+
+    /** 清局取消高亮回调，避免下一局被旧的消除计数影响。 */
+    clearFeedback(): void {
+        this.unscheduleAllCallbacks();
+        this.pendingFlashes = 0;
+        if (this.progressColor && isValid(this.status, true)) this.status.color = this.progressColor;
+        this.progressColor = null;
+    }
+
+    /** 销毁HUD时使所有延迟进度通知失效。 */
+    onDestroy(): void {
+        this.clearFeedback();
+    }
     /** 剩余水果与消除进度标签。 */
     @property(Label)
     status: Label = null!;

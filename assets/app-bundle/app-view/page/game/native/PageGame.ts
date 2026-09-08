@@ -1,4 +1,6 @@
 import { PropToolbar } from './expansion/props/PropToolbar';
+import { CollectionFeedback } from './expansion/effects/CollectionFeedback';
+import { RemovalEffects } from './expansion/effects/RemovalEffects';
 import { PropInventory } from './expansion/props/PropInventory';
 import { PropKind } from './expansion/props/PropRules';
 import { FruitViewportLayout } from './expansion/board/FruitViewportLayout';
@@ -23,12 +25,12 @@ const { ccclass, property } = _decorator;
 /** 游戏页面负责装配预制体、连接状态和切换结算界面。 */
 @ccclass('PageGame')
 export class PageGame extends BaseView.BindController(GameController) {
-    /** ????????????????????? */
+    /** 根据安全区域统一缩放页面内容。 */
     private readonly screenLayout = new ScreenLayout();
-    /** ????????????????? */
+    /** 水果裁剪区域与HUD下沿保持一致。 */
     private readonly fruitViewport = new FruitViewportLayout();
 
-    /** ????????????????????????????? */
+    /** 每帧在布局变化后同步屏幕适配和水果显示区域。 */
     lateUpdate(): void {
         this.screenLayout.apply(this.node, -900, 700);
         if (this.board && this.hud) {
@@ -47,6 +49,8 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 本显示周期实例化的棋盘；退出页面后销毁。 */
     private board: GameBoard | null = null;
+    /** 本局星星表现，清局时统一取消。 */
+    private readonly collectionFeedback = new CollectionFeedback();
     /** 独立道具栏实例，挂在已适配的HUD容器。 */
     private propToolbar: PropToolbar | null = null;
     /** 跨重开保留的独立库存。 */
@@ -156,7 +160,7 @@ export class PageGame extends BaseView.BindController(GameController) {
             node.on(BoardEvents.Matched, this.onMatched, this);
             node.on(BoardEvents.Failed, this.onFailed, this);
             node.on('expand-request', this.requestExpansion, this);
-            this.loadLevel(generation);
+            this.loadCollectionFeedback(generation);
         });
     }
 
@@ -208,6 +212,24 @@ export class PageGame extends BaseView.BindController(GameController) {
     /** 棋盘已确认一对有效消除，交由控制器更新权威状态。 */
     private onMatched(): void {
         this.controller.matched();
+    }
+
+    /** @param generation 等待双星资源就绪后开局，避免首次消除缺失反馈。 */
+    private loadCollectionFeedback(generation: number): void {
+        this.loadRes('prefabs/StarFlightView', Prefab, prefab => {
+            if (!this.isCurrent(generation) || !this.board) return;
+            if (!prefab) { this.reportLoadError('收集特效预制体加载失败'); return; }
+            const effects = this.board.removalEffectsRoot.getComponent(RemovalEffects)!;
+            effects.collectionFeedback = (source, completed) => {
+                if (!this.isCurrent(generation)) return;
+                if (!this.hud || this.levelNumber > 30) { completed(); return; }
+                this.collectionFeedback.play(prefab, this.hudRoot, source, this.hud.status.node,
+                    this.levelNumber, () => {
+                        if (this.isCurrent(generation)) this.hud?.flashProgress(completed);
+                    });
+            };
+            this.loadLevel(generation);
+        });
     }
 
     /** 棋盘报告失败，交由控制器结束当前局。 */
@@ -346,6 +368,8 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 解除旧局监听并释放通过预制体创建的子界面。 */
     private releaseChildren(): void {
+        this.collectionFeedback.clear();
+        this.hud?.clearFeedback();
         if (this.propToolbar && isValid(this.propToolbar.node)) {
             this.propToolbar.node.targetOff(this);
             this.propToolbar.node.destroy();

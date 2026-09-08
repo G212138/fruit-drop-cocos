@@ -399,7 +399,17 @@ const methods = {
         return save(root,prefabs+'SettingsPanel.prefab');
     },
 
-    /** 制作独立 HUD；所有按钮及事件在编辑器绑定。 */
+    /** 按原start.prefab制作双星，图片154×149、上下间距50设计像素。 */
+    async createStarFlight() {
+        const root = node('StarFlightView', null, 117, 117);
+        root.addComponent('StarFlightView');
+        const texture = base + 'page/game/resources/textures/effects/star.png';
+        await sprite('UpperStar', root, texture, 154, 149, 0, 25);
+        await sprite('LowerStar', root, texture, 154, 149, 0, -25);
+        return save(root, base + 'page/game/resources/prefabs/StarFlightView.prefab');
+    },
+
+    /** 制作独立HUD，所有按钮及事件在编辑器绑定。 */
     async createHud() {
         const root = node('GameHud');
         const component = root.addComponent('GameHud');
