@@ -1,6 +1,6 @@
 import { ScreenLayout } from '../../../../../app-builtin/app-controller/expansion/ScreenLayout';
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
-import { _decorator, Node, Label, EditBox, Prefab, SpriteFrame, instantiate, input, Input, EventKeyboard, KeyCode, EventMouse } from 'cc';
+import { _decorator, Node, Label, EditBox, Prefab, SpriteFrame, instantiate, input, Input, EventKeyboard, KeyCode, EventMouse, JsonAsset } from 'cc';
 import BaseView from 'db://app/base/BaseView';
 import { app } from '../../../../../app/app';
 import { EditorFruitMarker } from './expansion/EditorFruitMarker';
@@ -9,10 +9,10 @@ const { ccclass, property } = _decorator;
 /** 关卡编辑页面仅连接数据模型与独立标记预制体，不创建 UI 节点。 */
 @ccclass('PageEditor')
 export class PageEditor extends BaseView {
-    /** ????????????????????? */
+    /** 编辑器页面适配，保持设计坐标与显示缩放分离。 */
     private readonly screenLayout = new ScreenLayout();
 
-    /** ????????????????????????????? */
+    /** 每帧检测尺寸变化并更新编辑器页面适配。 */
     lateUpdate(): void {
         this.screenLayout.apply(this.node);
     }
@@ -41,9 +41,21 @@ export class PageEditor extends BaseView {
     /** 页面独立草稿；不读取或改写玩家通关进度。 */
     private readonly draft = EditorSession.draft;
 
+    /** 内置关卡只供数字导入读取，不连接玩家存档。 */
+    private originalLevels: unknown[] = [];
+    /** 页面加载代次，避免退出后的异步回调更新旧页面。 */
+    private loadGeneration = 0;
+
     /** 显示时恢复已有编辑内容并注册键盘与滚轮。 */
     onShow(): void {
         EditorSession.finishTrial();
+        const generation = ++this.loadGeneration;
+        app.manager.loader.load({ bundle: 'page-game-res', path: 'levels/original-levels', type: JsonAsset,
+            onComplete: asset => {
+                if (generation !== this.loadGeneration) return;
+                this.originalLevels = asset?.json?.levels || [];
+            },
+        });
         this.fruitRoot.on('editor-select', this.select, this);
         this.fruitRoot.on('editor-move', this.move, this);
         input.on(Input.EventType.KEY_DOWN, this.keyDown, this);
@@ -52,6 +64,7 @@ export class PageEditor extends BaseView {
     }
     /** 隐藏时解除全局输入，不影响其他页面。 */
     onHide(): void {
+        this.loadGeneration++;
         this.fruitRoot.targetOff(this);
         input.off(Input.EventType.KEY_DOWN, this.keyDown, this);
         this.node.targetOff(this);
@@ -138,7 +151,7 @@ export class PageEditor extends BaseView {
     }
     /** 从文本框导入单关 JSON，失败保留旧内容。 */
     importJson(): void {
-        this.operate(() => this.draft.importText(this.jsonInput.string));
+        this.operate(() => this.draft.importText(this.jsonInput.string, Number(this.numberInput.string), this.originalLevels));
     }
     /** 输出经过原版约束验证的关卡 JSON。 */
     exportJson(): void {

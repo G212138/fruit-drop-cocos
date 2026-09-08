@@ -48,3 +48,35 @@ assert.throws(()=>draft.exportText(),/成对/);
 assert.throws(()=>readLevelDocument({level:1,m:1,d:[{n:'1',p:[0,0],FatherBlackHoleID:1,SequenceID:1}]}),/宿主/);
 assert.throws(()=>validateLevelForExport({level:1,m:1,d:[{n:'1',p:[0,0]},{n:'1',p:[50,0]}]}),/50/);
 console.log('通过：全部45关格式、编辑导入事务性、试玩快照隔离、黑洞导出顺序/数量/坐标、删除及间距验证。');
+
+const imports = new EditorDraft();
+for (const wrapper of ['json','data','payload','cfg','config','levelData','default']) {
+    imports.importText(JSON.stringify({ [wrapper]: JSON.stringify(levels[0]) }));
+    assert.equal(imports.document.d.length, levels[0].d.length);
+}
+imports.importText('46', 1, levels);
+assert.deepEqual(imports.buildDocument(), (() => {const x=new EditorDraft();x.importText(JSON.stringify(levels[2]));return x.buildDocument();})());
+imports.importText(JSON.stringify({level:levels}), 6);
+assert.equal(imports.document.d.length,levels[5].d.length);
+imports.importText(JSON.stringify({levels}),45);
+assert.equal(imports.document.d.length,levels[44].d.length);
+imports.importText(JSON.stringify({level:{'2':levels[1]}}),2);
+assert.equal(imports.document.d.length,levels[1].d.length);
+const before=JSON.stringify(imports.document);
+for (const invalid of ['0','-1','1.5','999',JSON.stringify({level:[]}),JSON.stringify({payload:'bad'})]) {
+    assert.throws(()=>imports.importText(invalid));
+    assert.equal(JSON.stringify(imports.document),before);
+}
+const mixed={level:1,m:2,d:[{n:'1',p:[-200,-400],h:'t',ice:2,BlackHoleID:1,BlackHole:3},{n:'2',p:[-200,-400],FatherBlackHoleID:1,SequenceID:1},{n:'2',p:[-200,-400],FatherBlackHoleID:1,SequenceID:2},{n:'1',p:[100,-400]}]};
+imports.importText(JSON.stringify(mixed));
+const mixedText=imports.exportText();
+imports.importText(mixedText);
+assert.equal(imports.exportText(),mixedText);
+imports.selected=0;imports.scrollX=300;
+const mixedTrial=imports.beginTrial();
+mixedTrial.d.splice(0,2);mixedTrial.m=1;
+imports.restoreTrial();
+assert.equal(imports.exportText(),mixedText);
+assert.equal(imports.scrollX,300);
+assert.equal(imports.selected,0);
+console.log('通过：原版包装格式、关卡表选择、数字循环、失败保留草稿、混合机制配置往返与试玩隔离。');

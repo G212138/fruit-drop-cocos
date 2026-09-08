@@ -13,14 +13,66 @@ export class EditorDraft {
     /** 试玩前的独立快照，包含选择和视口，不保存到玩家关卡进度。 */
     private trialSnapshot: { document: LevelDocument; selected: number; scrollY: number; scrollX: number } | null = null;
 
-    /** @param text 原版单关 JSON 字符串；解析失败不覆盖已有草稿。 */
-    importText(text: string): void {
-        const document = readLevelDocument(JSON.parse(text));
+    /**
+     * @param text 单关、关卡表或包装JSON；也可输入原关卡编号。
+     * @param selectedLevel 表格中选择的一基关卡序号。
+     * @param catalog 数字导入使用的原始关卡表，只读。
+     */
+    importText(text: string, selectedLevel = 1, catalog: unknown[] = []): void {
+        const document = readLevelDocument(this.resolveImport(JSON.parse(text), selectedLevel, catalog));
         this.document = document;
         this.layoutBlackHoleMembers();
         this.selected = -1;
         this.scrollY = 0;
         this.scrollX = 0;
+    }
+
+    /**
+     * 解开原版最多三层包装，并按第三关起循环的规则选择关卡。
+     * @param value JSON解析结果。
+     * @param selectedLevel 表格导入选中的一基序号。
+     * @param catalog 数字导入使用的内置关卡表。
+     */
+    private resolveImport(value: unknown, selectedLevel: number, catalog: unknown[]): unknown {
+        for (let depth = 0; depth < 3; depth++) {
+            if (typeof value === 'string') {
+                value = JSON.parse(value);
+                continue;
+            }
+            if (!value || typeof value !== 'object' || Array.isArray(value)) break;
+            const wrapper = value as Record<string, unknown>;
+            const key = ['json', 'data', 'payload', 'cfg', 'config', 'levelData', 'default']
+                .find(name => wrapper[name] !== undefined && wrapper[name] !== null);
+            if (!key) break;
+            value = wrapper[key];
+        }
+        let number = Math.max(1, Math.floor(selectedLevel || 1));
+        let table: unknown[] | null = null;
+        if (typeof value === 'number') {
+            if (!Number.isSafeInteger(value) || value < 1) throw new Error('关卡编号必须是正整数');
+            number = value;
+            table = catalog;
+        } else if (value && typeof value === 'object') {
+            const source = value as Record<string, unknown>;
+            if (Array.isArray(source.level)) table = source.level;
+            else if (Array.isArray(source.levels)) table = source.levels;
+            else if (source.level && typeof source.level === 'object') {
+                const group = source.level as Record<string, unknown>;
+                value = Array.isArray(group.d) ? group : group[String(number)] ?? group[Object.keys(group)[0]];
+            }
+        }
+        if (table) {
+            if (!table.length) throw new Error('关卡表为空或尚未加载，请稍后重试');
+            const index = number <= table.length ? number - 1
+                : table.length <= 2 ? table.length - 1 : 2 + (number - 3) % (table.length - 2);
+            value = table[index];
+        }
+        if (value && typeof value === 'object') {
+            const source = value as Record<string, unknown>;
+            return { ...source, level: typeof source.level === 'number' ? source.level : number,
+                m: source.m ?? 1, d: typeof source.d === 'string' ? JSON.parse(source.d) : source.d };
+        }
+        return value;
     }
 
     /** 返回可直接导入原版的 JSON，检查配对、坐标距离和黑洞关系。 */
