@@ -95,6 +95,20 @@ function wall(name, parent, x, y, width, height, angle = 0) {
 }
 
 const methods = {
+    /** 制作独立道具栏，复制原版按钮图片，不在运行时创建节点。 */
+    async createPropToolbar() {
+        const root=node('PropToolbar');
+        const component=root.addComponent('PropToolbar');
+        for (const [kind,x] of [['shuffle',-245],['eliminate',245]]) {
+            const item=await sprite(kind==='shuffle'?'ShuffleButton':'EliminateButton',root,base+'page/game/resources/textures/prop-'+kind+'.png',120,120,x,-655);
+            const event=new cc.EventHandler();event.target=root;event.component='PropToolbar';event.handler=kind;
+            item.addComponent(cc.Button).clickEvents=[event];
+            const count=label(kind+'Count',root,kind==='shuffle'?'刷新 ×2':'消除 ×2',24,-740,210);
+            count.node.setPosition(x,-740,0);
+            component[kind+'Count']=count;
+        }
+        return save(root,base+'page/game/resources/prefabs/PropToolbar.prefab');
+    },
     /** 通过 Creator 官方消息重新编译预览引擎，不修改引擎源码。 */
     async rebuildEngine() {
         return Editor.Message.request('engine', 'rebuild');

@@ -1,4 +1,4 @@
-﻿import { Node, UITransform, Vec3, sys, view } from 'cc';
+import { Node, UITransform, Vec3, Widget, sys, view } from 'cc';
 
 /** 根据页面安全区和HUD实际位置布局已有裁剪节点，保持水果原点与棋盘原点重合。 */
 export class FruitViewportLayout {
@@ -13,6 +13,9 @@ export class FruitViewportLayout {
      * @returns 裁剪上沿的棋盘局部高度，单位设计像素。
      */
     apply(page: Node, board: Node, fruits: Node, status: Node): number {
+        // 运行时由动态裁剪独占布局，停用普通Widget，防止覆盖水果坐标补偿。
+        const viewportWidget = fruits.parent!.getComponent(Widget);
+        if (viewportWidget) viewportWidget.enabled = false;
         const pageTransform = page.getComponent(UITransform)!;
         const boardTransform = board.getComponent(UITransform)!;
         const statusTransform = status.getComponent(UITransform)!;

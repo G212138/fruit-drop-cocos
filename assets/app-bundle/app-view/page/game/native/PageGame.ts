@@ -1,3 +1,6 @@
+import { PropToolbar } from './expansion/props/PropToolbar';
+import { PropInventory } from './expansion/props/PropInventory';
+import { PropKind } from './expansion/props/PropRules';
 import { FruitViewportLayout } from './expansion/board/FruitViewportLayout';
 import { ScreenLayout } from '../../../../../app-builtin/app-controller/expansion/ScreenLayout';
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
@@ -44,6 +47,43 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 本显示周期实例化的棋盘；退出页面后销毁。 */
     private board: GameBoard | null = null;
+    /** 独立道具栏实例，挂在已适配的HUD容器。 */
+    private propToolbar: PropToolbar | null = null;
+    /** 跨重开保留的独立库存。 */
+    private readonly propInventory = new PropInventory();
+    /** 加载预制体并连接道具请求。 @param generation 当前页面代次。 */
+    private loadProps(generation: number): void {
+        this.loadRes('prefabs/PropToolbar', Prefab, prefab => {
+            if (!this.isCurrent(generation) || !prefab) return;
+            const node = instantiate(prefab);
+            node.parent = this.hudRoot;
+            this.propToolbar = node.getComponent(PropToolbar);
+            node.on('prop-request', this.requestProp, this);
+            this.refreshProps();
+        });
+    }
+    /** 将库存映射为道具数量标签。 */
+    private refreshProps(): void {
+        this.propToolbar?.render(this.propInventory.count('shuffle'), this.propInventory.count('eliminate'));
+    }
+    /** @param kind 玩家选择的道具类型；奖励校验后只增加库存，再次点击才使用。 */
+    private async requestProp(kind: PropKind): Promise<void> {
+        if (!this.board?.canUseProp) { this.hud?.showNotice('请等待当前动画结束'); return; }
+        if (this.propInventory.count(kind) > 0) {
+            const notice = this.board.useProp(kind, () => this.propInventory.consume(kind));
+            this.refreshProps();
+            this.hud?.showNotice(notice || (kind === 'shuffle' ? '水果位置已刷新' : '已消除一对水果'));
+            return;
+        }
+        if (!this.rewardGate) return;
+        const generation = this.generation;
+        const result = await this.rewardGate.request('prop');
+        if (!this.isCurrent(generation) || !this.board?.canUseProp) return;
+        if (result === 'rewarded') {
+            this.hud?.showNotice(this.propInventory.grant(kind) ? '已获得1次道具，点击使用' : '道具保存失败');
+            this.refreshProps();
+        } else this.hud?.showNotice(result === 'cancelled' ? '已取消，道具数量未改变' : '广告暂不可用，道具数量未改变');
+    }
     /** 独立 HUD 实例，所有标签由预制体绑定。 */
     private hud: GameHud | null = null;
     /** 本显示周期独立设置面板，关闭后保留至页面退出。 */
@@ -87,6 +127,7 @@ export class PageGame extends BaseView.BindController(GameController) {
         this.loadBoard(generation);
         this.loadHud(generation);
         this.loadSettings(generation);
+        this.loadProps(generation);
         if (DEV) this.loadDevelopmentReward(generation);
     }
 
@@ -305,6 +346,11 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 解除旧局监听并释放通过预制体创建的子界面。 */
     private releaseChildren(): void {
+        if (this.propToolbar && isValid(this.propToolbar.node)) {
+            this.propToolbar.node.targetOff(this);
+            this.propToolbar.node.destroy();
+        }
+        this.propToolbar = null;
         this.rewardGate?.invalidate();
         this.rewardGate = null;
         if (this.developmentReward && isValid(this.developmentReward.node)) {

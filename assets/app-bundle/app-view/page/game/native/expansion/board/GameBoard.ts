@@ -1,3 +1,5 @@
+import { BoardPropFlow } from '../props/BoardPropFlow';
+import { PropKind } from '../props/PropRules';
 import { _decorator, Component, PhysicsSystem2D, Vec2, Node, RigidBody2D, UITransform } from 'cc';
 import { EntryFlow } from '../movement/EntryFlow';
 import { LevelHintView } from '../hint/LevelHintView';
@@ -99,6 +101,28 @@ export class GameBoard extends Component {
     private playing = false;
     /** 原版纵向补位协调器；动画期间锁定点击。 */
     private readonly shift = new FruitShift();
+    /** 道具独立实例流程。 */
+    private readonly props = new BoardPropFlow();
+    /** 当前棋盘是否接受道具操作。 */
+    get canUseProp(): boolean {
+        return this.playing && !this.levelHint?.busy && !this.entry.busy && !this.shift.busy
+            && !this.props.busy && !this.revival.busy && this.collectingPairs === 0;
+    }
+    /** @param kind 道具类型。 @param consume 确定目标后的库存扣减。 */
+    useProp(kind: PropKind, consume: () => boolean): string {
+        if (!this.canUseProp) return "请等待当前动画结束";
+        const result = this.props.use(kind, this.spawner, consume, (a,b) => { this.removalEffects?.beginRevive(); this.removePair(a,b,true); });
+        if (!result) {
+            if (kind === 'shuffle') {
+                this.shiftGate.reset();
+                for (const fruit of this.spawner.getLive()) {
+                    if (!fruit.waiting) this.shiftGate.request(fruit.node.uuid);
+                }
+            }
+            this.shiftGate.request('prop-completed');
+        }
+        return result;
+    }
     /** ????????????????500?????????????? */
     fruitDisplayTop = 500;
     /** 等本批已释放水果全部到达洞口后再请求纵向补位。 */
@@ -167,7 +191,7 @@ export class GameBoard extends Component {
      * @param fruit 本次操作的水果实例。
      */
     private release(fruit: FruitItem): void {
-        if (this.playing && !this.levelHint?.busy && !this.entry.busy && !this.shift.busy && fruit.waiting && !fruit.spawning && fruit.iceLayers === 0) {
+        if (this.playing && !this.levelHint?.busy && !this.entry.busy && !this.shift.busy && !this.props.busy && fruit.waiting && !fruit.spawning && fruit.iceLayers === 0) {
             this.spawner.releaseBlackHole(fruit);
             fruit.drop();
             if (this.mode === 2) this.horizontal.afterDrop(this.spawner.getWaiting(), this.rightLine);
@@ -212,6 +236,7 @@ export class GameBoard extends Component {
             this.shift.begin(this.spawner.getWaiting(), this.fruitDisplayTop - 60);
         }
         if (this.mode === 2) this.horizontal.tick(dt, this.spawner.getLive(), this.spawner.getWaiting(), this.rightLine, fruit => this.release(fruit));
+        if (this.props.busy) return;
         this.spawner.updateBlackHoles(dt);
         this.resolveMatches();
         if (!this.playing) return;
@@ -284,6 +309,7 @@ export class GameBoard extends Component {
         this.entry.cancel();
         this.horizontal.reset();
         this.playing = false;
+        this.props.cancel();
         this.shift.stop();
         this.shiftGate.reset();
         this.matches.clear();
@@ -306,6 +332,7 @@ export class GameBoard extends Component {
         this.entry.cancel();
         this.horizontal.reset();
         this.playing = false;
+        this.props.cancel();
         this.shift.stop();
         this.shiftGate.reset();
         this.matches.clear();
@@ -320,6 +347,7 @@ export class GameBoard extends Component {
         this.revival.cancel();
         this.warning.reset();
         this.playing = false;
+        this.props.cancel();
         this.shift.stop();
         this.shiftGate.reset();
         this.matches.clear();
