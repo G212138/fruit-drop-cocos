@@ -299,6 +299,16 @@ const methods = {
 
     /** 按原 baozha 预制体制作爆炸与独立特效层，所有节点和音源仅在编辑器创建。 */
     async createRemovalEffects() {
+        const bag=node('FruitBagView');
+        const bagView=bag.addComponent('FruitBagView');
+        bagView.body=node('BagBody',bag,167,182);
+        await sprite('BagTop',bagView.body,base+'page/game/resources/textures/bag-top.png',156,46,0,82.598);
+        bagView.target=node('CollectionPoint',bagView.body);
+        await sprite('BagBottom',bagView.body,base+'page/game/resources/textures/bag-bottom.png',167,152);
+        bagView.audio=bag.addComponent(cc.AudioSource);
+        bagView.audio.playOnAwake=false;
+        bagView.audio.clip=await asset(base+'page/game/resources/audio/drop.mp3');
+        await save(bag,base+'page/game/resources/prefabs/FruitBagView.prefab');
         const root=node('ExplosionView',null,945.82,2328.04);
         const view=root.addComponent('ExplosionView');
         view.skeleton=root.addComponent(cc.sp.Skeleton);
@@ -307,6 +317,10 @@ const methods = {
         view.skeleton.timeScale=1.2;
         view.skeleton.setAnimation(0,'1',false);
         await save(root,base+'page/game/resources/prefabs/ExplosionView.prefab');
+    },
+
+    /** 等待袋子与爆炸资产完成导入后，单独制作组合特效层，避免同次保存后立即读取旧缓存。 */
+    async createRemovalEffectsLayer() {
         const layer=node('RemovalEffects');
         const effects=layer.addComponent('RemovalEffects');
         effects.explosionPrefab=await asset(base+'page/game/resources/prefabs/ExplosionView.prefab');
@@ -314,6 +328,13 @@ const methods = {
         effects.audio.playOnAwake=false;
         effects.audio.clip=await asset(base+'page/game/resources/audio/bomb.mp3');
         effects.audio.loop=false;
+        const mergeAudio=node('MergeAudio',layer).addComponent(cc.AudioSource);
+        mergeAudio.playOnAwake=false;
+        mergeAudio.clip=await asset(base+'page/game/resources/audio/merge.mp3');
+        effects.mergeAudio=mergeAudio;
+        const bagInstance=cc.instantiate(await asset(base+'page/game/resources/prefabs/FruitBagView.prefab'));
+        bagInstance.parent=node('BagLayout',layer,167,182,0,-641.082);
+        effects.bagRoot=bagInstance;
         return save(layer,base+'page/game/resources/prefabs/RemovalEffects.prefab');
     },
 

@@ -75,6 +75,10 @@ export class GameBoard extends Component {
     rightLine: Node = null!;
     /** 当前关卡原始移动模式。 */
     private mode: 1 | 2 = 1;
+    /** 正在爆炸或入袋的普通配对数；入袋结束前不提交失败，避免丢失配对计数。 */
+    private collectingPairs = 0;
+    /** 清局使尚未结束的入袋通知失效。 */
+    private collectionGeneration = 0;
     /** 独立横向补位与自动下落状态。 */
     private readonly horizontal = new HorizontalFlow();
     /** 独立开局入场动画与输入锁。 */
@@ -206,6 +210,7 @@ export class GameBoard extends Component {
         this.spawner.updateBlackHoles(dt);
         this.resolveMatches();
         if (!this.playing) return;
+        if (this.collectingPairs > 0) return;
         const fruits = this.spawner.getFloorSnapshots();
         const warning = this.warning.tick(fruits, dt, this.floorThreshold === 5);
         if (warning === 'clear') this.restoreWarnings();
@@ -241,12 +246,25 @@ export class GameBoard extends Component {
         second.node.targetOff(this);
         this.shift.remove(first);
         this.shift.remove(second);
-        first.pop(forced);
-        second.pop(forced);
+        const effects = this.removalEffects;
+        if (!forced && effects) {
+            const generation = this.collectionGeneration;
+            this.collectingPairs++;
+            first.prepareRemoval();
+            second.prepareRemoval();
+            effects.showNormalPair(first.node, second.node, () => {
+                if (generation !== this.collectionGeneration) return;
+                this.collectingPairs--;
+                this.node.emit(BoardEvents.Matched);
+            });
+        } else {
+            first.pop(forced);
+            second.pop(forced);
+        }
         // 原版 markElimination 对复活移除也累计减冰；复活阶段不累计横向补位。
         this.spawner.reduceIce();
         if (!forced && this.mode === 2) this.horizontal.matched();
-        this.node.emit(BoardEvents.Matched);
+        if (forced || !effects) this.node.emit(BoardEvents.Matched);
     }
 
     /** 停止棋盘输入和本局水果模拟。 */
@@ -267,6 +285,8 @@ export class GameBoard extends Component {
 
     /** 清理旧局实例及排队通知。 */
     clear(): void {
+        this.collectionGeneration++;
+        this.collectingPairs = 0;
         this.removalEffects?.clear();
         this.failed = false;
         this.revival.cancel();
@@ -286,6 +306,7 @@ export class GameBoard extends Component {
 
     /** 页面销毁时清理本棋盘，不关闭全局物理系统。 */
     onDestroy(): void {
+        this.collectionGeneration++;
         this.revival.cancel();
         this.warning.reset();
         this.playing = false;

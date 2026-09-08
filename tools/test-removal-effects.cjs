@@ -1,8 +1,8 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const ts=require('C:/ProgramData/cocos/editors/Creator/3.8.8/resources/app.asar.unpacked/node_modules/typescript');
 const settings={snapshot:{sound:true}},created=[];
-const cc={_decorator:{ccclass:()=>value=>value,property:()=>()=>{}},Component:class{},sp:{Skeleton:class{}},
-    isValid:value=>!!value&&!value.destroyed,instantiate(){const effect={setPosition(position){this.position=position;},destroy(){this.destroyed=true;}};created.push(effect);return effect;}};
+const cc={_decorator:{ccclass:()=>value=>value,property:()=>()=>{}},Component:class{scheduleOnce(fn,delay){this.scheduled={fn,delay};}unscheduleAllCallbacks(){this.scheduled=null;}},sp:{Skeleton:class{}},
+    isValid:value=>!!value&&!value.destroyed,instantiate(){const effect={getComponent(){return {};},setPosition(position){this.position=position;},destroy(){this.destroyed=true;}};created.push(effect);return effect;}};
 /** 装载真实表现组件，保留坐标换算、音效门禁和生命周期逻辑。 */
 function load(name){const exports={};const source=fs.readFileSync(path.resolve('assets/app-bundle/app-view/page/game/native/expansion/effects',name+'.ts'),'utf8');
 const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,experimentalDecorators:true}}).outputText;
@@ -26,4 +26,13 @@ view.skeleton={setCompleteListener(fn){listener=fn;},setAnimation(...args){anima
 view.onLoad();assert.deepEqual(animation,[0,'1',false]);
 listener();assert.equal(view.node.destroyed,true);assert.equal(listener,null);
 view.onDestroy();assert.equal(listener,null);
+const timed=new ExplosionView();let notified=0;
+timed.node={destroy(){this.destroyed=true;}};
+timed.skeleton={setCompleteListener(){},setAnimation(){return {animationEnd:2};}};
+timed.setMidpointCallback(()=>notified++);timed.onLoad();
+assert.equal(timed.scheduled.delay,0.5);timed.scheduled.fn.call(timed);timed.scheduled.fn.call(timed);
+assert.equal(notified,1,'中段回调只执行一次');
+const cancelled=new ExplosionView();cancelled.node={};cancelled.skeleton=timed.skeleton;
+cancelled.setMidpointCallback(()=>assert.fail('清局后不能继续入袋'));cancelled.onLoad();
+const stale=cancelled.scheduled.fn;cancelled.onDestroy();stale.call(cancelled);
 console.log('通过：世界坐标换算、每颗一次爆炸、每次复活一次音效、静音、清局与骨骼完成清理。');

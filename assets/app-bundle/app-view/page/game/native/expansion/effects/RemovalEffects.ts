@@ -1,4 +1,6 @@
-import { _decorator, Component, Node, Prefab, instantiate, UITransform, AudioSource, isValid } from 'cc';
+import { _decorator, Component, Node, Prefab, instantiate, UITransform, AudioSource, isValid, Vec3 } from 'cc';
+import { ExplosionView } from './ExplosionView';
+import { FruitBagView } from './FruitBagView';
 import { GameSettings } from '../../../../../../../app-builtin/app-model/expansion/GameSettings';
 const { ccclass, property } = _decorator;
 
@@ -11,6 +13,25 @@ export class RemovalEffects extends Component {
     /** 编辑器音源绑定原 bomb.mp3；使用可停止播放，清局不会残留一次性声音。 */
     @property(AudioSource)
     audio: AudioSource = null!;
+    /** 原 hecheng.mp3 音源，由预制体提供。 */
+    @property(AudioSource)
+    mergeAudio: AudioSource = null!;
+    /** 独立袋子预制体实例，通过节点读取组件避免跨预制体组件绑定丢失。 */
+    @property(Node)
+    bagRoot: Node = null!;
+
+    /** @param first 第一颗退出物理的水果。 @param second 同类伙伴。 @param completed 入袋完成后的计数通知。 */
+    showNormalPair(first: Node, second: Node, completed: () => void): void {
+        const midpoint = Vec3.add(new Vec3(), first.worldPosition, second.worldPosition).multiplyScalar(0.5);
+        const effect = instantiate(this.explosionPrefab);
+        effect.setPosition(this.node.getComponent(UITransform)!.convertToNodeSpaceAR(midpoint));
+        effect.getComponent(ExplosionView)!.setMidpointCallback(() => {
+            if (!isValid(first, true) || !isValid(second, true)) return;
+            this.bagRoot.getComponent(FruitBagView)!.collect([first, second], completed);
+        });
+        effect.parent = this.node;
+        if (GameSettings.current.snapshot.sound) this.mergeAudio.play();
+    }
     /** 当前复活是否已经处理过爆炸音，避免两对四颗叠加播放。 */
     private soundHandled = false;
 
@@ -39,7 +60,11 @@ export class RemovalEffects extends Component {
     /** 重开和退出时清理特效，不能让它们进入下一局。 */
     clear(): void {
         if (isValid(this.audio, true)) this.audio.stop();
-        for (const child of [...this.node.children]) child.destroy();
+        if (isValid(this.mergeAudio, true)) this.mergeAudio.stop();
+        this.bagRoot?.getComponent(FruitBagView)?.clear();
+        for (const child of [...this.node.children]) {
+            if (child.getComponent(ExplosionView)) child.destroy();
+        }
         this.soundHandled = false;
     }
 }

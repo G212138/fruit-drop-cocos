@@ -1,0 +1,22 @@
+﻿[
+    {
+        "source":  "resources/sprite/Theme/fruit/袋子上1.png",
+        "target":  "assets/app-bundle/app-view/page/game/resources/textures/bag-top.png",
+        "sha256":  "900438421DAB28826A13CD2556A55CD1FF25D5097DAF2D72298C4A32EB372F99"
+    },
+    {
+        "source":  "resources/sprite/Theme/fruit/袋子下1.png",
+        "target":  "assets/app-bundle/app-view/page/game/resources/textures/bag-bottom.png",
+        "sha256":  "5646FF7E686034CC3899DD02AAE0E295ECC3C04889CA5A8D51114C2B54D88062"
+    },
+    {
+        "source":  "_res/main/Audio/watermelonGame/hecheng.mp3",
+        "target":  "assets/app-bundle/app-view/page/game/resources/audio/merge.mp3",
+        "sha256":  "75422CAC861D921FC65C573C0805BB29BB86D6A179FB07A1ECEADED369E896FB"
+    },
+    {
+        "source":  "_res/main/Audio/watermelonGame/Drop.mp3",
+        "target":  "assets/app-bundle/app-view/page/game/resources/audio/drop.mp3",
+        "sha256":  "3228AA0F024DC355467F36598FFFCC778DB24CEC32FBBD17C017815241C646D3"
+    }
+]

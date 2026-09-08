@@ -211,12 +211,18 @@ export class FruitItem extends Component {
 
     /** @param revived 是否为复活强制消除；使用原版较长的放大收缩反馈。 */
     pop(revived = false): void {
+        this.prepareRemoval();
+        if (revived) this.visual.playReviveRemoval(() => this.node.destroy());
+        else this.visual.playRemoval(() => this.node.destroy());
+    }
+
+    /** 配对后先停用物理并保留既有节点，供独立入袋表现移动。 */
+    prepareRemoval(): void {
         this.node.emit(BoardEvents.Removing);
         Tween.stopAllByTarget(this.node);
         // 整体停用刚体一次，保留碰撞体至节点销毁，避免同帧重复移除碰撞代理。
         this.body.enabled = false;
-        if (revived) this.visual.playReviveRemoval(() => this.node.destroy());
-        else this.visual.playRemoval(() => this.node.destroy());
+        this.visual.clearWarning();
     }
 
     /** 解除单体注册的所有监听。 */

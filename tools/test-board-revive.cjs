@@ -67,3 +67,11 @@ assert.deepEqual(effects,['remove','remove','revive-pop','revive-pop','ice','eve
 effects.length=0;board.removePair(pairFruit(),pairFruit(),false);
 assert.deepEqual(effects,['remove','remove','pop','pop','ice','shift','event']);
 console.log('通过：真实棋盘强制配对减冰，正常配对才追加横向补位。');
+// 普通消除等待真实入袋回调才发布配对，避免最后一对提前结算。
+let collected;
+board.removalEffectsRoot={getComponent:()=>({showNormalPair(a,b,done){collected=done;effects.push('collect');}})};
+const flyingFruit=()=>({...pairFruit(),prepareRemoval(){effects.push('prepare');}});
+effects.length=0;board.removePair(flyingFruit(),flyingFruit(),false);
+assert.equal(board.collectingPairs,1);assert.equal(effects.includes('event'),false);
+collected();assert.equal(board.collectingPairs,0);assert.equal(effects.at(-1),'event');
+console.log('通过：普通配对等待入袋完成再发布计数通知。');
