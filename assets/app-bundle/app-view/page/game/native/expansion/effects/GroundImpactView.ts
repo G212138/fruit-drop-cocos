@@ -13,6 +13,9 @@ export class GroundImpactView extends Component {
     onLoad(): void {
         this.skeleton.setCompleteListener(() => this.node.destroy());
         this.skeleton.setAnimation(0, '1', false);
+    }
+    /** 等全部组件完成onLoad后播放，避免AudioSource初始化清空提前排队的播放请求。 */
+    start(): void {
         if (GameSettings.current.snapshot.sound) this.audio.play();
     }
     /** 退出清局时停止声音和骨骼监听。 */

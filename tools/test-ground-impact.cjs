@@ -28,6 +28,8 @@ for (const sound of [true, false]) {
     };
     view.audio = { play: () => played++, stop: () => stopped++ };
     view.onLoad();
+    assert.equal(played, 0, "AudioSource初始化前不得请求播放");
+    view.start();
     assert.equal(played, sound ? 1 : 0);
     assert.equal(destroyed, 0);
     completed();
