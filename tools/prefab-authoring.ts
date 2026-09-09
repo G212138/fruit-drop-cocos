@@ -95,6 +95,26 @@ function wall(name, parent, x, y, width, height, angle = 0) {
 }
 
 const methods = {
+    /** 只替换设置图标并给标题增加独立动画层，保留用户现有页面布局。 */
+    async finishHomeMotion() {
+        const url=base+'page/home/native/PageHome.prefab';
+        const root=cc.instantiate(await asset(url));
+        cce.Prefab.removePrefabInfoFromNode(root,false);
+        const settings=root.getChildByName('SettingsButton');
+        settings.getComponent(cc.Sprite).spriteFrame=await asset(base+'page/home/resources/redesign/settings.png',true);
+        const title=root.getChildByName('Title');
+        let visual=title.getChildByName('LogoVisual');
+        if(!visual) {
+            const size=title.getComponent(cc.UITransform).contentSize;
+            visual=node('LogoVisual',title,size.width,size.height);
+            const source=title.getComponent(cc.Sprite);
+            const target=visual.addComponent(cc.Sprite);
+            target.sizeMode=cc.Sprite.SizeMode.CUSTOM;target.spriteFrame=source.spriteFrame;
+            source.enabled=false;
+        }
+        if(!visual.getComponent('HomeLogoMotion')) visual.addComponent('HomeLogoMotion');
+        return save(root,url);
+    },
     /** 按确认稿重建首页静态节点，内嵌面板和业务入口保持原绑定。 */
     async redesignHome() {
         const url=base+'page/home/native/PageHome.prefab';
@@ -112,7 +132,7 @@ const methods = {
         start.getComponent(cc.UITransform).setContentSize(570,219);
         const theme=await button('ThemeButton',root,art+'themes.png','',-270,root,'PageHome','openTheme');
         theme.getComponent(cc.UITransform).setContentSize(180,180);theme.setPosition(275,-270);
-        const settings=await button('SettingsButton',root,base+'page/home/resources/original/settings.png','',635,root,'PageHome','openSettings');
+        const settings=await button('SettingsButton',root,art+'settings.png','',635,root,'PageHome','openSettings');
         settings.getComponent(cc.UITransform).setContentSize(65,65);settings.setPosition(-300,635);
         const text=(name,parent,value,size,y,width,height)=>{
             const valueLabel=label(name,parent,value,size,y,width);

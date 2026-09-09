@@ -11,3 +11,11 @@
 ## 美术生成记录
 使用内置 imagegen。背景提示：保留确认稿天空云朵草地，移除标题和按钮。标题提示：提取 TUMBLE MATCH 品牌标志并输出透明背景。开始按钮提示：提取绿色按钮底板并删除所有文字。主题按钮提示：透明背景蓝色圆角按钮，上部调色盘与画笔，下部留空供多语言文字。
 最终资源位于 assets/app-bundle/app-view/page/home/resources/redesign/。未使用生成失败的棋盘格背景版本。
+
+## 设置图标与标题动画
+- 设置入口换为确认稿同风格橙黄色透明齿轮，仍绑定 openSettings。
+- HomeLogoMotion 挂在 Title/LogoVisual，父节点只负责屏幕适配；不对整个首页做缩放。
+- floatDistance：7 设计像素；scaleAmount：0.015（1.5%）；halfCycleSeconds：1.8 秒，完整周期 3.6 秒。
+- onDisable/onDestroy 停止自身补间并还原快照，再次显示不累计位移。
+- 图标由内置 imagegen 根据确认稿提取生成，提示要求独立橙黄色齿轮、白色描边、真实透明背景。保存为 resources/redesign/settings.png。
+- 重启后通过 prefab edit_save 正式清除 HomeMotionAuthor；退出预制体编辑模式后完成动画绑定。最终预览首页和设置面板正常，错误日志为空；预制体引用检查通过。
