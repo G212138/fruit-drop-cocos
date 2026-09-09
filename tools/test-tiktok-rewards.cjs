@@ -63,7 +63,14 @@ async function main() {
     const missing = gate.request('shuffle');
     m.instances[4].close(undefined);
     assert.equal(await missing, 'cancelled');
-    for (const placement of ['revive', 'expand-slot', 'prop']) assert.equal(await gate.request(placement), 'unavailable');
+    const expansion = gate.request('expand-slot');
+    assert.equal(m.instances[5].adUnitId, 'ad7683075136438388754');
+    m.instances[5].close({ isEnded: false });
+    assert.equal(await expansion, 'cancelled');
+    const completedExpansion = gate.request('expand-slot');
+    m.instances[6].close({ isEnded: true });
+    assert.equal(await completedExpansion, 'rewarded');
+    for (const placement of ['revive', 'prop']) assert.equal(await gate.request(placement), 'unavailable');
     assert.equal(await new RewardGate(new TikTokRewardProvider(() => null), false).request('shuffle'), 'unavailable');
     m.api.createRewardedVideoAd = () => { throw Error('create failed'); };
     assert.equal(await gate.request('shuffle'), 'failed');
