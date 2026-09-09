@@ -16,7 +16,7 @@ for (const locale of ['en','ja','id','th','vi','ms','fil','zh']) {
 for (const [input,expected] of [['ja-JP','ja'],['id_ID','id'],['in-ID','id'],['tl-PH','fil'],['fil-PH','fil'],['th-TH','th'],['de-DE','en']]) assert.equal(catalog.resolveLanguage(input),expected);
 const store = new Map();
 const sys = {language:'ja',languageCode:'ja-JP',localStorage:{getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,v)}};
-function service(){return compile('GameLanguage',n=>n==='cc'?{sys}:catalog).GameLanguage;}
+function service(){return compile('GameLanguage',n=>n==='cc'?{sys}:n.endsWith('/PlatformStorage')?{PlatformStorage:sys.localStorage}:catalog).GameLanguage;}
 let language = service(); assert.equal(language.choice,'system'); assert.equal(language.current,'ja');
 let updates=0; const update=()=>updates++; language.subscribe(update);
 assert.equal(language.select('vi'),true); assert.equal(language.current,'vi'); assert.equal(updates,1);

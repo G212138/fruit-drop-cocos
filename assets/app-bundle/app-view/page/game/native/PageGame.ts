@@ -11,6 +11,8 @@ import { GameScreenLayout } from './expansion/board/GameScreenLayout';
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
 import { DEV } from 'cc/env';
 import { RewardGate } from '../../../../../app-builtin/app-model/expansion/RewardGate';
+import { getTikTokGame } from '../../../../../app-builtin/app-model/expansion/platform/TikTokRuntime';
+import { TikTokRewardProvider } from '../../../../../app-builtin/app-model/expansion/platform/TikTokRewardProvider';
 import { DevelopmentRewardPanel } from './expansion/reward/DevelopmentRewardPanel';
 import { _decorator, Node, Prefab, JsonAsset, instantiate, isValid } from 'cc';
 import BaseView from 'db://app/base/BaseView';
@@ -76,6 +78,7 @@ export class PageGame extends BaseView.BindController(GameController) {
     private readonly propInventory = new PropInventory();
     /** 连接PageGame内已有的道具栏，只注册事件，不实例化UI。 */
     private bindProps(): void {
+        this.propInventory.refresh();
         this.propToolbar = this.propToolbarRoot.getComponent(PropToolbar);
         this.propToolbarRoot.on('prop-request', this.requestProp, this);
         this.refreshProps();
@@ -95,7 +98,7 @@ export class PageGame extends BaseView.BindController(GameController) {
         }
         if (!this.rewardGate) return;
         const generation = this.generation;
-        const result = await this.rewardGate.request('prop');
+        const result = await this.rewardGate.request(kind);
         if (!this.isCurrent(generation) || !this.board?.canUseProp) return;
         if (result === 'rewarded') {
             this.hud?.showNotice(this.propInventory.grant(kind) ? '已获得1次道具，点击使用' : '道具保存失败');
@@ -140,6 +143,7 @@ export class PageGame extends BaseView.BindController(GameController) {
         this.releaseChildren();
         this.settingsController.begin();
         this.rewardGate = new RewardGate({show: request => {
+            if (getTikTokGame()) return TikTokRewardProvider.shared.show(request);
             if (DEV && this.developmentReward) return this.developmentReward.show(request);
             return Promise.resolve({...request, status:'unavailable', source:'platform'});
         }}, DEV);
@@ -149,7 +153,7 @@ export class PageGame extends BaseView.BindController(GameController) {
         this.loadCollectionFeedback(generation);
         this.loadSettings(generation);
         this.bindProps();
-        if (DEV) this.loadDevelopmentReward(generation);
+        if (DEV && !getTikTokGame()) this.loadDevelopmentReward(generation);
     }
 
     /**

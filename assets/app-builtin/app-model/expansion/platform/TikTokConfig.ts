@@ -1,0 +1,20 @@
+/** TikTok 后台公开配置；Client Secret 只能留在服务端，禁止加入客户端。 */
+export const TikTokConfig = {
+    /** 用户提供的小游戏 Client Key，不是登录密钥。 */
+    clientKey: 'mg1swkarpsswyb0z',
+    /** 自有后端登录 HTTPS 地址；未配置时保持游客状态。 */
+    loginEndpoint: '',
+    /** 用户明确指定的广告位；空值代表未开通，不借用其他用途广告位。 */
+    rewardedAds: {
+        /** 消除道具激励广告。 */
+        eliminate: 'ad7683069395916933127',
+        /** 刷新道具激励广告。 */
+        shuffle: 'ad7683068205057099783',
+        /** 复活广告，等待后台配置。 */
+        revive: '',
+        /** 扩容广告，等待后台配置。 */
+        'expand-slot': '',
+        /** 旧版通用道具用途不再连接生产广告。 */
+        prop: '',
+    },
+};

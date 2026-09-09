@@ -1,5 +1,5 @@
 /** 可发起激励广告的业务用途，真实平台接入时复用相同定义。 */
-export type RewardPlacement = 'expand-slot' | 'revive' | 'prop';
+export type RewardPlacement = 'expand-slot' | 'revive' | 'prop' | 'eliminate' | 'shuffle';
 /** 一次激励请求，结果必须回传同一编号和用途。 */
 export interface RewardRequest {
     /** 当前门禁实例内唯一请求编号。 */

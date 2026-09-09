@@ -1,9 +1,9 @@
-﻿const assert=require('node:assert/strict'),fs=require('fs'),path=require('path');
+const assert=require('node:assert/strict'),fs=require('fs'),path=require('path');
 const ts=require('C:/ProgramData/cocos/editors/Creator/3.8.8/resources/app.asar.unpacked/node_modules/typescript');
 const directory=path.resolve('assets/app-bundle/app-view/page/game/native/expansion/props');
 let stored=null,writeFails=false;
 /** 加载纯业务与库存，隔离真实用户存档。 */
-function load(name){const mod={exports:{}};new Function('require','module','exports',ts.transpileModule(fs.readFileSync(path.join(directory,name+'.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(p=>p==='cc'?{sys:{localStorage:{getItem:()=>stored,setItem:(k,v)=>{if(writeFails)throw Error('full');stored=v;}}}}:load(p.replace('./','')),mod,mod.exports);return mod.exports;}
+function load(name){const mod={exports:{}};new Function('require','module','exports',ts.transpileModule(fs.readFileSync(path.join(directory,name+'.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(p=>p.endsWith('/PlatformStorage')?{PlatformStorage:{getItem:()=>stored,setItem:(k,v)=>{if(writeFails)throw Error('full');stored=v;}}}:load(p.replace('./','')),mod,mod.exports);return mod.exports;}
 const {selectPropPair,selectShuffleTargets}=load('PropRules');
 const fruit={id:'a',kind:1,y:0,touchedFloor:true,unavailable:false,resident:false,blackHole:false};
 assert.deepEqual(selectPropPair([fruit,{...fruit,id:'b',y:-20},{...fruit,id:'c',y:100,touchedFloor:false}]),['a','b'],'优先底部同类');

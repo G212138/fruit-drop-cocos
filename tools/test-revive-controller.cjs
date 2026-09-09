@@ -13,6 +13,7 @@ function load(relative) {
     }).outputText;
     new Function('require', 'module', 'exports', code)(name => {
         if (name === 'cc') return { sys: { localStorage: {} } };
+        if (name.endsWith('/PlatformStorage')) return { PlatformStorage: {} };
         if (name === 'db://app/base/BaseController') return { default: () => class {
             static Event = { Changed: 'changed' };
             emit(event) { events.push(event); }

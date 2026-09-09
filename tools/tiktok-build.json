@@ -1,0 +1,18 @@
+{
+  "name": "Tumble Match",
+  "platform": "bytedance-mini-game",
+  "buildPath": "project://build",
+  "outputName": "tiktok-base",
+  "debug": false,
+  "sourceMaps": false,
+  "md5Cache": false,
+  "startScene": "5298bb0b-166e-4978-af98-0047d43757de",
+  "scenes": [{"url":"db://assets/app-scene/main.scene","uuid":"5298bb0b-166e-4978-af98-0047d43757de"}],
+  "packages": {
+    "bytedance-mini-game": {
+      "appid": "mg1swkarpsswyb0z",
+      "orientation": "portrait",
+      "startSceneAssetBundle": true
+    }
+  }
+}

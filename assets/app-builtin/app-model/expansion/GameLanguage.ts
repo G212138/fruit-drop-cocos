@@ -1,5 +1,6 @@
 import { sys } from 'cc';
 import { LanguageChoice, LanguageKey, languageOptions, languageText, resolveLanguage } from './LanguageCatalog';
+import { PlatformStorage } from './platform/PlatformStorage';
 
 /** 会话级语言服务；默认跟随系统，手动选择单独存档，不改变音频设置格式。 */
 export class GameLanguage {
@@ -13,7 +14,7 @@ export class GameLanguage {
     static get choice(): LanguageChoice {
         if (this.selected === null) {
             try {
-                const saved = sys.localStorage.getItem(this.storageKey) as LanguageChoice;
+                const saved = PlatformStorage.getItem(this.storageKey) as LanguageChoice;
                 this.selected = languageOptions.indexOf(saved) >= 0 ? saved : 'system';
             } catch { this.selected = 'system'; }
         }
@@ -32,7 +33,7 @@ export class GameLanguage {
         if (languageOptions.indexOf(choice) < 0) return false;
         this.selected = choice;
         let saved = true;
-        try { sys.localStorage.setItem(this.storageKey, choice); } catch { saved = false; }
+        try { PlatformStorage.setItem(this.storageKey, choice); } catch { saved = false; }
         for (const refresh of [...this.listeners]) refresh();
         return saved;
     }

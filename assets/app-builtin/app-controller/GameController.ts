@@ -1,5 +1,6 @@
 import { sys } from 'cc';
 import { LevelProgress } from '../app-model/expansion/LevelProgress';
+import { PlatformStorage } from '../app-model/expansion/platform/PlatformStorage';
 import BaseController from 'db://app/base/BaseController';
 import { app } from '../../app/app';
 
@@ -13,7 +14,7 @@ export class GameController extends BaseController<GameController, { Changed: ()
 
     /** 提供本地关卡进度，业务状态不持有引擎节点。 */
     get progress(): LevelProgress {
-        if (!this.progressStore) this.progressStore = new LevelProgress(sys.localStorage);
+        if (!this.progressStore) this.progressStore = new LevelProgress(PlatformStorage);
         return this.progressStore;
     }
 

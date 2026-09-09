@@ -1,5 +1,6 @@
 import { sys } from 'cc';
 import { ThemeProgress } from './ThemeProgress';
+import { PlatformStorage } from './platform/PlatformStorage';
 import { LevelProgress } from './LevelProgress';
 
 /** 会话主题入口；只在页面入场读取一次正式进度，水果生成不重复读取磁盘。 */
@@ -10,11 +11,11 @@ export class GameTheme {
     static active: 1 | 2 = 1;
     /** 获取唯一主题存档模型。 */
     static get current(): ThemeProgress {
-        if (!this.model) this.model = new ThemeProgress(sys.localStorage);
+        if (!this.model) this.model = new ThemeProgress(PlatformStorage);
         return this.model;
     }
     /** 页面入场时以正式进度重新确认主题，试玩数据不参与解锁。 */
     static refresh(): void {
-        this.active = this.current.resolve(new LevelProgress(sys.localStorage).level);
+        this.active = this.current.resolve(new LevelProgress(PlatformStorage).level);
     }
 }
