@@ -43,9 +43,6 @@ export class GameHud extends Component {
     /** 操作提示或资源/存档错误说明。 */
     @property(Label)
     hint: Label = null!;
-    /** 未开放关卡的重玩第一关按钮，普通游戏期间隐藏。 */
-    @property(Node)
-    replayButton: Node = null!;
 
     /**
      * 显示当前关卡与真实进度。
@@ -58,7 +55,6 @@ export class GameHud extends Component {
         this.title.string = '第' + level + '关';
         this.progressView.render(level, remaining, total);
         this.hint.string = warning;
-        this.replayButton.active = false;
     }
 
     /** @param level 请求关卡编号。 @param message 阻止开局的具体原因。 */
@@ -66,7 +62,6 @@ export class GameHud extends Component {
         this.title.string = '第'+level+'关';
         this.progressView.render(level, 0, 0);
         this.hint.string = message;
-        this.replayButton.active = true;
     }
 
     /** 预制体首页按钮仅发布意图，由页面负责切换。 */

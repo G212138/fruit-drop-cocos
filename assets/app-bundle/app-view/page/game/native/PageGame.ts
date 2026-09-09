@@ -129,6 +129,8 @@ export class PageGame extends BaseView.BindController(GameController) {
      * @param data 页面传入的关卡或结算参数；未传关卡时读取存档。
      */
     onShow(data?: { level?: number }): void {
+        // XForge 隐藏模式 2：缓存页面，防止卸载分包破坏共享图片；退出仍执行 onHide 清理。
+        this.hideEvent = 2;
         GameTheme.refresh();
         const generation = ++this.generation;
         this.levelNumber = EditorSession.trial ? 1 : data?.level ?? this.controller.progress.level;

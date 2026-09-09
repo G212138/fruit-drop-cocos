@@ -39,6 +39,8 @@ export class PageHome extends BaseView {
 
     /** 首页出现后提前加载游戏及入场必需资源，不显示页面、不启动关卡。 */
     onShow(): void {
+        // XForge 隐藏模式 2：缓存页面，防止卸载分包破坏共享图片；退出仍执行 onHide 清理。
+        this.hideEvent = 2;
         GameTheme.refresh();
         this.refreshLanguage();
         this.themePanel.close();
