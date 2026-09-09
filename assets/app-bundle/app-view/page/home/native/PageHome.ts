@@ -1,6 +1,6 @@
-import { homeText } from '../../../../../app-builtin/app-model/expansion/HomeLocalization';
+import { GameLanguage } from '../../../../../app-builtin/app-model/expansion/GameLanguage';
 import { ScreenLayout } from '../../../../../app-builtin/app-controller/expansion/ScreenLayout';
-import { _decorator, Prefab, JsonAsset, Node, Label, sys } from 'cc';
+import { _decorator, Prefab, JsonAsset, Node, Label } from 'cc';
 import { DEV } from 'cc/env';
 import { ThemePanel } from './expansion/ThemePanel';
 import { GameTheme } from '../../../../../app-builtin/app-model/expansion/GameTheme';
@@ -20,8 +20,6 @@ export class PageHome extends BaseView {
     @property(Label) themesLabel: Label = null!;
     /** 开发环境编辑器入口；发布构建隐藏。 */
     @property(Label) editorLabel: Label = null!;
-    /** 留空跟随系统；可由渠道或语言选择器指定，如 de-DE。 */
-    @property() languageOverride = '';
     /** 首页当前待挑战关卡。 */
     @property(Label) levelLabel: Label = null!;
     /** 首页内嵌图鉴与设置面板，打开时无需加载。 */
@@ -31,6 +29,8 @@ export class PageHome extends BaseView {
 
     /** 首页适配器，只改变显示尺寸。 */
     private readonly screenLayout = new ScreenLayout();
+    /** 保持稳定引用，隐藏首页时解除语言监听。 */
+    private readonly languageChanged = (): void => this.refreshLanguage();
 
     /** 跟随屏幕尺寸调整首页布局。 */
     lateUpdate(): void {
@@ -43,6 +43,7 @@ export class PageHome extends BaseView {
         this.hideEvent = 2;
         GameTheme.refresh();
         this.refreshLanguage();
+        GameLanguage.subscribe(this.languageChanged);
         this.themePanel.close();
         this.settingsPanel.node.active = false;
         this.settingsPanel.node.on('setting-request', this.changeSetting, this);
@@ -58,19 +59,19 @@ export class PageHome extends BaseView {
 
     /** 刷新首页译文；切换语言后可直接调用，不重新加载资源。 */
     refreshLanguage(): void {
-        const language = this.languageOverride || sys.language;
         const level = app.controller.game.progress.level;
-        if (this.playLabel) this.playLabel.string = homeText(language, 'play');
-        if (this.themesLabel) this.themesLabel.string = homeText(language, 'themes');
-        this.levelLabel.string = homeText(language, 'level', level);
+        if (this.playLabel) this.playLabel.string = GameLanguage.text('play');
+        if (this.themesLabel) this.themesLabel.string = GameLanguage.text('themes');
+        this.levelLabel.string = GameLanguage.text('level', { level });
         if (this.editorLabel) {
-            this.editorLabel.string = homeText(language, 'editor');
+            this.editorLabel.string = GameLanguage.text('editor');
             this.editorLabel.node.active = DEV;
         }
     }
 
     /** 退出首页时解除设置监听并关闭内嵌面板。 */
     onHide(): void {
+        GameLanguage.unsubscribe(this.languageChanged);
         this.settingsPanel.node.targetOff(this);
         this.themePanel.close();
         this.settingsPanel.node.active = false;

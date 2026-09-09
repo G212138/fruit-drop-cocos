@@ -1,10 +1,19 @@
 import { _decorator, Component, Label, Node, Sprite, SpriteFrame } from 'cc';
 import { FruitProgressView } from './FruitProgressView';
+import { GameLanguage } from '../../../../../../../app-builtin/app-model/expansion/GameLanguage';
 const { ccclass, property } = _decorator;
 
 /** HUD 只展示传入数据，按钮与标签在预制体中制作。 */
 @ccclass('GameHud')
 export class GameHud extends Component {
+    /** 当前显示关卡，用于语言切换后保留数值。 */
+    private displayedLevel = 1;
+    /** 当前关卡译文刷新回调。 */
+    private readonly languageChanged = (): void => { this.title.string = GameLanguage.text('level', { level: this.displayedLevel }); };
+    /** 显示时监听语言变化。 */
+    onEnable(): void { GameLanguage.subscribe(this.languageChanged); }
+    /** 隐藏时解除监听。 */
+    onDisable(): void { GameLanguage.unsubscribe(this.languageChanged); }
     /** 原版顶部栏，由屏幕适配定位到安全区顶部。 */
     @property(Node) topBar: Node = null!;
     /** 玩法方向图标。 */
@@ -52,14 +61,16 @@ export class GameHud extends Component {
      * @param warning 存档不可用时的提示，空字符串表示正常。
      */
     render(level: number, remaining: number, total: number, warning = ''): void {
-        this.title.string = '第' + level + '关';
+        this.displayedLevel = level;
+        this.languageChanged();
         this.progressView.render(level, remaining, total);
         this.hint.string = warning;
     }
 
     /** @param level 请求关卡编号。 @param message 阻止开局的具体原因。 */
     showError(level: number, message: string): void {
-        this.title.string = '第'+level+'关';
+        this.displayedLevel = level;
+        this.languageChanged();
         this.progressView.render(level, 0, 0);
         this.hint.string = message;
     }

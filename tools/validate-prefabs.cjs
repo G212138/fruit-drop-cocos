@@ -47,7 +47,7 @@ function inspect(value, entries, location) {
             GameBoard: ['spawner', 'removalEffectsRoot', 'lockWallRoot', 'levelHintRoot', 'leftBoundary', 'rightLine'],
             FruitSpawner: ['fruitRoot', 'hiddenFruitPrefab', 'iceFruitPrefab', 'blackHolePrefab'],
             PageGame: ['bottomProgressRoot', 'propToolbarRoot', 'boardRoot', 'hudRoot', 'gameBoardNode', 'gameHudNode', 'backgroundNode'],
-            GameHud: ['topBar', 'direction', 'downFrame', 'rightFrame', 'fruitTopBoundary', 'title', 'hint', 'replayButton'],
+            GameHud: ['topBar', 'direction', 'downFrame', 'rightFrame', 'fruitTopBoundary', 'title', 'hint'],
             FruitProgressView: ['remaining', 'percentage', 'progressRoot', 'dark', 'bright', 'frames'],
             PropToolbar: ['shuffleCount', 'eliminateCount', 'shuffleAd', 'eliminateAd'],
             RemovalEffects: ['explosionPrefab', 'audio', 'mergeAudio', 'bagRoot'],

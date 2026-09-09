@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, Sprite, SpriteFrame, Label, Color, Tween, tween, Vec3 } from 'cc';
 import { GameTheme } from '../../../../../../app-builtin/app-model/expansion/GameTheme';
+import { GameLanguage } from '../../../../../../app-builtin/app-model/expansion/GameLanguage';
 const { ccclass, property } = _decorator;
 
 /** 图鉴只更新编辑器中既有的30个格子，不在运行时创建UI。 */
@@ -45,9 +46,9 @@ export class ThemePanel extends Component {
     }
     /** 按正式进度显示图鉴的亮色及未解锁剪影。 */
     private render(): void {
-        this.title.string = this.browsing === 1 ? '水果' : '甜品';
+        this.title.string = GameLanguage.text(this.browsing === 1 ? 'fruits' : 'sweets');
         this.status.string = GameTheme.current.warning || (GameTheme.current.resolve(this.level) === this.browsing
-            ? '已使用' : '通关30关后可使用');
+            ? GameLanguage.text('selected') : GameLanguage.text('themeLocked'));
         this.tabs.forEach((node, index) => { node.active = index === (this.browsing === 1 ? 1 : 0) || index === (this.browsing === 2 ? 3 : 2); });
         this.icons.forEach((icon, index) => {
             icon.spriteFrame = this.frames[(this.browsing - 1) * 30 + index];

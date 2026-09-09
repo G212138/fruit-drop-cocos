@@ -1,0 +1,40 @@
+import { _decorator, Component, Label, Node } from 'cc';
+import { GameLanguage } from '../../../../../../../app-builtin/app-model/expansion/GameLanguage';
+import { LanguageChoice, languageNames } from '../../../../../../../app-builtin/app-model/expansion/LanguageCatalog';
+const { ccclass, property } = _decorator;
+
+/** 设置内的语言选择器；选项节点与事件完全由预制体提供。 */
+@ccclass('LanguagePicker')
+export class LanguagePicker extends Component {
+    /** 当前语言显示标签，预留长语言名宽度。 */
+    @property(Label) currentLabel: Label = null!;
+    /** 语言选项面板，默认隐藏。 */
+    @property(Node) optionsRoot: Node = null!;
+    /** 保存失败提示，不伪装已持久化。 */
+    @property(Label) warningLabel: Label = null!;
+    /** 语言事件的稳定回调。 */
+    private readonly languageChanged = (): void => this.refresh();
+    /** 每次打开设置时重置选项列表并刷新当前选择。 */
+    onEnable(): void {
+        this.optionsRoot.active = false;
+        this.warningLabel.string = '';
+        this.refresh();
+        GameLanguage.subscribe(this.languageChanged);
+    }
+    /** 隐藏设置后解除监听。 */
+    onDisable(): void { GameLanguage.unsubscribe(this.languageChanged); }
+    /** 打开或收起预制体中的选项列表。 */
+    toggle(): void { this.optionsRoot.active = !this.optionsRoot.active; }
+    /** @param event 编辑器按钮事件。 @param code 编辑器绑定的稳定语言代码。 */
+    choose(event: unknown, code: string): void {
+        const saved = GameLanguage.select(code as LanguageChoice);
+        this.optionsRoot.active = false;
+        this.warningLabel.string = saved ? '' : GameLanguage.text('saveError');
+    }
+    /** 刷新当前偏好；系统选项同时显示实际解析出的语言。 */
+    private refresh(): void {
+        this.currentLabel.string = GameLanguage.choice === 'system'
+            ? GameLanguage.text('system') + ' · ' + languageNames[GameLanguage.current]
+            : languageNames[GameLanguage.current];
+    }
+}
