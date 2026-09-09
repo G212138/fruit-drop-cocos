@@ -1,4 +1,4 @@
-import { sp, Node, UIOpacity, _decorator, tween } from 'cc';
+import { assetManager, sp, Node, UIOpacity, _decorator, tween } from 'cc';
 import BaseAppInit from '../../../extensions/app/assets/base/BaseAppInit';
 /** 启动包只访问宿主已有接口，不能静态引用尚未下载的业务分包。 */
 declare const TTMinis: { game?: {
@@ -16,11 +16,41 @@ export class AppInit extends BaseAppInit {
     @property(Node)
     private logo: Node;
 
+    /** 首页、游戏页跨包引用的资源包；只注册资源目录，不提前实例化页面。 */
+    private readonly sharedResourceBundles = ['page-game-res', 'page-home-res', 'pop-result-res'];
+
+    /** 待注册的共享资源包索引；全部完成后才放行默认首页。 */
+    private sharedResourceIndex = 0;
+
     /**
     * 获得用户资源总量，这里返回几，就需要用户自行调用几次nextInit
     */
     protected getUserAssetNum(): number {
-        return 1;
+        return 2;
+    }
+
+    /** 框架业务脚本注册完毕后，补齐默认页面和游戏页面的跨包资源依赖。 */
+    protected onUserInit(): void {
+        this.loadNextSharedResourceBundle();
+    }
+
+    /** 依次注册共享资源包；失败保留启动界面，并按 1 秒间隔重试当前包。 */
+    private loadNextSharedResourceBundle(): void {
+        if (this.sharedResourceIndex >= this.sharedResourceBundles.length) {
+            this.nextInit();
+            return;
+        }
+        const bundleName = this.sharedResourceBundles[this.sharedResourceIndex];
+        assetManager.loadBundle(bundleName, (error) => {
+            if (!this.isValid) return;
+            if (error) {
+                console.warn(`[AppInit] 共享资源包 ${bundleName} 加载失败，1 秒后重试`, error);
+                this.scheduleOnce(() => this.loadNextSharedResourceBundle(), 1);
+                return;
+            }
+            this.sharedResourceIndex += 1;
+            this.loadNextSharedResourceBundle();
+        });
     }
 
     /** 播放启动标志淡入淡出，并通知框架资源准备完成。 */
