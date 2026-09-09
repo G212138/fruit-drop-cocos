@@ -12,7 +12,7 @@ export class GameHaptics {
     static get supported(): boolean {
         return !!this.adapter || (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function');
     }
-    /** 首次落地或启用设置时短震；适配值20毫秒、最短间隔100毫秒，减少密集落地的连续干扰。 */
+    /** 有效点击、配对消除、首次落地或启用设置时短震；适配值20毫秒、最短间隔100毫秒，限制密集反馈。 */
     static impact(): boolean {
         if (!GameSettings.current.snapshot.vibrate || !this.supported) return false;
         const now = Date.now();

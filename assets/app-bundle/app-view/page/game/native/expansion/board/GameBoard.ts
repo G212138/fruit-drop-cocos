@@ -1,4 +1,5 @@
 import { BoardPropFlow } from '../props/BoardPropFlow';
+import { GameHaptics } from '../../../../../../../app-builtin/app-controller/expansion/GameHaptics';
 import { PropKind } from '../props/PropRules';
 import { _decorator, Component, PhysicsSystem2D, Vec2, Vec3, Node, RigidBody2D, UITransform } from 'cc';
 import { EntryFlow } from '../movement/EntryFlow';
@@ -207,12 +208,14 @@ export class GameBoard extends Component {
     /**
      * 只有正在进行的棋盘允许下落。
      * @param fruit 本次操作的水果实例。
+     * @param userTriggered 是否由玩家点击触发；自动下落传 false，不播放点击震动。
      */
-    private release(fruit: FruitItem): void {
+    private release(fruit: FruitItem, userTriggered = true): void {
         if (this.playing && !this.levelHint?.busy && !this.entry.busy && !this.shift.busy && !this.props.busy && fruit.waiting && !fruit.spawning && fruit.iceLayers === 0) {
             this.guideDismissed = true;
             this.spawner.releaseBlackHole(fruit);
             fruit.drop();
+            if (userTriggered) GameHaptics.impact();
             if (this.mode === 2) this.horizontal.afterDrop(this.spawner.getWaiting(), this.rightLine);
             else this.shiftGate.request(fruit.node.uuid);
         }
@@ -254,7 +257,7 @@ export class GameBoard extends Component {
             this.initialShiftPending = false;
             this.shift.begin(this.spawner.getWaiting(), this.fruitDisplayTop - 60);
         }
-        if (this.mode === 2) this.horizontal.tick(dt, this.spawner.getLive(), this.spawner.getWaiting(), this.rightLine, fruit => this.release(fruit));
+        if (this.mode === 2) this.horizontal.tick(dt, this.spawner.getLive(), this.spawner.getWaiting(), this.rightLine, fruit => this.release(fruit, false));
         if (this.props.busy) return;
         this.spawner.updateBlackHoles(dt);
         this.resolveMatches();
@@ -285,6 +288,7 @@ export class GameBoard extends Component {
         for (const [first, second] of this.matches.drain()) {
             if (!this.playing) break;
             this.removePair(first, second, false);
+            GameHaptics.impact();
         }
     }
 
