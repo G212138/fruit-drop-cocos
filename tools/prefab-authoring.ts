@@ -95,6 +95,46 @@ function wall(name, parent, x, y, width, height, angle = 0) {
 }
 
 const methods = {
+    /** 按确认稿重建首页静态节点，内嵌面板和业务入口保持原绑定。 */
+    async redesignHome() {
+        const url=base+'page/home/native/PageHome.prefab';
+        const root=cc.instantiate(await asset(url));
+        cce.Prefab.removePrefabInfoFromNode(root,false);
+        const home=root.getComponent('PageHome');
+        for(const child of [...root.children]) {
+            if(child===home.themePanel.node || child===home.settingsPanel.node) continue;
+            child.removeFromParent();child.destroy();
+        }
+        const art=base+'page/home/resources/redesign/';
+        await sprite('Background',root,art+'background.png',750,1625);
+        await sprite('Title',root,art+'title.png',730,365,0,405);
+        const start=await button('StartButton',root,art+'play.png','',-515,root,'PageHome','startGame');
+        start.getComponent(cc.UITransform).setContentSize(570,219);
+        const theme=await button('ThemeButton',root,art+'themes.png','',-270,root,'PageHome','openTheme');
+        theme.getComponent(cc.UITransform).setContentSize(180,180);theme.setPosition(275,-270);
+        const settings=await button('SettingsButton',root,base+'page/home/resources/original/settings.png','',635,root,'PageHome','openSettings');
+        settings.getComponent(cc.UITransform).setContentSize(65,65);settings.setPosition(-300,635);
+        const text=(name,parent,value,size,y,width,height)=>{
+            const valueLabel=label(name,parent,value,size,y,width);
+            valueLabel.node.getComponent(cc.UITransform).setContentSize(width,height);
+            valueLabel.color=cc.Color.WHITE;valueLabel.isBold=true;
+            valueLabel.overflow=cc.Label.Overflow.SHRINK;valueLabel.enableWrapText=false;
+            const outline=valueLabel.node.addComponent(cc.LabelOutline);
+            outline.color=new cc.Color(40,100,60,255);outline.width=2;
+            return valueLabel;
+        };
+        home.playLabel=text('PlayLabel',start,'PLAY',62,25,420,78);
+        home.levelLabel=text('LevelLabel',start,'Level 1',32,-38,400,48);
+        home.themesLabel=text('ThemesLabel',theme,'THEMES',26,-57,150,40);
+        home.editorLabel=label('EditorButton',root,'Level Editor',18,-650,300);
+        home.editorLabel.overflow=cc.Label.Overflow.SHRINK;
+        const editorButton=home.editorLabel.node.addComponent(cc.Button);
+        const event=new cc.EventHandler();event.target=root;event.component='PageHome';event.handler='openEditor';editorButton.clickEvents=[event];
+        home.languageOverride='';
+        home.themePanel.node.setSiblingIndex(root.children.length-1);
+        home.settingsPanel.node.setSiblingIndex(root.children.length-1);
+        return save(root,url);
+    },
     /** 隐藏机制提示在两种主题下使用原版各自文字图片。 */
     async bindDessertHint() {
         const url=base+'page/game/resources/prefabs/LevelHintView.prefab';const root=cc.instantiate(await asset(url));
