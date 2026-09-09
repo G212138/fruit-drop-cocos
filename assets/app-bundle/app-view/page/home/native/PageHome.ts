@@ -1,5 +1,6 @@
 import { GameLanguage } from '../../../../../app-builtin/app-model/expansion/GameLanguage';
 import { ScreenLayout } from '../../../../../app-builtin/app-controller/expansion/ScreenLayout';
+import { TikTokStartup } from '../../../../../app-builtin/app-controller/expansion/TikTokStartup';
 import { _decorator, Prefab, JsonAsset, Node, Label } from 'cc';
 import { DEV } from 'cc/env';
 import { ThemePanel } from './expansion/ThemePanel';
@@ -39,6 +40,7 @@ export class PageHome extends BaseView {
 
     /** 首页出现后提前加载游戏及入场必需资源，不显示页面、不启动关卡。 */
     onShow(): void {
+        TikTokStartup.enter();
         // XForge 隐藏模式 2：缓存页面，防止卸载分包破坏共享图片；退出仍执行 onHide 清理。
         this.hideEvent = 2;
         GameTheme.refresh();

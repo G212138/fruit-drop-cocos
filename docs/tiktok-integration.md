@@ -7,7 +7,7 @@
 - 消除与刷新广告位分别使用 `ad7683069395916933127`、`ad7683068205057099783`。公开 Client Key 为 `mg1swkarpsswyb0z`。
 - `TikTokRewardProvider` 每次创建新广告实例，只接受关闭回调 `isEnded === true`；展示 Promise 完成不发奖。取消、异常、缺少广告位与超时不发奖；解除监听并防重复结算。
 - `RewardGate` 保留请求编号、用途、来源和页面代次检查。TikTok 内不走开发广告模拟；复活、扩容暂无广告位，返回不可用。
-- `TikTokLifecycle` 连接宿主前后台、广告暂停、原生短震和加载进度。后台与广告两种暂停分别记录，避免广告结束但游戏仍在后台时恢复主循环。
+- `TikTokLifecycle` 连接宿主前后台、广告暂停与原生短震。后台与广告两种暂停分别记录，避免广告结束但游戏仍在后台时恢复主循环。`AppInit` 仅直接上报宿主加载进度，禁止静态引用业务分包；`TikTokStartup` 在首页/游戏页面进入时连接业务能力。
 - `PlatformStorage` 接管语言、设置、关卡、主题、道具的本地存档；保持原存档键。原生存储失败不能回退到另一份浏览器存档。这不是云存档。
 - `TikTokLogin` 负责合并登录、取一次性 code、后端交换、校验会话有效期。`TikTokLoginBackend` 只向自有 HTTPS 地址发送 code/Client Key。服务器地址未配置时保持游客，不假装登录成功。
 - `PageHome` 内嵌 `TikTokRevisitView`：桌面快捷方式、个人主页回访及返回后查询。用户主动点击才启动导航；能力不支持时隐藏按钮。八种语言与系统/手动语言设置一致。
@@ -47,11 +47,18 @@
 
 ## 验证
 
+- `node tools/test-tiktok-startup.cjs`：在所有业务分包均不可用的条件下实例化 AppInit，防止再次引入 Native 冷启动模块缺失问题。
 - `node tools/test-tiktok-rewards.cjs`：广告位分流、展示不发奖、取消、失败、空关闭结果、重复回调、监听清理、跨局失效。
 - `node tools/test-tiktok-platform.cjs`：缺后端、登录合并、会话有效期、后端失败、任务资格、本地存储分流、幂等奖励、后台/广告暂停。
 - 原有广告门禁、道具库存、复活控制器、语言、首页预加载与音频测试通过；预制体引用检查通过。
 - 项目 assets TypeScript 检查无错误；工程已有 extensions 类型错误不属于此阶段改动。
 - 普通浏览器首页进入第 2 关正常，控制台无新增 error。
+
+## 真机启动问题修复
+
+用户首轮真机反馈 `Unable to instantiate chunks:///_virtual/TikTokLifecycle.ts from chunks:///_virtual/AppInit.ts`。原因是启动包静态依赖尚未加载的 `app-controller` 分包；浏览器预览提前注册脚本，未暴露这一问题。
+
+已删除 AppInit 对 TikTok 业务模块的静态依赖，改为业务分包加载完成后的页面入口调用。用户负责后续真机构建与验证；修复后仅检查源码及本地测试，未自动重建或改动旧 `build` 代码包。
 
 ## 未完成的上线条件
 

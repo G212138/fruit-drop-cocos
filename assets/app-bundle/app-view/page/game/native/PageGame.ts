@@ -13,6 +13,7 @@ import { DEV } from 'cc/env';
 import { RewardGate } from '../../../../../app-builtin/app-model/expansion/RewardGate';
 import { getTikTokGame } from '../../../../../app-builtin/app-model/expansion/platform/TikTokRuntime';
 import { TikTokRewardProvider } from '../../../../../app-builtin/app-model/expansion/platform/TikTokRewardProvider';
+import { TikTokStartup } from '../../../../../app-builtin/app-controller/expansion/TikTokStartup';
 import { DevelopmentRewardPanel } from './expansion/reward/DevelopmentRewardPanel';
 import { _decorator, Node, Prefab, JsonAsset, instantiate, isValid } from 'cc';
 import BaseView from 'db://app/base/BaseView';
@@ -132,6 +133,7 @@ export class PageGame extends BaseView.BindController(GameController) {
      * @param data 页面传入的关卡或结算参数；未传关卡时读取存档。
      */
     onShow(data?: { level?: number }): void {
+        TikTokStartup.enter();
         // XForge 隐藏模式 2：缓存页面，防止卸载分包破坏共享图片；退出仍执行 onHide 清理。
         this.hideEvent = 2;
         GameTheme.refresh();
