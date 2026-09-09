@@ -27,7 +27,7 @@ export class BlackHoleFlow {
 
     /** 所有尚未创建的成员数量，必须计入关卡剩余量。 */
     get pendingCount(): number {
-        return [...this.groups.values()].reduce((total, group) => total + group.pending.length, 0);
+        return Array.from(this.groups.values()).reduce((total, group) => total + group.pending.length, 0);
     }
 
     /** @param host 已生成宿主。 @param members 排序前的完整成员。 @param prefab 编辑器制作的黑洞表现。 @param parent 与水果共用坐标系的容器。 */
@@ -123,7 +123,7 @@ export class BlackHoleFlow {
 
     /** 返回当前黑洞显示中心的纵坐标，供扁平棋盘的复活抬升计算。 */
     getCenterYs(): number[] {
-        return [...this.groups.values()].map(group => group.view.node.position.y);
+        return Array.from(this.groups.values()).map(group => group.view.node.position.y);
     }
 
     /** 清除本局表现与生成状态，重开时重新启用。 */

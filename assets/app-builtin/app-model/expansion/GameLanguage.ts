@@ -34,7 +34,7 @@ export class GameLanguage {
         this.selected = choice;
         let saved = true;
         try { PlatformStorage.setItem(this.storageKey, choice); } catch { saved = false; }
-        for (const refresh of [...this.listeners]) refresh();
+        for (const refresh of Array.from(this.listeners)) refresh();
         return saved;
     }
     /** @param refresh 订阅者稳定的回调引用。 */

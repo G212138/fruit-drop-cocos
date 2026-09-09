@@ -47,6 +47,8 @@ const {BoardEvents}=load(base+'/board/BoardEvents.ts');
 /** 构造真实组件和独立遮罩，保留生产事件绑定逻辑。 */
 function fixture(dynamic){
     const fruit=new FruitItem();fruit.node=new Signal();fruit.collider=new Signal();
+    // 触地反馈需要世界坐标；补齐已有测试替身，不替换生产碰撞逻辑。
+    fruit.node.worldPosition={clone(){return {x:0,y:0,z:0};}};
     fruit.body={type:dynamic?2:0,wakeUp(){this.awakened=true;}};fruit.visual={playRemoval(){},clearWarning(){}};
     const cover=new HiddenFruitView();cover.node=new Signal();cover.node.parent=fruit.node;
     fruit.onLoad();cover.onLoad();cover.onEnable();

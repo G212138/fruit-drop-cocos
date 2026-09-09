@@ -113,17 +113,17 @@ export class FruitSpawner extends Component {
 
     /** @param dt 当前帧时长，单位秒；更新黑洞表现及出现碰撞保护。 */
     updateBlackHoles(dt: number): void {
-        this.blackHoles.tick(dt, [...this.live]);
+        this.blackHoles.tick(dt, Array.from(this.live));
     }
 
     /** 获取仍未点击的存活水果，已下落水果不跟随补位。 */
     getWaiting(): FruitItem[] {
-        return [...this.live].filter(fruit => fruit.waiting);
+        return Array.from(this.live).filter(fruit => fruit.waiting);
     }
 
     /** 返回所有未消除的在场水果，供横向补位计算最左边界。 */
     getLive(): FruitItem[] {
-        return [...this.live];
+        return Array.from(this.live);
     }
 
     /** @param fruit 当前存活实例；返回原配置副本，防止调用方改变工厂记录。 */

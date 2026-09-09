@@ -81,7 +81,7 @@ export function parseLevel(value: unknown, number = 1): LevelDefinition {
         if (sequences.has(key)) throw new Error('黑洞成员顺序重复');
         sequences.add(key);
     }
-    if ([...counts.values()].some(count => count % 2)) throw new Error('同类水果数量必须成对');
+    if (Array.from(counts.values()).some(count => count % 2)) throw new Error('同类水果数量必须成对');
     return { number, mode: source.m, fruits };
 }
 
