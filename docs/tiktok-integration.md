@@ -68,6 +68,14 @@
 
 本地启动测试覆盖资源就绪前不放行、失败重试、全部完成后放行，并通过首页预热和预制体引用检查。本次仅修改源码，没有重新构建或修改现有 Native 代码包；真机效果待用户重新构建验证。
 
+### 首页脚本类未注册修复
+
+后续真机反馈仍有 Error 5302。该错误在 Cocos 3.8.8 中表示找不到脚本类，不是图片缺失。逐一比对脚本 meta 后，截图中的 ID 对应 HomeLogoMotion、TikTokRevisitView、ThemePanel、SettingsToggleView、LanguagePicker、SettingsPanel 和 PageHome。
+
+实际代码包依赖链为 `page-home → page-game → pop-result`：首页引用游戏包中的 SettingsPanel，PageGame 又引用 PopResult。上一轮只加载三个资源包，未覆盖这条脚本依赖链。现保持资源包在前，再依次注册 `pop-result`、`page-game`，全部成功后才允许 XForge 打开默认首页。没有修改框架核心、预制体结构或用户编辑内容。
+
+启动回归测试新增实际源码运行时 import 扫描，验证依赖包必须排在使用方之前；同时覆盖加载失败重试及未就绪不放行。启动与首页预热测试通过，业务代码类型检查无错误。未执行真机构建，现有构建产物未改动，仍需用户重新构建验证。
+
 ## 未完成的上线条件
 
 - HTTPS 登录服务、服务端身份落库与跨设备存档/奖励去重。

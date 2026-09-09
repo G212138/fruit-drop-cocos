@@ -1,6 +1,40 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const path = require('node:path');
 const ts = require('C:/ProgramData/cocos/editors/Creator/3.8.8/resources/app.asar.unpacked/node_modules/typescript');
+/** 从实际源码提取页面间的运行时依赖，防止测试只重复启动列表而漏掉间接依赖。 */
+function checkPageDependencies(order) {
+    const roots = {
+        'page-home': 'assets/app-bundle/app-view/page/home/native',
+        'page-game': 'assets/app-bundle/app-view/page/game/native',
+        'pop-result': 'assets/app-bundle/app-view/pop/result/native',
+    };
+    const observed = new Set();
+    /** 遍历本包脚本；转译后 require 不包含纯类型引用。 */
+    function scan(folder, owner) {
+        for (const entry of fs.readdirSync(folder, { withFileTypes: true })) {
+            const file = path.join(folder, entry.name);
+            if (entry.isDirectory()) { scan(file, owner); continue; }
+            if (!file.endsWith('.ts') || file.endsWith('.d.ts')) continue;
+            const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), {
+                compilerOptions: { module: ts.ModuleKind.CommonJS, experimentalDecorators: true },
+            }).outputText;
+            for (const match of code.matchAll(/require\(["']([^"']+)["']\)/g)) {
+                if (!match[1].startsWith('.')) continue;
+                const target = path.resolve(path.dirname(file), match[1]);
+                for (const [dependency, root] of Object.entries(roots)) {
+                    if (dependency === owner || !target.startsWith(path.resolve(root) + path.sep)) continue;
+                    observed.add(owner + '->' + dependency);
+                    assert.ok(order.indexOf(dependency) >= 0 && order.indexOf(dependency) < order.indexOf(owner),
+                        `${owner} 的脚本依赖 ${dependency} 必须先注册：${file}`);
+                }
+            }
+        }
+    }
+    for (const [owner, root] of Object.entries(roots)) scan(root, owner);
+    assert.ok(observed.has('page-home->page-game'));
+    assert.ok(observed.has('page-game->pop-result'));
+}
 /** 独立实例化启动脚本，不提供任何业务分包；复现 Native 冷启动的模块边界。 */
 function instantiate(host) {
     const exports = {};
@@ -20,6 +54,7 @@ function instantiate(host) {
         throw new Error('启动包不能静态加载业务分包：' + name);
     }, exports, host);
     const init = new exports.AppInit();
+    if (!host) checkPageDependencies([...init.startupBundles, 'page-home']);
     init.isValid = true;
     init.nextInit = () => completed++;
     init.scheduleOnce = (callback, seconds) => { assert.equal(seconds, 1); retries.push(callback); };
@@ -42,13 +77,13 @@ function instantiate(host) {
     assert.equal(pending.length, 0);
     assert.equal(retries.length, 1);
     retries.shift()();
-    for (const expected of ['page-game-res', 'page-home-res', 'pop-result-res']) {
+    for (const expected of ['page-game-res', 'page-home-res', 'pop-result-res', 'pop-result', 'page-game']) {
         const request = pending.shift();
         assert.equal(request.name, expected);
         assert.equal(completed, 1);
         request.callback(null);
     }
-    assert.equal(completed, 2, '全部共享资源就绪后完成第二个初始化任务');
+    assert.equal(completed, 2, '资源和跨包脚本全部注册后才能完成第二个初始化任务');
     assert.equal(pending.length, 0);
     init.onFinish();
 }

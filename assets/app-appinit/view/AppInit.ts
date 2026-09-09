@@ -16,11 +16,11 @@ export class AppInit extends BaseAppInit {
     @property(Node)
     private logo: Node;
 
-    /** 首页、游戏页跨包引用的资源包；只注册资源目录，不提前实例化页面。 */
-    private readonly sharedResourceBundles = ['page-game-res', 'page-home-res', 'pop-result-res'];
+    /** 首页依赖顺序：资源目录、结算脚本、游戏及设置脚本；只注册分包，不实例化页面。 */
+    private readonly startupBundles = ['page-game-res', 'page-home-res', 'pop-result-res', 'pop-result', 'page-game'];
 
-    /** 待注册的共享资源包索引；全部完成后才放行默认首页。 */
-    private sharedResourceIndex = 0;
+    /** 待注册的启动依赖包索引；全部完成后才放行默认首页。 */
+    private startupBundleIndex = 0;
 
     /**
     * 获得用户资源总量，这里返回几，就需要用户自行调用几次nextInit
@@ -29,27 +29,27 @@ export class AppInit extends BaseAppInit {
         return 2;
     }
 
-    /** 框架业务脚本注册完毕后，补齐默认页面和游戏页面的跨包资源依赖。 */
+    /** 框架业务脚本注册完毕后，按依赖顺序注册默认页面所需的资源包和代码包。 */
     protected onUserInit(): void {
-        this.loadNextSharedResourceBundle();
+        this.loadNextStartupBundle();
     }
 
-    /** 依次注册共享资源包；失败保留启动界面，并按 1 秒间隔重试当前包。 */
-    private loadNextSharedResourceBundle(): void {
-        if (this.sharedResourceIndex >= this.sharedResourceBundles.length) {
+    /** 依次注册启动依赖包；失败保留启动界面，并按 1 秒间隔重试当前包。 */
+    private loadNextStartupBundle(): void {
+        if (this.startupBundleIndex >= this.startupBundles.length) {
             this.nextInit();
             return;
         }
-        const bundleName = this.sharedResourceBundles[this.sharedResourceIndex];
+        const bundleName = this.startupBundles[this.startupBundleIndex];
         assetManager.loadBundle(bundleName, (error) => {
             if (!this.isValid) return;
             if (error) {
-                console.warn(`[AppInit] 共享资源包 ${bundleName} 加载失败，1 秒后重试`, error);
-                this.scheduleOnce(() => this.loadNextSharedResourceBundle(), 1);
+                console.warn(`[AppInit] 启动依赖包 ${bundleName} 加载失败，1 秒后重试`, error);
+                this.scheduleOnce(() => this.loadNextStartupBundle(), 1);
                 return;
             }
-            this.sharedResourceIndex += 1;
-            this.loadNextSharedResourceBundle();
+            this.startupBundleIndex += 1;
+            this.loadNextStartupBundle();
         });
     }
 
