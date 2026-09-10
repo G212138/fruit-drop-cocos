@@ -1,95 +1,165 @@
-import { ERigidBody2DType, isValid, Node, Vec2, Vec3 } from 'cc';
+import { ERigidBody2DType, isValid, Node, RigidBody2D, Vec2, Vec3 } from 'cc';
 import { FruitItem } from '../fruit/FruitItem';
+import { PIXELS_PER_PHYSICS_METER } from './PhysicsRules';
 
-/** 水果群摇晃适配参数；像素为设计坐标，物理加速度为米/秒²。 */
+/** 容器摇晃适配参数，并非原版配置。 */
 export const SHAKE_RULES = {
-    /** 两次开始至少间隔 3 秒，不叠加摇晃。 */
+    /** 两次开始间隔 3 秒，避免连续触发。 */
     cooldown: 3,
-    /** 一次摇晃持续 0.8 秒。 */
-    duration: 0.8,
-    /** 一次左右往返 3 周，所有水果保持同相位。 */
-    cycles: 3,
-    /** 最大水平位移 24 设计像素。 */
-    horizontalPixels: 24,
-    /** 最大竖向颠动 7 设计像素。 */
-    verticalPixels: 7,
-    /** 动态水果的水平晃动加速度 8 米/秒²。 */
-    acceleration: 8,
+    /** 往返过程 1 秒，首尾位移与速度均为零。 */
+    duration: 1,
+    /** 左右往返 2 周，提高此值会增大碰撞速度。 */
+    cycles: 2,
+    /** 水平位移包络上限 18 个世界像素。 */
+    amplitude: 18,
+    /** 背景横向临时扩宽 8%，覆盖摇晃露出的边缘。 */
+    backgroundScale: 1.08,
 };
 
-/** 同步晃动已有显示节点并推动动态水果，刚体父节点保持稳定。 */
+/** 随容器移动的刚体，保存原始位置和类型供结束恢复。 */
+interface FixedBody {
+    /** 既有刚体，不创建新组件。 */
+    body: RigidBody2D;
+    /** 开始前世界坐标，单位像素。 */
+    origin: Vec3;
+    /** 原始静态刚体类型。 */
+    type: ERigidBody2DType;
+}
+
+/** 没有刚体的场地表现；与容器同步，不涉及 HUD。 */
+interface Scenery {
+    /** 已序列化的场地节点。 */
+    node: Node;
+    /** 原始世界坐标，单位像素。 */
+    origin: Vec3;
+    /** 原始缩放，结束时还原。 */
+    scale: Vec3;
+}
+
+/** 用运动学容器推动动态水果；自由水果的位置和速度由物理引擎决定。 */
 export class FruitShake {
-    /** 最近开始时间，单位秒。 */
+    /** 上次开始的本局时间，单位秒。 */
     private previous = -Infinity;
-    /** 当前动画已运行秒数。 */
-    private elapsed = SHAKE_RULES.duration;
-    /** 显示节点原始局部位置，结束和中断时恢复。 */
-    private readonly origins = new Map<Node, Vec3>();
+    /** 已运行时间，单位秒。 */
+    private elapsed = Infinity;
+    /** 地形、锁墙以及未点击水果的固定刚体。 */
+    private readonly fixed = new Map<RigidBody2D, FixedBody>();
+    /** 参与本次运动的固定水果，用于屏蔽悬停水果的业务接触。 */
+    private readonly held = new Set<FruitItem>();
+    /** 背景与袋子等场地表现。 */
+    private readonly scenery: Scenery[] = [];
 
-    /** 当前是否正在摇晃。 */
-    get busy(): boolean { return this.elapsed < SHAKE_RULES.duration; }
-
-    /** 停止并复位，保留冷却。 */
-    stop(): void {
-        for (const [node, position] of this.origins) {
-            if (isValid(node, true)) node.setPosition(position);
-        }
-        this.origins.clear();
-        this.elapsed = SHAKE_RULES.duration;
+    /** 是否仍在推动容器；最后一帧回位后才解除门禁。 */
+    get busy(): boolean {
+        return this.elapsed !== Infinity;
     }
 
-    /** 清局重置位置、动画和冷却。 */
+    /** 恢复固定部分；不重置任何自由水果的位置、速度或重力。 */
+    stop(): void {
+        for (const state of this.fixed.values()) {
+            if (!isValid(state.body, true) || !isValid(state.body.node, true)) continue;
+            state.body.linearVelocity = new Vec2();
+            state.body.node.setWorldPosition(state.origin);
+            state.body.type = state.type;
+        }
+        for (const fruit of this.held) fruit.shakingSuspended = false;
+        for (const state of this.scenery) {
+            if (!isValid(state.node, true)) continue;
+            state.node.setWorldPosition(state.origin);
+            state.node.setScale(state.scale);
+        }
+        this.fixed.clear();
+        this.held.clear();
+        this.scenery.length = 0;
+        this.elapsed = Infinity;
+    }
+
+    /** 重开或退出时清理运动和冷却。 */
     reset(): void {
         this.stop();
         this.previous = -Infinity;
     }
 
-    /** @param fruits 单体快照，悬停水果也参与。 @param now 本局运行秒数。 @returns 参与显示的水果数。 */
-    apply(fruits: FruitItem[], now: number): number {
+    /**
+     * 开始一次容器运动，不向自由水果施加人为随机推力。
+     * @param fruits 当前水果快照。
+     * @param now 本局时间，单位秒。
+     * @param board 已有棋盘节点，提供地形刚体和背景。
+     */
+    apply(fruits: FruitItem[], now: number, board: Node): number {
         if (!Number.isFinite(now) || this.busy || now - this.previous < SHAKE_RULES.cooldown) return 0;
-        for (const fruit of fruits) {
-            const node = fruit.visual?.node;
-            if (fruit.removing || fruit.spawning || !isValid(node, true)) continue;
-            this.origins.set(node, node.position.clone());
+        const live = fruits.filter(fruit => isValid(fruit.node, true) && !fruit.removing && !fruit.spawning);
+        if (!live.length) return 0;
+        // 仅绑定固定部分；动态水果始终保留正常重力和碰撞响应。
+        for (const body of board.getComponentsInChildren(RigidBody2D)) {
+            if (!body.enabled || !body.node.activeInHierarchy || body.type !== ERigidBody2DType.Static) continue;
+            const fruit = fruits.find(item => item.body === body);
+            if (fruit && (live.indexOf(fruit) < 0 || !fruit.waiting)) continue;
+            this.fixed.set(body, { body, origin: body.node.worldPosition.clone(), type: body.type });
+            body.type = ERigidBody2DType.Kinematic;
+            body.linearVelocity = new Vec2();
+            if (fruit) {
+                fruit.shakingSuspended = true;
+                this.held.add(fruit);
+            }
         }
-        if (!this.origins.size) return 0;
+        for (const name of ['Background', 'RemovalEffects', 'RightLine']) {
+            const node = board.getChildByName(name);
+            if (!node) continue;
+            this.scenery.push({ node, origin: node.worldPosition.clone(), scale: node.scale.clone() });
+        }
         this.elapsed = 0;
         this.previous = now;
-        return this.origins.size;
+        return live.length;
     }
 
-    /** @param fruit 即将消除的水果；先移除摇晃偏移再计算特效位置。 */
+    /** @param fruit 点击释放或消除的水果，保留当前世界位置再交还业务流程。 */
     release(fruit: FruitItem): void {
-        const node = fruit.visual?.node;
-        const position = this.origins.get(node);
-        if (position && isValid(node, true)) node.setPosition(position);
-        this.origins.delete(node);
+        const state = this.fixed.get(fruit.body);
+        if (state && isValid(fruit.body, true)) {
+            fruit.body.linearVelocity = new Vec2();
+            fruit.body.type = state.type;
+        }
+        this.fixed.delete(fruit.body);
+        this.held.delete(fruit);
+        fruit.shakingSuspended = false;
     }
 
-    /** @param fruits 当前存活单体。 @param dt 帧间隔，单位秒。 */
+    /**
+     * 通过刚体速度驱动碰撞体，不直接平移水果父节点。
+     * @param fruits 当前存活水果，用于处理消除和回收。
+     * @param dt 当前帧间隔，单位秒。
+     */
     tick(fruits: FruitItem[], dt: number): void {
         if (!this.busy || !Number.isFinite(dt) || dt <= 0) return;
-        this.elapsed = Math.min(SHAKE_RULES.duration, this.elapsed + dt);
-        if (!this.busy) { this.stop(); return; }
-        const progress = this.elapsed / SHAKE_RULES.duration;
-        const phase = progress * Math.PI * 2 * SHAKE_RULES.cycles;
-        // 平滑首尾，所有水果用同一偏移，形成整群摇摆的观感。
-        const envelope = Math.sin(progress * Math.PI);
-        const horizontal = Math.sin(phase) * envelope;
-        const vertical = Math.sin(phase * 2) * envelope;
-        for (const [node, position] of this.origins) {
-            if (!isValid(node, true)) { this.origins.delete(node); continue; }
-            node.setPosition(position.x + horizontal * SHAKE_RULES.horizontalPixels,
-                position.y + vertical * SHAKE_RULES.verticalPixels, position.z);
+        for (const fruit of this.held) {
+            if (fruits.indexOf(fruit) < 0 || fruit.removing || !fruit.waiting) this.release(fruit);
         }
-        for (const fruit of fruits) {
-            if (fruit.waiting || fruit.removing || fruit.spawning || fruit.iceLayers > 0) continue;
-            const body = fruit.body;
-            if (!body?.enabled || body.type !== ERigidBody2DType.Dynamic) continue;
-            const mass = body.getMass();
-            if (!Number.isFinite(mass) || mass <= 0) continue;
-            // 质量乘加速度和时间为冲量；最多积算 0.05 秒，避免卡帧猛推。
-            body.applyLinearImpulseToCenter(new Vec2(mass * horizontal * SHAKE_RULES.acceleration * Math.min(dt, 0.05), 0), true);
+        // 表现跟随本次物理步实际完成的容器位移，避免与碰撞体领先一帧。
+        const reference = Array.from(this.fixed.values()).find(state => isValid(state.body, true) && state.body.enabled);
+        const actual = reference ? reference.body.node.worldPosition.x - reference.origin.x : 0;
+        for (const state of this.scenery) {
+            if (!isValid(state.node, true)) continue;
+            state.node.setWorldPosition(state.origin.x + actual, state.origin.y, state.origin.z);
+            if (state.node.name === 'Background') {
+                const envelope = Math.sin(Math.min(1, this.elapsed / SHAKE_RULES.duration) * Math.PI) ** 2;
+                state.node.setScale(state.scale.x * (1 + (SHAKE_RULES.backgroundScale - 1) * envelope), state.scale.y, state.scale.z);
+            }
+        }
+        if (this.elapsed >= SHAKE_RULES.duration) {
+            this.stop();
+            return;
+        }
+        this.elapsed = Math.min(SHAKE_RULES.duration, this.elapsed + dt);
+        const progress = this.elapsed / SHAKE_RULES.duration;
+        const offset = SHAKE_RULES.amplitude * Math.sin(progress * Math.PI) ** 2
+            * Math.sin(progress * Math.PI * 2 * SHAKE_RULES.cycles);
+        for (const state of this.fixed.values()) {
+            const body = state.body;
+            if (!isValid(body, true) || !body.enabled) continue;
+            const position = body.node.worldPosition;
+            body.linearVelocity = new Vec2((state.origin.x + offset - position.x) / (PIXELS_PER_PHYSICS_METER * dt), 0);
+            body.wakeUp();
         }
     }
 }

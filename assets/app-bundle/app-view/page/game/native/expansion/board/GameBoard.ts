@@ -37,7 +37,7 @@ export class GameBoard extends Component {
     lockWallRoot: Node = null!;
     /** 当前局是否可以发起扩槽；提示和入场期间不接收请求。 */
     get canExpand(): boolean {
-        return this.playing && !this.levelHint?.busy && !this.entry.busy
+        return this.playing && !this.levelHint?.busy && !this.entry.busy && !this.shake.busy
             && !!this.lockWallRoot && !this.lockWallRoot.getComponent(LockWallView)!.unlocked;
     }
     /** 原版普通槽四个判负，扩槽后五个判负，单位个。 */
@@ -105,7 +105,7 @@ export class GameBoard extends Component {
     private readonly shift = new FruitShift();
     /** 道具独立实例流程。 */
     private readonly props = new BoardPropFlow();
-    /** 当前局水果群同步摇摆及动态单体物理反馈。 */
+    /** 场地容器运动与真实碰撞反馈。 */
     private readonly shake = new FruitShake();
     /** 本局已运行秒数；暂停时不推进摇晃冷却。 */
     private shakeTime = 0;
@@ -113,7 +113,7 @@ export class GameBoard extends Component {
     /** 可操作阶段触发整个水果群摇晃，包含未点击的悬停水果。 */
     shakeFruits(): boolean {
         if (!this.canUseProp) return false;
-        const count = this.shake.apply(this.spawner.getLive(), this.shakeTime);
+        const count = this.shake.apply(this.spawner.getLive(), this.shakeTime, this.node);
         if (count) GameHaptics.impact();
         return count > 0;
     }
@@ -226,6 +226,7 @@ export class GameBoard extends Component {
     private release(fruit: FruitItem, userTriggered = true): void {
         if (this.playing && !this.levelHint?.busy && !this.entry.busy && !this.shift.busy && !this.props.busy && fruit.waiting && !fruit.spawning && fruit.iceLayers === 0) {
             this.guideDismissed = true;
+            this.shake.release(fruit);
             this.spawner.releaseBlackHole(fruit);
             fruit.drop();
             if (userTriggered) GameHaptics.impact();
@@ -240,6 +241,7 @@ export class GameBoard extends Component {
      * @param second 接触或配对中的第二方，不得与第一方为同一实例。
      */
     private contact(first: FruitItem, second: FruitItem): void {
+        if (first.shakingSuspended || second.shakingSuspended) return;
         if (this.playing) {
             this.matches.enqueue(first, second);
         }
@@ -251,6 +253,7 @@ export class GameBoard extends Component {
      * @param second 接触或配对中的第二方，不得与第一方为同一实例。
      */
     private recordContact(first: FruitItem, second: FruitItem): void {
+        if (first.shakingSuspended || second.shakingSuspended) return;
         if (this.playing) this.contacts.push([first.node.uuid, second.node.uuid]);
     }
 
@@ -272,12 +275,12 @@ export class GameBoard extends Component {
             this.initialShiftPending = false;
             this.shift.begin(this.spawner.getWaiting(), this.fruitDisplayTop - 60);
         }
-        if (this.mode === 2) this.horizontal.tick(dt, this.spawner.getLive(), this.spawner.getWaiting(), this.rightLine, fruit => this.release(fruit, false));
+        if (this.mode === 2 && !this.shake.busy) this.horizontal.tick(dt, this.spawner.getLive(), this.spawner.getWaiting(), this.rightLine, fruit => this.release(fruit, false));
         if (this.props.busy) return;
         this.spawner.updateBlackHoles(dt);
         this.resolveMatches();
         if (!this.playing) return;
-        if (this.mode === 1 && this.shiftGate.consume(
+        if (this.mode === 1 && !this.shake.busy && this.shiftGate.consume(
             this.spawner.getLive().map(fruit => ({ id: fruit.node.uuid, y: fruit.node.position.y })), this.shift.busy,
         )) this.shift.begin(this.spawner.getWaiting(), this.fruitDisplayTop - 60);
         if (this.collectingPairs > 0) return;
@@ -302,6 +305,7 @@ export class GameBoard extends Component {
     private resolveMatches(): void {
         for (const [first, second] of this.matches.drain()) {
             if (!this.playing) break;
+            if (first.shakingSuspended || second.shakingSuspended) continue;
             this.removePair(first, second, false);
             GameHaptics.impact();
         }

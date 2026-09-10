@@ -34,6 +34,8 @@ export class FruitItem extends Component {
     iceLayers = 0;
     /** 黑洞成员出现与避让阶段标记，为真时禁止点击和底部判负。 */
     spawning = false;
+    /** 随容器移动的固定水果；运动学碰撞不触发悬停水果的触地和配对业务。 */
+    shakingSuspended = false;
     /** 实例化的独立冰层表现，普通水果为空。 */
     private iceView: IceFruitView | null = null;
 
@@ -161,6 +163,7 @@ export class FruitItem extends Component {
      * @param other 物理引擎回调中的另一方碰撞体。
      */
     private onContactBegan(self: Collider2D, other: Collider2D, contact?: IPhysics2DContact | null): void {
+        if (this.shakingSuspended) return;
         if (other.node.name === 'Floor' && !this.floorEffectPlayed && !this.removing
             && this.body.type === ERigidBody2DType.Dynamic) {
             this.floorEffectPlayed = true;
@@ -190,6 +193,7 @@ export class FruitItem extends Component {
      * @param other 物理引擎回调中的另一方碰撞体。
      */
     private onContact(_self: Collider2D, other: Collider2D): void {
+        if (this.shakingSuspended) return;
         if (other.node.name === 'Floor' && !this.touchedFloor) {
             this.touchedFloor = true;
             this.node.emit(BoardEvents.FirstFloorContact, this.body.type === ERigidBody2DType.Dynamic);
@@ -205,7 +209,7 @@ export class FruitItem extends Component {
         return {
             kind: this.kind,
             y: this.node.position.y,
-            touchedFloor: this.touchedFloor,
+            touchedFloor: !this.shakingSuspended && this.touchedFloor,
             removing: this.removing,
         };
     }
