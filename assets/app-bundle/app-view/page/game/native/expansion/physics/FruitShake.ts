@@ -6,8 +6,8 @@ import { PIXELS_PER_PHYSICS_METER } from './PhysicsRules';
 export const SHAKE_RULES = {
     /** 两次开始间隔 3 秒，避免连续触发。 */
     cooldown: 3,
-    /** 往返过程 1 秒，首尾位移与速度均为零。 */
-    duration: 1,
+    /** 往返过程 0.7 秒；手感适配加快节奏，缩短会提高容器碰撞速度，首尾位移与速度均为零。 */
+    duration: 0.7,
     /** 左右往返 2 周，提高此值会增大碰撞速度。 */
     cycles: 2,
     /** 水平位移包络上限 18 个世界像素。 */
