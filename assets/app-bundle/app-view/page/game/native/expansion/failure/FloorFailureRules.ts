@@ -1,13 +1,9 @@
-/** 原版 GameSc 底部失败规则；增大数量或延时会降低失败压力。 */
+/** 沿用原版数量与配对边界，按用户要求取消失败等待。 */
 const FLOOR_RULES = {
     /** 参与底部相邻判定的纵向边界，单位设计像素，严格小于才计入。 */
     bottomY: -250,
     /** 普通锁墙启用时的判负数量，单位个。 */
     normalThreshold: 4,
-    /** 恰好达到阈值时连续静止 0.25 秒；由原版 0.5 秒缩短，提高失败反馈速度。 */
-    normalDelay: 0.25,
-    /** 超过阈值时连续静止 0.1 秒；由原版 0.15 秒缩短，保留消除和运动保护。 */
-    overflowDelay: 0.1,
 } as const;
 
 /** 底部判定需要的纯数据，不依赖引擎或 UI。 */
@@ -46,16 +42,8 @@ function getBottomFruits(fruits: FloorFruit[]): FloorFruit[] {
 
 /** 普通窄槽规则；扩槽机制接入后由调用方传入五个的阈值。 */
 export class FloorFailureRules {
-    /** 当前连续静止的累计时长，单位秒。 */
-    private elapsed = 0;
-    /** 上一帧的触底水果数量，变化时重置计时。 */
-    private lastCount = 0;
-
-    /** 清除上一局或上一轮消除遗留的计时。 */
-    reset(): void {
-        this.elapsed = 0;
-        this.lastCount = 0;
-    }
+    /** 保留棋盘重开/扩槽调用契约；即时规则没有跨帧计时状态。 */
+    reset(): void {}
 
     /**
      * 复现原版底部最高两个水果新接触时的即时判负。
@@ -65,7 +53,7 @@ export class FloorFailureRules {
      * @param threshold 判负数量阈值，普通槽四个、扩槽五个；调大允许更多堆积。
      */
     losesOnContact(fruits: FloorFruit[], first: string, second: string, threshold: number = FLOOR_RULES.normalThreshold): boolean {
-        if (canEliminateAtFloor(fruits)) return false;
+        if (fruits.some(fruit => fruit.removing) || canEliminateAtFloor(fruits)) return false;
         const bottom = getBottomFruits(fruits);
         if (bottom.length < threshold) return false;
         return (bottom[0].id === first && bottom[1].id === second)
@@ -73,28 +61,16 @@ export class FloorFailureRules {
     }
 
     /**
-     * 触底数量达到阈值并持续静止才判负；移动、消除和数量变化均重置计时。
+     * 触底数量达到阈值当帧判负，不等静止；可配对或正在移除时优先消除。
      * @param fruits 当前棋盘的水果状态集合，包含尚未完成的消除。
-     * @param dt 距上一帧的时间，单位秒。
+     * @param _dt 保留帧间隔调用契约，单位秒；即时判负不依赖此值。
      * @param threshold 判负数量阈值，普通槽四个、扩槽五个；调大允许更多堆积。
      */
-    tick(fruits: FloorFruit[], dt: number, threshold: number = FLOOR_RULES.normalThreshold): boolean {
+    tick(fruits: FloorFruit[], _dt: number, threshold: number = FLOOR_RULES.normalThreshold): boolean {
         if (fruits.some(fruit => fruit.removing) || canEliminateAtFloor(fruits)) {
-            this.reset();
             return false;
         }
         const count = fruits.filter(fruit => fruit.touchedFloor).length;
-        if (count !== this.lastCount) {
-            this.elapsed = 0;
-            this.lastCount = count;
-        }
-        if (count < threshold || fruits.some(fruit => !fruit.settled)) {
-            this.elapsed = 0;
-            return false;
-        }
-        this.elapsed += dt;
-        if (this.elapsed < (count > threshold ? FLOOR_RULES.overflowDelay : FLOOR_RULES.normalDelay)) return false;
-        this.reset();
-        return true;
+        return count >= threshold;
     }
 }
