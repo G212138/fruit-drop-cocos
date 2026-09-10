@@ -95,8 +95,18 @@ export function safeDownwardDistance(x: number, y: number, clearance: number, po
 
 /** @param allowed 根据斜坡碰撞轮廓计算的可下移距离；2像素死区避免浮点误差反复触发动画。 */
 export function planSlopeShift(allowed: number): ShiftPlan | null {
-    if (!Number.isFinite(allowed) || allowed <= 2) return null;
-    return { delta: -allowed, duration: Math.max(SHIFT_RULES.minDuration, Math.min(SHIFT_RULES.maxDuration, allowed / SHIFT_RULES.speed)) };
+    if (!Number.isFinite(allowed) || Math.abs(allowed) <= 2) return null;
+    return { delta: -allowed, duration: Math.max(SHIFT_RULES.minDuration, Math.min(SHIFT_RULES.maxDuration, Math.abs(allowed) / SHIFT_RULES.speed)) };
+}
+
+/** 从轮廓上方求安全停止高度，返回有符号距离；负数表示当前过近，需要上移。
+ * @param x 水果世界横坐标。 @param y 水果世界纵坐标。
+ * @param clearance 世界像素安全半径。 @param points 当前布局后的世界轮廓。
+ */
+export function signedSlopeDistance(x: number, y: number, clearance: number, points: ReadonlyArray<{ x: number; y: number }>): number {
+    if (!points.length) return Infinity;
+    const start = Math.max(y, Math.max(...points.map(point => point.y)) + clearance + 1);
+    return safeDownwardDistance(x, start, clearance, points) - (start - y);
 }
 
 /** @param heights 尚未点击水果的棋盘局部纵坐标，单位设计像素。 */

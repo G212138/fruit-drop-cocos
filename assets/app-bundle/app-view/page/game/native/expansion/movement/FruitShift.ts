@@ -1,6 +1,6 @@
 import { isValid, Tween, tween, Vec3, Node, UITransform, PolygonCollider2D } from 'cc';
 import { FruitItem } from '../fruit/FruitItem';
-import { planVerticalShift, planSlopeShift, safeDownwardDistance, SHIFT_RULES } from './VerticalShiftRules';
+import { planVerticalShift, planSlopeShift, signedSlopeDistance, SHIFT_RULES } from './VerticalShiftRules';
 
 /** 移动协调器只控制已有水果实例，不创建节点。 */
 export class FruitShift {
@@ -19,8 +19,8 @@ export class FruitShift {
         const plan = automatic ? planSlopeShift(allowed) : planVerticalShift(fruits.map(fruit => fruit.node.position.y), reachableTop);
         if (!plan || this.busy) return;
         plan.delta = -Math.min(-plan.delta, allowed);
-        if (plan.delta >= -0.01) return;
-        plan.duration = Math.max(SHIFT_RULES.minDuration, Math.min(SHIFT_RULES.maxDuration, -plan.delta / SHIFT_RULES.speed));
+        if (Math.abs(plan.delta) <= 0.01) return;
+        plan.duration = Math.max(SHIFT_RULES.minDuration, Math.min(SHIFT_RULES.maxDuration, Math.abs(plan.delta) / SHIFT_RULES.speed));
         this.moving = [...fruits];
         for (const fruit of fruits) {
             fruit.setShifting(true);
@@ -39,19 +39,29 @@ export class FruitShift {
         const terrain = floor?.getComponent(UITransform);
         const root = fruits[0]?.node.parent?.getComponent(UITransform);
         if (!collider || !terrain || !root) return 0;
-        const points = collider.points.map(point => root.convertToNodeSpaceAR(terrain.convertToWorldSpaceAR(
-            new Vec3(point.x + collider.offset.x, point.y + collider.offset.y, 0))));
+        const points = collider.points.map(point => terrain.convertToWorldSpaceAR(
+            new Vec3(point.x + collider.offset.x, point.y + collider.offset.y, 0)));
         const radii = fruits.map(fruit => {
-            const bounds = fruit.collider.worldAABB;
-            const a = root.convertToNodeSpaceAR(new Vec3(bounds.xMin, bounds.yMin, 0));
-            const b = root.convertToNodeSpaceAR(new Vec3(bounds.xMax, bounds.yMax, 0));
-            const center = fruit.node.position;
-            return Math.hypot(Math.max(Math.abs(a.x - center.x), Math.abs(b.x - center.x)),
-                Math.max(Math.abs(a.y - center.y), Math.abs(b.y - center.y)));
+            const center = fruit.node.worldPosition;
+            const shape = fruit.node.getComponent(UITransform)!;
+            // 直接读当前节点变换，避免物理步尚未同步的 worldAABB 使用旧尺寸。
+            const outline = fruit.collider.points.map(point => shape.convertToWorldSpaceAR(new Vec3(
+                point.x + fruit.collider.offset.x, point.y + fruit.collider.offset.y, 0)));
+            const visual = fruit.visual.sprite.node.getComponent(UITransform)!;
+            for (const x of [-visual.width * visual.anchorX, visual.width * (1 - visual.anchorX)]) {
+                for (const y of [-visual.height * visual.anchorY, visual.height * (1 - visual.anchorY)]) {
+                    outline.push(visual.convertToWorldSpaceAR(new Vec3(x, y, 0)));
+                }
+            }
+            return Math.max(...outline.map(point => Math.hypot(point.x - center.x, point.y - center.y)));
         });
         const gap = Math.max(...radii) * 2;
-        return Math.min(...fruits.map((fruit, index) => safeDownwardDistance(
-            fruit.node.position.x, fruit.node.position.y, radii[index] + gap, points)));
+        const distance = Math.min(...fruits.map((fruit, index) => signedSlopeDistance(
+            fruit.node.worldPosition.x, fruit.node.worldPosition.y, radii[index] + gap, points)));
+        if (!Number.isFinite(distance)) return 0;
+        const origin = fruits[0].node.worldPosition;
+        // 距离始终在世界空间计算，最后才换算补位距离，兼容父级非等比缩放。
+        return root.convertToNodeSpaceAR(origin).y - root.convertToNodeSpaceAR(new Vec3(origin.x, origin.y - distance, origin.z)).y;
     }
 
     /** @param fruit 已完成补间、需要恢复静态刚体的水果。 */
