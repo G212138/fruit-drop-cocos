@@ -18,22 +18,30 @@ export class EntryFlow {
         return this.targets.length > 0;
     }
 
-    /** @param fruits 当前初始可见水果，不包含黑洞待生成成员。 @param mode 原版模式。 @param bounds 棋盘对应屏幕范围。 */
-    begin(fruits: FruitItem[], mode: 1 | 2, bounds: EntryBounds): void {
+    /** @param fruits 当前初始可见水果。 @param mode 原版模式。 @param bounds 棋盘对应屏幕范围。 @param finalDeltaY 安全落点相对关卡数据的纵向偏移，单位水果父节点像素。 */
+    begin(fruits: FruitItem[], mode: 1 | 2, bounds: EntryBounds, finalDeltaY = 0): void {
         this.cancel();
         if (!fruits.length) return;
         let bottom = Infinity, right = -Infinity;
         for (const fruit of fruits) {
             const size = fruit.node.getComponent(UITransform)!.contentSize;
-            bottom = Math.min(bottom, fruit.node.position.y - size.height / 2);
+            bottom = Math.min(bottom, fruit.node.position.y + finalDeltaY - size.height / 2);
             right = Math.max(right, fruit.node.position.x + size.width / 2);
         }
         const plan = planEntry(mode, bottom, right, bounds);
-        if (!plan.x && !plan.y) return;
+        if (!plan.x && !plan.y) {
+            for (const fruit of fruits) {
+                const position = fruit.node.position;
+                fruit.node.setPosition(position.x, position.y + finalDeltaY, position.z);
+            }
+            return;
+        }
         this.offset = plan;
         this.duration = plan.duration;
         this.elapsed = 0;
-        this.targets = fruits.map(fruit => ({ fruit, position: fruit.node.position.clone(), enabled: fruit.body.enabled }));
+        this.targets = fruits.map(fruit => ({ fruit,
+            position: new Vec3(fruit.node.position.x, fruit.node.position.y + finalDeltaY, fruit.node.position.z),
+            enabled: fruit.body.enabled }));
         for (const target of this.targets) {
             // 停用整个刚体而不重复停用碰撞体，避免迁移后的碰撞代理重复移除。
             target.fruit.body.enabled = false;

@@ -12,6 +12,16 @@ export class FruitShift {
         return this.moving.length > 0;
     }
 
+    /** 只计算开场最终落点的整体偏移，不先播放一次补位。
+     * @param fruits 本批水果。 @param reachableTop 可点击上界。 @param floor 当前坡面。 @param automatic 是否按坡面安全距离定位。
+     */
+    entryDelta(fruits: FruitItem[], reachableTop: number, floor: Node | null, automatic: boolean): number {
+        if (!fruits.length) return 0;
+        const allowed = this.safeDrop(fruits, floor);
+        const plan = automatic ? planSlopeShift(allowed) : planVerticalShift(fruits.map(fruit => fruit.node.position.y), reachableTop);
+        return plan ? -Math.min(-plan.delta, allowed) : 0;
+    }
+
     /** @param fruits 未释放水果。 @param reachableTop 可点击上界。 @param floor 当前组件布局后的地形。 @param automatic 第二关起按斜坡间距自动补位。 */
     begin(fruits: FruitItem[], reachableTop?: number, floor?: Node | null, automatic = false): void {
         if (!fruits.length || this.busy) return;

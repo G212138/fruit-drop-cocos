@@ -90,8 +90,6 @@ export class GameBoard extends Component {
     private readonly horizontal = new HorizontalFlow();
     /** 独立开局入场动画与输入锁。 */
     private readonly entry = new EntryFlow();
-    /** 提示和入场完成后，只执行一次初始纵向补位。 */
-    private initialShiftPending = false;
 
     /** 本帧匹配去重队列，先锁定双方再延迟结算。 */
     private readonly matches = new MatchQueue<FruitItem>();
@@ -188,18 +186,20 @@ export class GameBoard extends Component {
         // 编辑草稿可能全部位于屏幕上方，按既有补位规则移入可点击区域。
         if (this.mode === 2) this.horizontal.begin(this.spawner.getWaiting(), this.rightLine);
         const size = this.node.getComponent(UITransform)!.contentSize;
-        this.entry.begin(this.spawner.getWaiting(), this.mode, { left: -size.width / 2, top: size.height / 2 });
+        const waiting = this.spawner.getWaiting();
+        const finalDeltaY = this.mode === 1
+            ? this.shift.entryDelta(waiting, this.fruitDisplayTop - 60, this.node.getChildByName('Floor'), this.automaticShift) : 0;
+        this.entry.begin(waiting, this.mode, { left: -size.width / 2, top: size.height / 2 }, finalDeltaY);
         this.spawner.updateBlackHoles(0);
         if (!this.levelHint) throw new Error('关卡提示预制体绑定缺失');
         this.levelHint.play(chooseHint(level));
-        this.initialShiftPending = this.mode === 1;
     }
 
     /** 第一关第一次有效点击后永久隐藏本局手指。 */
     private guideDismissed = true;
     /** 入场和补位结束后选择可见的右侧水果，跟随实际位置避免适配后指向空处。 */
     get guideTarget(): Node | null {
-        if (this.guideDismissed || !this.playing || this.levelHint?.busy || this.entry.busy || this.shift.busy || this.initialShiftPending) return null;
+        if (this.guideDismissed || !this.playing || this.levelHint?.busy || this.entry.busy || this.shift.busy) return null;
         const candidates = this.spawner.getWaiting().filter(fruit => !fruit.spawning && fruit.iceLayers === 0
             && fruit.node.position.y <= this.fruitDisplayTop - 60);
         candidates.sort((a,b) => b.node.position.x - a.node.position.x);
@@ -268,10 +268,6 @@ export class GameBoard extends Component {
             this.entry.tick(dt);
             this.spawner.updateBlackHoles(0);
             return;
-        }
-        if (this.initialShiftPending) {
-            this.initialShiftPending = false;
-            if (!this.automaticShift) this.shift.begin(this.spawner.getWaiting(), this.fruitDisplayTop - 60, this.node.getChildByName('Floor'));
         }
         if (this.mode === 2 && !this.shake.busy) this.horizontal.tick(dt, this.spawner.getLive(), this.spawner.getWaiting(), this.rightLine, fruit => this.release(fruit, false));
         if (this.props.busy) return;
@@ -423,7 +419,6 @@ export class GameBoard extends Component {
         this.revival.cancel();
         this.warning.reset();
         this.restoreWarnings();
-        this.initialShiftPending = false;
         this.levelHint?.stop();
         this.entry.cancel();
         this.horizontal.reset();

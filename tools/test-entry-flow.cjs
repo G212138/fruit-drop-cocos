@@ -8,7 +8,7 @@ function fruit(x,y,enabled=true){return {body:{enabled},node:{position:vector(x,
 function load(file){
     const module={exports:{}};
     const output=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText;
-    new Function('require','module','exports',output)(name=>name==='cc'?{isValid:()=>true,UITransform:class{}}:load(path.resolve(path.dirname(file),name+'.ts')),module,module.exports);
+    new Function('require','module','exports',output)(name=>name==='cc'?{isValid:()=>true,UITransform:class{},Vec3:class{constructor(x,y,z){return vector(x,y,z);}}}:load(path.resolve(path.dirname(file),name+'.ts')),module,module.exports);
     return module.exports;
 }
 const base=path.resolve(__dirname,'../assets/app-bundle/app-view/page/game/native/expansion/movement');
@@ -27,4 +27,16 @@ assert.equal(first.node.position.y,0);assert.equal(first.body.enabled,true);asse
 entry.begin([first],2,{left:-375,top:667});assert.equal(first.node.position.x+40,-455);
 entry.cancel();assert.equal(first.node.position.x,0);assert.equal(first.body.enabled,true);assert.equal(entry.busy,false);
 entry.begin([],1,{left:-375,top:667});assert.equal(entry.tick(1),false);
+for(const delta of [-200,160]){
+    const item=fruit(0,0);
+    entry.begin([item],1,{left:-375,top:667},delta);
+    let previous=item.node.position.y;
+    for(let i=0;i<100&&entry.busy;i++){
+        entry.tick(0.02);
+        assert.ok(item.node.position.y<=previous+1e-8,'开场只向目标下落，不先落下再回抬');
+        previous=item.node.position.y;
+    }
+    assert.equal(item.node.position.y,delta,'首次落地即为预先计算的安全落点');
+    assert.equal(item.body.enabled,true);
+}
 console.log('通过：入场方向、屏幕外边距、时长限制、缓动推进、碰撞状态恢复、中断和空关处理。');
