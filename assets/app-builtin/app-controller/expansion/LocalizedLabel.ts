@@ -7,7 +7,7 @@ const { ccclass, property } = _decorator;
 @ccclass('LocalizedLabel')
 export class LocalizedLabel extends Component {
     /** 统一词条键，制作时写入预制体。 */
-    @property() key = '';
+    @property({ type: String }) key = '';
     /** 稳定监听引用，确保禁用后不会积累回调。 */
     private readonly refreshLanguage = (): void => this.refresh();
     /** 显示时同步当前语言并监听设置变化。 */

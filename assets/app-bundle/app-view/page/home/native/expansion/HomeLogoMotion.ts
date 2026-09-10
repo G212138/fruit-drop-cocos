@@ -5,11 +5,11 @@ const { ccclass, property } = _decorator;
 @ccclass('HomeLogoMotion')
 export class HomeLogoMotion extends Component {
     /** 上下浮动半幅，单位设计像素；适配值 7，增大会更明显。 */
-    @property() floatDistance = 7;
+    @property({ type: Number }) floatDistance = 7;
     /** 呼吸缩放增量，适配值 0.015 表示最大放大 1.5%。 */
-    @property() scaleAmount = 0.015;
+    @property({ type: Number }) scaleAmount = 0.015;
     /** 单程时长，单位秒；适配值 1.8，一轮为其两倍。 */
-    @property() halfCycleSeconds = 1.8;
+    @property({ type: Number }) halfCycleSeconds = 1.8;
     /** 初始位置快照，重复显示不累计位移。 */
     private originPosition: Vec3 | null = null;
     /** 初始比例快照。 */
