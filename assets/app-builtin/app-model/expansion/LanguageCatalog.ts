@@ -16,6 +16,7 @@ const english = {
     remaining: 'Left', eliminate: 'Remove', shuffle: 'Shuffle', unlock: 'Unlock',
     next: 'Next', revive: 'Revive', unlocked: 'Unlocked!', fruits: 'Fruit', sweets: 'Sweets',
     selected: 'Selected', themeLocked: 'Clear 30 levels to unlock', saveError: 'Could not save language. Your choice applies for this session.',
+    shake: 'Shake',
 };
 /** 译文键，以英文表为结构基准。 */
 export type LanguageKey = keyof typeof english;
@@ -31,8 +32,12 @@ const rows: Record<string, string[]> = {
 };
 /** 每种语言的基础词条，缺项在开发检查中直接报错。 */
 export const languageMessages: Record<string, Record<LanguageKey, string>> = { en: english };
+/** 解卡按钮译文，使用已有语言键体系，不把文字写入图片。 */
+const shakeLabels: Record<string, string> = {
+    ja: 'ゆらす', id: 'Goyang', th: 'เขย่า', vi: 'Lắc', ms: 'Goncang', fil: 'Alugin', zh: '晃一晃',
+};
 for (const code of Object.keys(rows)) {
-    const values = rows[code];
+    const values = rows[code].concat(shakeLabels[code]);
     const keys = Object.keys(english) as LanguageKey[];
     if (values.length !== keys.length) throw new Error('语言词条数量不一致：' + code);
     const translated = {} as Record<LanguageKey, string>;

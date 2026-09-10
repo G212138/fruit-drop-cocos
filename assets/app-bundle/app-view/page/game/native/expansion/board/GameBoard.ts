@@ -1,4 +1,5 @@
 import { BoardPropFlow } from '../props/BoardPropFlow';
+import { FruitShake } from '../physics/FruitShake';
 import { GameHaptics } from '../../../../../../../app-builtin/app-controller/expansion/GameHaptics';
 import { PropKind } from '../props/PropRules';
 import { _decorator, Component, PhysicsSystem2D, Vec2, Vec3, Node, RigidBody2D, UITransform } from 'cc';
@@ -104,6 +105,18 @@ export class GameBoard extends Component {
     private readonly shift = new FruitShift();
     /** 道具独立实例流程。 */
     private readonly props = new BoardPropFlow();
+    /** 当前局轻推解卡的冷却与冲量控制。 */
+    private readonly shake = new FruitShake();
+    /** 本局已运行秒数；暂停时不推进解卡冷却。 */
+    private shakeTime = 0;
+
+    /** 仅在可操作阶段推动停滞水果；无目标时不消耗冷却。 */
+    shakeFruits(): boolean {
+        if (!this.canUseProp) return false;
+        const count = this.shake.apply(this.spawner.getLive(), this.shakeTime);
+        if (count) GameHaptics.impact();
+        return count > 0;
+    }
     /** 当前棋盘是否接受道具操作。 */
     get canUseProp(): boolean {
         return this.playing && !this.levelHint?.busy && !this.entry.busy && !this.shift.busy
@@ -247,6 +260,7 @@ export class GameBoard extends Component {
      */
     lateUpdate(dt: number): void {
         if (!this.playing) return;
+        this.shakeTime += dt;
         if (this.levelHint?.busy) return;
         if (this.entry.busy) {
             this.entry.tick(dt);
@@ -343,6 +357,8 @@ export class GameBoard extends Component {
 
     /** 清理旧局实例及排队通知。 */
     clear(): void {
+        this.shake.reset();
+        this.shakeTime = 0;
         this.collectionGeneration++;
         this.collectingPairs = 0;
         this.removalEffects?.clear();

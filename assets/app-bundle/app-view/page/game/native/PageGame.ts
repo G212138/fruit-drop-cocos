@@ -1,4 +1,6 @@
 import { GameTheme } from '../../../../../app-builtin/app-model/expansion/GameTheme';
+import { game } from 'cc';
+import { PhoneShakeInput } from './expansion/physics/PhoneShakeInput';
 import { PopResult } from '../../../pop/result/native/PopResult';
 import { NewbieGuideView } from './expansion/effects/NewbieGuideView';
 import { PropToolbar } from './expansion/props/PropToolbar';
@@ -31,6 +33,21 @@ const { ccclass, property } = _decorator;
 /** 游戏页面负责装配预制体、连接状态和切换结算界面。 */
 @ccclass('PageGame')
 export class PageGame extends BaseView.BindController(GameController) {
+    /** 当前显示周期的手机摇晃监听，不随缓存页面继续运行。 */
+    private readonly phoneShake = new PhoneShakeInput();
+    /** 传感器和按钮合并为下一帧的一次解卡请求。 */
+    private shakeRequested = false;
+
+    /** 按钮事件入口；物理操作推迟至帧更新，不直接改变水果坐标。 */
+    requestShake(): void {
+        if (this.canShake()) this.shakeRequested = true;
+    }
+
+    /** 判断是否为正常游戏阶段；设置、广告暂停、结算和入场期间拒绝摇晃。 */
+    private canShake(): boolean {
+        return this.ready && !this.ended && !game.isPaused() && !this.settings?.node.activeInHierarchy
+            && !!this.board?.canUseProp;
+    }
     /** 页面内固定结算层，与游戏同步加载，胜负时直接显示。 */
     @property(Node) resultRoot: Node = null!;
     /** 根据安全区域统一缩放页面内容。 */
@@ -40,6 +57,10 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 每帧在布局变化后同步屏幕适配和水果显示区域。 */
     lateUpdate(): void {
+        if (this.shakeRequested) {
+            this.shakeRequested = false;
+            if (this.canShake()) this.board?.shakeFruits();
+        }
         this.screenLayout.apply(this.node, this.boardRoot, this.hudRoot, this.hud?.topBar ?? null, this.backgroundNode);
         this.newbieGuide?.follow(this.board?.guideTarget ?? null);
         if (this.board && this.hud) {
@@ -152,6 +173,7 @@ export class PageGame extends BaseView.BindController(GameController) {
         this.controller.targetOff(this);
         this.controller.on(GameController.Event.Changed, this.refreshState, this);
         this.bindFixedViews();
+        this.phoneShake.start(() => this.canShake(), () => this.requestShake());
         this.loadCollectionFeedback(generation);
         this.loadSettings(generation);
         this.bindProps();
@@ -386,6 +408,8 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 固定棋盘和HUD只清局解绑，动态弹窗和特效才销毁。 */
     private releaseChildren(): void {
+        this.phoneShake.stop();
+        this.shakeRequested = false;
         if (this.resultRoot && isValid(this.resultRoot, true)) this.resultRoot.getComponent(PopResult)?.closeResult();
         if (this.newbieGuide && isValid(this.newbieGuide.node)) this.newbieGuide.node.destroy();
         this.newbieGuide = null;
@@ -428,6 +452,7 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 页面销毁后取消异步结果及控制器监听。 */
     onDestroy(): void {
+        this.phoneShake.stop();
         this.generation++;
         this.controller.targetOff(this);
     }
