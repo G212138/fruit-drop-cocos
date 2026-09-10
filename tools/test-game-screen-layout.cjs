@@ -24,14 +24,21 @@ assert.ok(topWorld.y<=height/2-topInset,'中间GameHud偏移不把顶栏推到�
 middle.setPosition(-30,240,0);fit.apply(node(),board,hud,bar,background);
 assert.equal(bar.getComponent().convertToWorldSpaceAR({x:0,y:49.5,z:0}).y,topWorld.y,'同尺寸下跟进延迟父级布局');
 fit.apply(node(),board,hud,bar,background,true);
-assert.ok(bar.getComponent().convertToWorldSpaceAR({x:0,y:49.5,z:0}).y<=height/2-topInset-100*hud.scale.y,'预留宿主胶囊行');
+assert.ok(bar.getComponent().convertToWorldSpaceAR({x:0,y:49.5,z:0}).y<=height/2-topInset-48*hud.scale.y,'预留宿主胶囊间距');
 }
 visible={width:750,height:1626};safe={x:0,y:68,width:750,height:1470};
-const bag={position:{x:0,y:-620,z:0,clone(){return {...this};}},setPosition(x,y,z){Object.assign(this.position,{x,y,z});}};
-const bagBoard=node();bagBoard.getChildByName=()=>({getChildByName:()=>({getChildByName:()=>bag})});
+const bag={position:{x:0,y:-641.082,z:0,clone(){return {...this};}},scale:{x:1,y:1,z:1,clone(){return {...this};}},
+ getComponent:()=>({height:182}),setScale(x,y,z){Object.assign(this.scale,{x,y,z});},setPosition(x,y,z){Object.assign(this.position,{x,y,z});}};
+const bagBoard=node(),innerBoard=node();innerBoard.getChildByName=name=>name==='RemovalEffects'?{getChildByName:()=>bag}:null;
+bagBoard.getChildByName=()=>innerBoard;
 const bagFit=new mod.exports.GameScreenLayout(),bagHud=node(),bagBar=node(),bagBackground=node();
 bagFit.apply(node(),bagBoard,bagHud,bagBar,bagBackground);
-assert.equal(bag.position.y,-552,'袋子保留底部安全区');
+assert.ok(bag.position.y-bag.scale.y*91>=-733.538+68+8-1e-6,'袋子底部避开手势区');
+assert.ok(bag.position.y+bag.scale.y*91<=-525.825+1e-6,'袋子顶部不遮挡锁墙');
+assert.equal(bag.scale.x,bag.scale.y,'袋子只等比缩放');
 safe={...safe,y:34,height:1504};bagFit.apply(node(),bagBoard,bagHud,bagBar,bagBackground);
-assert.equal(bag.position.y,-586,'安全区变化不累加补偿');
+assert.ok(bag.position.y+bag.scale.y*91<=-525.825+1e-6,'安全区变化不造成锁墙重叠');
+const stable=JSON.stringify(bag);bagFit.apply(node(),bagBoard,bagHud,bagBar,bagBackground);assert.equal(JSON.stringify(bag),stable,'重复适配不累加');
+assert.equal(bagBoard.getComponent().enabled,false,'停用覆盖场地位置的Widget');
+assert.equal(innerBoard.getComponent().enabled,false,'停用中间棋盘Widget');
 console.log('通过：长短屏、底部手势区、地形全屏、袋子安全区、胶囊行预留及重复适配。');
