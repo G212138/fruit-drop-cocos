@@ -19,7 +19,10 @@ export class GameScreenLayout {
         const visible = view.getVisibleSize();
         const safe = sys.getSafeAreaRect(false);
         const signature = [page.uuid, boardRoot.uuid, visible.width, visible.height, safe.x, safe.y, safe.width, safe.height, topBar?.uuid, reserveCapsule].join(',');
-        if (signature === this.signature) return;
+        if (signature === this.signature) {
+            this.alignTopBar(page, hudRoot, topBar, reserveCapsule);
+            return;
+        }
         this.signature = signature;
         // 原地形宽750设计像素；极短屏至少保留1100设计像素高度，避免洞口与顶部栏重叠。
         const scale = Math.min(safe.width / 750, safe.height / 1100);
@@ -36,17 +39,33 @@ export class GameScreenLayout {
             const origin = this.bagOrigins.get(bag)!;
             bag.setPosition(origin.x, origin.y + safe.y / scale, origin.z);
         }
-        if (topBar) {
-            // 动态布局独占顶部位置，避免Widget在窗口变化后重新顶回胶囊区域。
-            const widget = topBar.getComponent(Widget);
-            if (widget) widget.enabled = false;
-            // 普通顶部留64设计像素；宿主额外预留100设计像素胶囊行（无接口时的保守适配值）。
-            const top = safe.y + safe.height - visible.height / 2;
-            topBar.setPosition(0, (top - centerY - safe.y) / scale - 64 - (reserveCapsule ? 100 : 0), 0);
-        }
+        this.alignTopBar(page, hudRoot, topBar, reserveCapsule);
         const size = background.getComponent(UITransform)!;
         const cover = Math.max(visible.width / size.width, visible.height / size.height);
         background.setScale(cover, cover, 1);
         background.setPosition(0, 0, 0);
+    }
+
+    /**
+     * 顶栏实际位于 GameHud 下，必须换算到直接父节点坐标，不能当成 HudRoot 的直接子节点。
+     * 每帧只同步顶栏，跟进 SafeArea/Widget 的延迟布局，不移动物理父节点。
+     * @param page 全屏页面，提供屏幕到世界坐标换算。
+     * @param hudRoot HUD缩放容器。
+     * @param topBar 待定位的已有顶栏。
+     * @param reserveCapsule 是否额外预留100设计像素宿主胶囊行。
+     */
+    private alignTopBar(page: Node, hudRoot: Node, topBar: Node | null, reserveCapsule: boolean): void {
+        if (!topBar?.parent) return;
+        const widget = topBar.getComponent(Widget);
+        if (widget) widget.enabled = false;
+        const safe = sys.getSafeAreaRect(false);
+        const visible = view.getVisibleSize();
+        // 原顶部留64设计像素，加上可选胶囊行；按实际HUD倍率换算屏幕距离。
+        const inset = (64 + (reserveCapsule ? 100 : 0)) * hudRoot.scale.y;
+        const world = page.getComponent(UITransform)!.convertToWorldSpaceAR(new Vec3(
+            safe.x + safe.width / 2 - visible.width / 2,
+            safe.y + safe.height - visible.height / 2 - inset, 0));
+        const local = topBar.parent.getComponent(UITransform)!.convertToNodeSpaceAR(world);
+        topBar.setPosition(local.x, local.y, local.z);
     }
 }
