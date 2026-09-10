@@ -18,7 +18,7 @@
 | canMatch.limit | -80 | 双方 y 都必须严格低于此线；不是水果数量 | BallSc.onPreSolve |
 | FLOOR_RULES.bottomY | -250 | 底部接触排序采用的高度线，单位设计像素 | canEliminateNow |
 | normalThreshold | 4 | 普通槽判负数量；纯规则也接受扩槽的 5，当前无扩槽操作 | getLoseFloorBallThreshold |
-| 失败等待 | 无 | 触底数量达到阈值当帧判负，不等静止、不累计时间；保留可配对、正在消除与入袋保护 | 用户要求即时失败，替代原版延时 |
+| 失败触发 | 洞内真实接触 | 洞内 y < -250 的水果达到4个（扩槽5个），最高水果接触下方水果时当帧判断；不按触地总数提前判负，不等静止；保留配对、消除和入袋保护 | 用户要求落入洞内并接触后判断 |
 | FruitVisual 消除补间 | 0.12 秒、1.15 倍、0.12 秒 | 放大后缩小至零的视觉反馈，不影响原版水果配置 | 迁移适配效果 |
 | LevelProgress.key | fruit-drop.progress.v1 | 独立存档键；保存 version 和下次继续的 level，不存节点或整盘物理状态 | 新项目存档设计 |
 | PageGame.generation | 每次显示递增 | 异步加载代次；旧局回调不允许写入新局，不是关卡编号 | 生命周期保护 |

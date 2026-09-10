@@ -60,17 +60,4 @@ export class FloorFailureRules {
             || (bottom[0].id === second && bottom[1].id === first);
     }
 
-    /**
-     * 触底数量达到阈值当帧判负，不等静止；可配对或正在移除时优先消除。
-     * @param fruits 当前棋盘的水果状态集合，包含尚未完成的消除。
-     * @param _dt 保留帧间隔调用契约，单位秒；即时判负不依赖此值。
-     * @param threshold 判负数量阈值，普通槽四个、扩槽五个；调大允许更多堆积。
-     */
-    tick(fruits: FloorFruit[], _dt: number, threshold: number = FLOOR_RULES.normalThreshold): boolean {
-        if (fruits.some(fruit => fruit.removing) || canEliminateAtFloor(fruits)) {
-            return false;
-        }
-        const count = fruits.filter(fruit => fruit.touchedFloor).length;
-        return count >= threshold;
-    }
 }

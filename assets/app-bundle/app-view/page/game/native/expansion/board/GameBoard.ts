@@ -294,7 +294,8 @@ export class GameBoard extends Component {
         }
         const contactFailure = this.contacts.splice(0).some(([first, second]) =>
             this.failure.losesOnContact(fruits, first, second, this.floorThreshold));
-        if (contactFailure || this.failure.tick(fruits, dt, this.floorThreshold)) {
+        // 只有洞内最高水果与下方水果真实接触才判负，不按触地总数提前结束。
+        if (contactFailure) {
             this.stop();
             this.failed = true;
             this.node.emit(BoardEvents.Failed);
