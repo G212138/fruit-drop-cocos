@@ -23,3 +23,28 @@ assert.equal(new FloorFailureRules().losesOnContact(fruits.slice(0,4),'0','1',bo
 assert.equal(new FloorFailureRules().losesOnContact(fruits,'0','1',board.floorThreshold),true);
 const next=new LockWallView();assert.equal(next.unlocked,false,'下一局新预制体必须重新锁定');
 console.log('通过：真实棋盘扩槽一次性、锁墙物理与图片同步、四/五个判负边界、重开状态。');
+
+/** 用真实地形轮廓验证组件布局平移、缩放和水果父节点变化后仍正确读区。 */
+cc.UITransform = class {};
+cc.PolygonCollider2D = class {};
+cc.Vec3 = class { constructor(x=0,y=0,z=0){Object.assign(this,{x,y,z});} };
+const prefab=JSON.parse(fs.readFileSync('assets/app-bundle/app-view/page/game/native/PageGame.prefab','utf8'));
+const floorNode=prefab.find(n=>n.__type__==='cc.Node'&&n._name==='Floor');
+const polygon=floorNode._components.map(ref=>prefab[ref.__id__]).find(c=>c.__type__==='cc.PolygonCollider2D');
+const shape={points:polygon._points,offset:polygon._offset};
+for(const [dx,dy,scale] of [[0,0,1],[310,820,0.65],[-200,-300,1.4]]){
+    const toWorld=p=>({x:dx+p.x*scale,y:dy+p.y*scale,z:0});
+    const floorTransform={convertToNodeSpaceAR:p=>({x:(p.x-dx)/scale,y:(p.y-dy)/scale,z:0})};
+    const lockTransform={width:163,anchorX:0.5,convertToWorldSpaceAR:toWorld};
+    board.node={getChildByName:name=>name==='Floor'?{getComponent:type=>type===cc.UITransform?floorTransform:shape}:null};
+    board.lockWallRoot={getComponent:type=>type===cc.UITransform?lockTransform:{unlocked:false}};
+    const live=Array.from({length:4},(_,i)=>({node:{worldPosition:toWorld({x:0,y:i*80})},
+        getFloorSnapshot:()=>({id:String(i),kind:i+1,x:9999,y:9999,released:true,removing:false,
+            contacts:[String(i-1),String(i+1)],touchedFloor:false,settled:true})}));
+    board.spawner={getLive:()=>live};
+    assert.equal(board.checkLayoutFailure(),true,'世界位置转换到地形坐标，不依赖水果局部原点');
+    live[3].getFloorSnapshot=()=>({...live[2].getFloorSnapshot(),id:'3',kind:4,contacts:[]});
+    live[2].getFloorSnapshot=()=>({id:'2',kind:3,released:true,removing:false,contacts:['1']});
+    assert.equal(board.checkLayoutFailure(),false,'第四颗未接触时不能判负');
+}
+console.log('通过：真实地形轮廓、布局平移缩放、不同父坐标系及第四颗未接触保护。');

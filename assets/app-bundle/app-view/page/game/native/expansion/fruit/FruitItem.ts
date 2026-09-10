@@ -187,7 +187,6 @@ export class FruitItem extends Component {
             ...this.getMatchCandidate(),
             id: this.node.uuid,
             x: this.node.position.x,
-            released: !this.waiting && !this.spawning && !this.shakingSuspended,
             contacts: Array.from(this.touchingFruits),
             settled: this.body.type !== ERigidBody2DType.Dynamic
                 || (velocity.lengthSqr() <= PHYSICS_RULES.settledSpeedSquared && Math.abs(this.body.angularVelocity) <= PHYSICS_RULES.settledAngularSpeed),
@@ -222,6 +221,7 @@ export class FruitItem extends Component {
     /** 提供纯数据快照，规则模块无需读取引擎对象。 */
     getMatchCandidate(): MatchCandidate {
         return {
+            released: this.released && !this.spawning && !this.shakingSuspended && this.iceLayers === 0,
             kind: this.kind,
             y: this.node.position.y,
             touchedFloor: !this.shakingSuspended && this.touchedFloor,

@@ -1,4 +1,5 @@
-import { canEliminateAtFloor, FloorFruit } from './FloorFailureRules';
+import { FloorFruit } from './FloorFailureRules';
+import { canMatch } from '../matching/MatchRules';
 
 /** 原版危险提醒节奏，独立于失败计时，不依赖引擎或表现。 */
 export class FloorWarningRules {
@@ -17,7 +18,9 @@ export class FloorWarningRules {
     tick(fruits: FloorFruit[], dt: number, expanded: boolean): 'clear' | 'wait' | 'flash' {
         // 原版普通槽3个、扩槽4个触底水果开始提醒；正在消除的水果不计数。
         const count = fruits.filter(fruit => fruit.touchedFloor && !fruit.removing).length;
-        if (count < (expanded ? 4 : 3) || canEliminateAtFloor(fruits)) {
+        const matching = fruits.some(first => fruits.some(second => canMatch(first, second)
+            && ((first.contacts ?? []).indexOf(second.id) >= 0 || (second.contacts ?? []).indexOf(first.id) >= 0)));
+        if (count < (expanded ? 4 : 3) || matching) {
             this.reset();
             return 'clear';
         }

@@ -2,7 +2,7 @@ import { BoardPropFlow } from '../props/BoardPropFlow';
 import { FruitShake } from '../physics/FruitShake';
 import { GameHaptics } from '../../../../../../../app-builtin/app-controller/expansion/GameHaptics';
 import { PropKind } from '../props/PropRules';
-import { _decorator, Component, PhysicsSystem2D, Vec2, Vec3, Node, RigidBody2D, UITransform } from 'cc';
+import { _decorator, Component, PhysicsSystem2D, Vec2, Vec3, Node, RigidBody2D, UITransform, PolygonCollider2D } from 'cc';
 import { EntryFlow } from '../movement/EntryFlow';
 import { LevelHintView } from '../hint/LevelHintView';
 import { chooseHint } from '../hint/HintRules';
@@ -265,6 +265,7 @@ export class GameBoard extends Component {
         if (this.mode === 2 && !this.shake.busy) this.horizontal.tick(dt, this.spawner.getLive(), this.spawner.getWaiting(), this.rightLine, fruit => this.release(fruit, false));
         if (this.props.busy) return;
         this.spawner.updateBlackHoles(dt);
+        this.matchTouchingFruits();
         this.resolveMatches();
         if (!this.playing) return;
         if (this.mode === 1 && !this.shake.busy && this.shiftGate.consume(
@@ -279,13 +280,51 @@ export class GameBoard extends Component {
                 if (fruit.touchedFloor && !fruit.removing) fruit.visual.flashWarning();
             }
         }
-        const contactFailure = this.failure.losesOnStack(fruits, this.floorThreshold);
+        const contactFailure = this.checkLayoutFailure();
         // 只有洞内最高水果与下方水果真实接触才判负，不按触地总数提前结束。
         if (contactFailure) {
             this.stop();
             this.failed = true;
             this.node.emit(BoardEvents.Failed);
         }
+    }
+
+    /** 补查持续接触和休眠刚体；使用真实接触集合，不按图片距离猜测。 */
+    private matchTouchingFruits(): void {
+        const live = this.spawner.getLive();
+        const byId = new Map(live.map(fruit => [fruit.node.uuid, fruit]));
+        for (const first of live) {
+            for (const id of first.getFloorSnapshot().contacts ?? []) {
+                const second = byId.get(id);
+                if (second) this.contact(first, second);
+            }
+        }
+    }
+
+    /** 只读地形轮廓和锁墙布局，在地形局部坐标中判定洞内接触堆叠。 */
+    private checkLayoutFailure(): boolean {
+        const floor = this.node.getChildByName('Floor');
+        const transform = floor?.getComponent(UITransform);
+        const collider = floor?.getComponent(PolygonCollider2D);
+        const lock = this.lockWallRoot?.getComponent(UITransform);
+        if (!transform || !collider || !lock) return false;
+        // 锁墙视觉宽度覆盖洞口内壁，用于从现有地形多边形筛出凹槽轮廓。
+        const left = transform.convertToNodeSpaceAR(lock.convertToWorldSpaceAR(new Vec3(-lock.width * lock.anchorX, 0, 0))).x;
+        const right = transform.convertToNodeSpaceAR(lock.convertToWorldSpaceAR(new Vec3(lock.width * (1 - lock.anchorX), 0, 0))).x;
+        const neck = collider.points.map(point => ({ x: point.x + collider.offset.x, y: point.y + collider.offset.y }))
+            .filter(point => point.x >= Math.min(left, right) && point.x <= Math.max(left, right));
+        if (neck.length < 4) return false;
+        const region = {
+            left: Math.min(...neck.map(point => point.x)),
+            right: Math.max(...neck.map(point => point.x)),
+            bottom: Math.min(...neck.map(point => point.y)),
+            top: Math.max(...neck.map(point => point.y)),
+        };
+        const fruits = this.spawner.getLive().map(fruit => {
+            const position = transform.convertToNodeSpaceAR(fruit.node.worldPosition);
+            return { ...fruit.getFloorSnapshot(), x: position.x, y: position.y };
+        });
+        return this.failure.losesOnStack(fruits, this.floorThreshold, region);
     }
 
     /** 移除双方后才发布配对事件，避免结算重入污染集合。 */

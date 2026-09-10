@@ -4,8 +4,6 @@ const FLOOR_RULES = {
     bottomY: -250,
     /** 普通锁墙启用时的判负数量，单位个。 */
     normalThreshold: 4,
-    /** 洞口中心左右110设计像素内允许堆叠延伸；适配圆形水果半径，不纳入远处斜坡。 */
-    mouthHalfWidth: 110,
 } as const;
 
 /** 底部判定需要的纯数据，不依赖引擎或 UI。 */
@@ -54,11 +52,12 @@ export class FloorFailureRules {
      * 从洞内水果沿真实接触寻找连续堆叠，顶部可自然延伸到洞口上方。
      * @param fruits 当前物理步结束后的水果快照。
      * @param threshold 普通洞4个、扩槽5个；不等待静止或额外计时。
+     * @param region 地形局部坐标中的洞口左右边界、槽底和洞口高度，来自组件布局后的碰撞轮廓。
      */
-    losesOnStack(fruits: FloorFruit[], threshold: number = FLOOR_RULES.normalThreshold): boolean {
+    losesOnStack(fruits: FloorFruit[], threshold: number, region: { left: number; right: number; bottom: number; top: number }): boolean {
         if (fruits.some(fruit => fruit.removing)) return false;
         const eligible = fruits.filter(fruit => fruit.released === true && Number.isFinite(fruit.x)
-            && Math.abs(fruit.x!) <= FLOOR_RULES.mouthHalfWidth);
+            && fruit.x! >= region.left && fruit.x! <= region.right && fruit.y >= region.bottom);
         const remaining = new Set(eligible);
         while (remaining.size) {
             const seed = remaining.values().next().value as FloorFruit;
@@ -72,10 +71,9 @@ export class FloorFailureRules {
                     stack.push(next);
                 }
             }
-            if (stack.length < threshold || !stack.some(fruit => fruit.y < FLOOR_RULES.bottomY)) continue;
+            if (stack.length < threshold || !stack.some(fruit => fruit.y < region.top)) continue;
             // 同一连续堆叠中仍有可消除的真实接触时，先交给配对流程处理。
             const canMatch = stack.some(first => stack.some(second => first !== second && first.kind === second.kind
-                && (first.touchedFloor || second.touchedFloor)
                 && ((first.contacts ?? []).indexOf(second.id) >= 0 || (second.contacts ?? []).indexOf(first.id) >= 0)));
             if (!canMatch) return true;
         }

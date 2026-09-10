@@ -37,13 +37,16 @@ assert.equal(revivedGame.phase, 'won', '复活后的强制配对仍可以正常�
 assert.equal(revivedGame.revive(), false, '胜利不能变回运行态');
 revivedGame.begin(4, 13);revivedGame.lose();
 assert.equal(revivedGame.revive(), true, '新失败局可以独立复活');
-const candidate = { kind: 21, y: -100, touchedFloor: true, removing: false };
+const candidate = { released: true, kind: 21, y: -100, touchedFloor: true, removing: false };
 assert.equal(canMatch(candidate, { ...candidate }), true);
 assert.equal(canMatch(candidate, candidate), false);
+assert.equal(canMatch(candidate, { ...candidate, released: false }), false, '未释放水果不能被碰撞消除');
+assert.equal(canMatch(candidate, { ...candidate, released: undefined }), false, '缺少释放状态时安全拒绝');
+assert.equal(canMatch({ ...candidate, y: 900, touchedFloor: false }, { ...candidate, y: 950, touchedFloor: false }), true, '布局高度与触地历史不再限制匹配');
 assert.equal(canMatch(candidate, { ...candidate, kind: 22 }), false);
-assert.equal(canMatch(candidate, { ...candidate, y: -80 }), false);
+assert.equal(canMatch(candidate, { ...candidate, y: -80 }), true);
 assert.equal(canMatch(candidate, { ...candidate, removing: true }), false);
-assert.equal(canMatch({ ...candidate, touchedFloor: false }, { ...candidate, touchedFloor: false }), false);
+assert.equal(canMatch({ ...candidate, touchedFloor: false }, { ...candidate, touchedFloor: false }), true);
 /** 构造能观察锁定状态的水果句柄。 */
 function fruit() {
     return { removing: false, getMatchCandidate() { return { ...candidate, removing: this.removing }; } };
@@ -86,23 +89,29 @@ function pile(count) {
     }));
 }
 const failure = new FloorFailureRules();
+const region = { left: -55, right: 55, bottom: -500, top: -250 };
+const losesOnStack = (fruits, threshold = 4) => failure.losesOnStack(fruits, threshold, region);
 /** 四颗沿洞内向洞口连续堆叠，最高一颗中心已高于旧高度线。 */
 const stack = pile(4).map((fruit, i) => ({...fruit,x:0,y:-70-i*90,released:true,
     contacts:[...(i>0?[String(i-1)]:[]),...(i<3?[String(i+1)]:[])]}));
-assert.equal(failure.losesOnStack(stack),true,'截图的四颗连续堆叠应判负');
-assert.equal(failure.losesOnStack(stack),true,'接触持续或休眠后仍能判断');
-assert.equal(failure.losesOnStack(stack.map(f=>({...f,y:f.y+400}))),false,'整体还在洞外不能判负');
-assert.equal(failure.losesOnStack(stack.map(f=>({...f,contacts:[]}))),false,'数量足够但没接触不能判负');
-assert.equal(failure.losesOnStack(stack.map((f,i)=>({...f,released:i!==0}))),false,'悬停水果不计入堆叠');
-assert.equal(failure.losesOnStack(stack.map(f=>({...f,x:200}))),false,'斜坡远端不属于洞口');
-assert.equal(failure.losesOnStack(stack.map((f,i)=>({...f,removing:i===2}))),false,'消除优先');
-assert.equal(failure.losesOnStack(stack.map((f,i)=>({...f,kind:i===1?1:f.kind}))),false,'接触同类优先配对');
-assert.equal(failure.losesOnStack(stack,5),false,'扩槽允许四颗');
+assert.equal(losesOnStack(stack),true,'截图的四颗连续堆叠应判负');
+assert.equal(losesOnStack(stack),true,'接触持续或休眠后仍能判断');
+assert.equal(losesOnStack(stack.map(f=>({...f,y:f.y+400}))),false,'整体还在洞外不能判负');
+assert.equal(losesOnStack(stack.map(f=>({...f,contacts:[]}))),false,'数量足够但没接触不能判负');
+assert.equal(losesOnStack(stack.map((f,i)=>({...f,released:i!==0}))),false,'悬停水果不计入堆叠');
+assert.equal(losesOnStack(stack.map(f=>({...f,x:200}))),false,'斜坡远端不属于洞口');
+assert.equal(losesOnStack(stack.map((f,i)=>({...f,removing:i===2}))),false,'消除优先');
+assert.equal(losesOnStack(stack.map((f,i)=>({...f,kind:i===1?1:f.kind}))),false,'接触同类优先配对');
+assert.equal(losesOnStack(stack,5),false,'扩槽允许四颗');
 const expandedStack=stack.map(f=>({...f,contacts:[...f.contacts]}));
 expandedStack[0].contacts.push('extra');expandedStack.push({...stack[0],id:'extra',kind:9,y:20,contacts:['0']});
-assert.equal(failure.losesOnStack(expandedStack,5),true,'扩槽第五颗接触时判负');
+assert.equal(losesOnStack(expandedStack,5),true,'扩槽第五颗接触时判负');
 const separated=stack.map(f=>({...f,contacts:f.contacts.filter(id=>id!=='0')}));separated[0].contacts=[];
-assert.equal(failure.losesOnStack(separated),false,'分离后不保留假堆叠');
+assert.equal(losesOnStack(separated),false,'分离后不保留假堆叠');
+const shiftedRegion = { left: 190, right: 410, bottom: 0, top: 500 };
+assert.equal(failure.losesOnStack(stack.map(f => ({ ...f, x: 300, y: (f.y + 500) * 2 })), 4, shiftedRegion), true, '布局平移缩放后读取同步区域仍判负');
+assert.equal(failure.losesOnStack(stack, 4, shiftedRegion), false, '旧位置不属于新的洞口区域');
+assert.equal(losesOnStack(stack.map((f,i) => ({ ...f, kind: i === 1 ? 1 : f.kind, touchedFloor: false }))), false, '未直接触地的同类接触仍优先消除');
 failure.reset();
 const moving = pile(4);
 moving[0].settled = false;
