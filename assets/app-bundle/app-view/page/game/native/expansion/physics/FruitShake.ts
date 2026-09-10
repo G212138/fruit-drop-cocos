@@ -1,51 +1,95 @@
-import { ERigidBody2DType, Vec2 } from 'cc';
+import { ERigidBody2DType, isValid, Node, Vec2, Vec3 } from 'cc';
 import { FruitItem } from '../fruit/FruitItem';
 
-/** 解卡适配参数；速度单位为物理米/秒，时间单位为秒。 */
+/** 水果群摇晃适配参数；像素为设计坐标，物理加速度为米/秒²。 */
 export const SHAKE_RULES = {
-    /** 免费解卡间隔 3 秒，防止连续冲量改变正常玩法。 */
+    /** 两次开始至少间隔 3 秒，不叠加摇晃。 */
     cooldown: 3,
-    /** 只推动速度不超过 0.6 米/秒的已释放水果，保留正常下落轨迹。 */
-    maximumSpeed: 0.6,
-    /** 水平速度增量 1 米/秒，左右交替帮助脱离夹缝。 */
-    sideways: 1,
-    /** 向上速度增量 1.2 米/秒，轻抬水果解除静摩擦。 */
-    upward: 1.2,
+    /** 一次摇晃持续 0.8 秒。 */
+    duration: 0.8,
+    /** 一次左右往返 3 周，所有水果保持同相位。 */
+    cycles: 3,
+    /** 最大水平位移 24 设计像素。 */
+    horizontalPixels: 24,
+    /** 最大竖向颠动 7 设计像素。 */
+    verticalPixels: 7,
+    /** 动态水果的水平晃动加速度 8 米/秒²。 */
+    acceleration: 8,
 };
 
-/** 对已下落且近乎静止的单体施加一次有限冲量，不修改坐标、碰撞体或消除规则。 */
+/** 同步晃动已有显示节点并推动动态水果，刚体父节点保持稳定。 */
 export class FruitShake {
-    /** 最近成功推动的时间戳，单位秒；空操作不占冷却。 */
+    /** 最近开始时间，单位秒。 */
     private previous = -Infinity;
-    /** 每次成功推动反转水平主方向，避免持续向同一侧堆积。 */
-    private direction = 1;
+    /** 当前动画已运行秒数。 */
+    private elapsed = SHAKE_RULES.duration;
+    /** 显示节点原始局部位置，结束和中断时恢复。 */
+    private readonly origins = new Map<Node, Vec3>();
 
-    /** 清局时重置冷却与方向。 */
-    reset(): void {
-        this.previous = -Infinity;
-        this.direction = 1;
+    /** 当前是否正在摇晃。 */
+    get busy(): boolean { return this.elapsed < SHAKE_RULES.duration; }
+
+    /** 停止并复位，保留冷却。 */
+    stop(): void {
+        for (const [node, position] of this.origins) {
+            if (isValid(node, true)) node.setPosition(position);
+        }
+        this.origins.clear();
+        this.elapsed = SHAKE_RULES.duration;
     }
 
-    /** @param fruits 当前棋盘单体快照。 @param now 单调递增时间，单位秒。 @returns 实际推动数量。 */
+    /** 清局重置位置、动画和冷却。 */
+    reset(): void {
+        this.stop();
+        this.previous = -Infinity;
+    }
+
+    /** @param fruits 单体快照，悬停水果也参与。 @param now 本局运行秒数。 @returns 参与显示的水果数。 */
     apply(fruits: FruitItem[], now: number): number {
-        if (!Number.isFinite(now) || now - this.previous < SHAKE_RULES.cooldown) return 0;
-        let count = 0;
+        if (!Number.isFinite(now) || this.busy || now - this.previous < SHAKE_RULES.cooldown) return 0;
+        for (const fruit of fruits) {
+            const node = fruit.visual?.node;
+            if (fruit.removing || fruit.spawning || !isValid(node, true)) continue;
+            this.origins.set(node, node.position.clone());
+        }
+        if (!this.origins.size) return 0;
+        this.elapsed = 0;
+        this.previous = now;
+        return this.origins.size;
+    }
+
+    /** @param fruit 即将消除的水果；先移除摇晃偏移再计算特效位置。 */
+    release(fruit: FruitItem): void {
+        const node = fruit.visual?.node;
+        const position = this.origins.get(node);
+        if (position && isValid(node, true)) node.setPosition(position);
+        this.origins.delete(node);
+    }
+
+    /** @param fruits 当前存活单体。 @param dt 帧间隔，单位秒。 */
+    tick(fruits: FruitItem[], dt: number): void {
+        if (!this.busy || !Number.isFinite(dt) || dt <= 0) return;
+        this.elapsed = Math.min(SHAKE_RULES.duration, this.elapsed + dt);
+        if (!this.busy) { this.stop(); return; }
+        const progress = this.elapsed / SHAKE_RULES.duration;
+        const phase = progress * Math.PI * 2 * SHAKE_RULES.cycles;
+        // 平滑首尾，所有水果用同一偏移，形成整群摇摆的观感。
+        const envelope = Math.sin(progress * Math.PI);
+        const horizontal = Math.sin(phase) * envelope;
+        const vertical = Math.sin(phase * 2) * envelope;
+        for (const [node, position] of this.origins) {
+            if (!isValid(node, true)) { this.origins.delete(node); continue; }
+            node.setPosition(position.x + horizontal * SHAKE_RULES.horizontalPixels,
+                position.y + vertical * SHAKE_RULES.verticalPixels, position.z);
+        }
         for (const fruit of fruits) {
             if (fruit.waiting || fruit.removing || fruit.spawning || fruit.iceLayers > 0) continue;
             const body = fruit.body;
             if (!body?.enabled || body.type !== ERigidBody2DType.Dynamic) continue;
-            const velocity = body.linearVelocity;
-            if (velocity.lengthSqr() > SHAKE_RULES.maximumSpeed ** 2) continue;
             const mass = body.getMass();
             if (!Number.isFinite(mass) || mass <= 0) continue;
-            const direction = this.direction * (count % 2 === 0 ? 1 : -1);
-            body.applyLinearImpulseToCenter(new Vec2(mass * SHAKE_RULES.sideways * direction, mass * SHAKE_RULES.upward), true);
-            count++;
+            // 质量乘加速度和时间为冲量；最多积算 0.05 秒，避免卡帧猛推。
+            body.applyLinearImpulseToCenter(new Vec2(mass * horizontal * SHAKE_RULES.acceleration * Math.min(dt, 0.05), 0), true);
         }
-        if (count) {
-            this.previous = now;
-            this.direction *= -1;
-        }
-        return count;
     }
 }

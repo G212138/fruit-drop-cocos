@@ -105,12 +105,12 @@ export class GameBoard extends Component {
     private readonly shift = new FruitShift();
     /** 道具独立实例流程。 */
     private readonly props = new BoardPropFlow();
-    /** 当前局轻推解卡的冷却与冲量控制。 */
+    /** 当前局水果群同步摇摆及动态单体物理反馈。 */
     private readonly shake = new FruitShake();
-    /** 本局已运行秒数；暂停时不推进解卡冷却。 */
+    /** 本局已运行秒数；暂停时不推进摇晃冷却。 */
     private shakeTime = 0;
 
-    /** 仅在可操作阶段推动停滞水果；无目标时不消耗冷却。 */
+    /** 可操作阶段触发整个水果群摇晃，包含未点击的悬停水果。 */
     shakeFruits(): boolean {
         if (!this.canUseProp) return false;
         const count = this.shake.apply(this.spawner.getLive(), this.shakeTime);
@@ -120,7 +120,7 @@ export class GameBoard extends Component {
     /** 当前棋盘是否接受道具操作。 */
     get canUseProp(): boolean {
         return this.playing && !this.levelHint?.busy && !this.entry.busy && !this.shift.busy
-            && !this.props.busy && !this.revival.busy && this.collectingPairs === 0;
+            && !this.props.busy && !this.revival.busy && !this.shake.busy && this.collectingPairs === 0;
     }
     /** @param kind 道具类型。 @param consume 确定目标后的库存扣减。 */
     useProp(kind: PropKind, consume: () => boolean): string {
@@ -261,6 +261,7 @@ export class GameBoard extends Component {
     lateUpdate(dt: number): void {
         if (!this.playing) return;
         this.shakeTime += dt;
+        this.shake.tick(this.spawner.getLive(), dt);
         if (this.levelHint?.busy) return;
         if (this.entry.busy) {
             this.entry.tick(dt);
@@ -308,6 +309,8 @@ export class GameBoard extends Component {
 
     /** @param first 第一颗实例。 @param second 同类伙伴。 @param forced 是否为复活强制配对。 */
     private removePair(first: FruitItem, second: FruitItem, forced: boolean): void {
+        this.shake.release(first);
+        this.shake.release(second);
         if (forced) this.removalEffects?.showRevivePair(first.node, second.node);
         first.removing = second.removing = true;
         this.spawner.remove(first);
@@ -339,6 +342,7 @@ export class GameBoard extends Component {
 
     /** 停止棋盘输入和本局水果模拟。 */
     stop(): void {
+        this.shake.stop();
         this.revival.cancel();
         this.warning.reset();
         this.restoreWarnings();
@@ -382,6 +386,7 @@ export class GameBoard extends Component {
 
     /** 页面销毁时清理本棋盘，不关闭全局物理系统。 */
     onDestroy(): void {
+        this.shake.stop();
         this.collectionGeneration++;
         this.revival.cancel();
         this.warning.reset();

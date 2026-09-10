@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const ts = require('C:/ProgramData/cocos/editors/Creator/3.8.8/resources/app.asar.unpacked/node_modules/typescript');
 /** 只替换二维向量和刚体枚举，保留真实解卡决策。 */
 const cc = { ERigidBody2DType: { Dynamic: 2 }, Vec2: class { constructor(x, y) { this.x = x; this.y = y; } } };
+cc.isValid = node => !!node && !node.destroyed;
 /** 测试中的宿主能力表，不向真实设备请求权限。 */
 let host = null;
 /** @param name 物理目录下真实 TypeScript 模块名。 */
@@ -22,7 +23,11 @@ const { ShakeGesture } = load('ShakeGesture');
 /** 构造带冲量记录的已释放、停滞水果，不模拟物理引擎结果。 */
 function fruit(mass = 1, speed = 0) {
     const impulses = [];
-    return { waiting: false, removing: false, spawning: false, iceLayers: 0, impulses,
+    const position = { x: 5, y: 9, z: 0, clone() { return { x: this.x, y: this.y, z: this.z }; } };
+    const node = { position, setPosition(x, y, z) {
+        Object.assign(position, typeof x === 'object' ? x : { x, y, z });
+    } };
+    return { visual: { node }, waiting: false, removing: false, spawning: false, iceLayers: 0, impulses,
         body: { enabled: true, type: 2, linearVelocity: { lengthSqr: () => speed ** 2 }, getMass: () => mass,
             applyLinearImpulseToCenter(vector, wake) { impulses.push(vector); assert.equal(wake, true); } } };
 }
@@ -30,12 +35,27 @@ const shake = new FruitShake();
 assert.equal(shake.apply([], 0), 0);
 const a = fruit(1), b = fruit(2), waiting = fruit(), fast = fruit(1, 3), ice = fruit(), removing = fruit(), spawning = fruit();
 waiting.waiting = true; ice.iceLayers = 1; removing.removing = true; spawning.spawning = true;
-assert.equal(shake.apply([a, b, waiting, fast, ice, removing, spawning], 0), 2);
-assert.equal(a.impulses[0].x, 1); assert.equal(b.impulses[0].x, -2);
-assert.equal(a.impulses[0].y, 1.2); assert.equal(b.impulses[0].y, 2.4);
+const fruits = [a, b, waiting, fast, ice, removing, spawning];
+assert.equal(shake.apply(fruits, 0), 5);
+shake.tick(fruits, 0.06);
+assert.notEqual(waiting.visual.node.position.x, 5, '悬停水果也必须可见地摇晃');
+assert.equal(a.visual.node.position.x, waiting.visual.node.position.x);
+assert.equal(a.visual.node.position.y, b.visual.node.position.y);
+assert.equal(waiting.impulses.length, 0);
+assert.equal(ice.impulses.length, 0);
+assert.equal(fast.impulses.length, 1, '不再按速度筛掉动态水果');
+assert.equal(b.impulses[0].x, a.impulses[0].x * 2, '物理推力同方向，按质量换算');
+shake.release(a);
+assert.equal(a.visual.node.position.x, 5, '消除前必须复位');
+shake.tick(fruits, 0.8);
+assert.equal(waiting.visual.node.position.x, 5);
+assert.equal(waiting.visual.node.position.y, 9);
+assert.equal(shake.busy, false);
 assert.equal(shake.apply([a], 2.99), 0);
 assert.equal(shake.apply([a], 3), 1);
-assert.equal(a.impulses[1].x, -1);
+shake.tick([a], 0.06);
+shake.stop();
+assert.equal(a.visual.node.position.x, 5, '中断不残留偏移');
 assert.equal(shake.apply([a], NaN), 0);
 shake.reset(); assert.equal(shake.apply([a], 0), 1);
 const gesture = new ShakeGesture();
@@ -67,4 +87,4 @@ lifecycle.get('show')(); assert.equal(sensor.size, 1);
 phone.start(() => true, () => {}); assert.equal(sensor.size, 1);
 phone.stop(); assert.equal(sensor.size, 0); assert.equal(lifecycle.size, 0);
 assert.equal(switches.at(-1), false);
-console.log('通过：解卡目标过滤、按质量冲量、方向交替、冷却、重开及摇晃噪声/间断过滤。');
+console.log('通过：悬停水果同步摇晃、动态冲量、结束/消除/中断复位、冷却及手机监听生命周期。');
