@@ -28,7 +28,7 @@ const cc = {sp:{Skeleton:class {}},
     Tween: {stopAllByTarget(){}},
     Component: class {}, Node: {EventType:{TOUCH_END:'touch-end'}}, Vec2,
     ERigidBody2DType:{Static:0,Dynamic:2,Animated:3},
-    Contact2DType:{BEGIN_CONTACT:'begin',PRE_SOLVE:'pre'},
+    Contact2DType:{BEGIN_CONTACT:'begin',PRE_SOLVE:'pre',END_CONTACT:'end'},
 };
 const cache=new Map();
 /** 装载真实 TypeScript 组件，仅替代引擎依赖。 */
@@ -66,7 +66,15 @@ assert.equal(fruit.node.listeners.filter(item=>item.target===cover).length,2,'�
 fruit.touchedFloor=false;
 fruit.collider.emit('begin',fruit.collider,floor);
 assert.equal(cover.node.active,false,'复活恢复花朵后再次下落仍能揭示');
+const peer={node:{uuid:'touch-peer'}};
+const peerCollider={node:{name:'Fruit'},getComponent:()=>peer};
+fruit.collider.emit('pre',fruit.collider,peerCollider);
+assert.equal(fruit.touchingFruits.has('touch-peer'),true,'持续接触更新堆叠记录');
+fruit.collider.emit('end',fruit.collider,peerCollider);
+assert.equal(fruit.touchingFruits.has('touch-peer'),false,'结束接触清除记录');
+fruit.collider.emit('pre',fruit.collider,peerCollider);
 fruit.onDestroy();cover.onDestroy();
+assert.equal(fruit.touchingFruits.size,0,'销毁清空有效接触');
 assert.equal(fruit.collider.listeners.length,0,'首次和持续接触监听必须完整解除');
 assert.equal(fruit.node.listeners.length,0);
 ({fruit,cover}=fixture(false));

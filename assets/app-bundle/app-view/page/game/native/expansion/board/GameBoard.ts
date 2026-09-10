@@ -97,8 +97,6 @@ export class GameBoard extends Component {
     private readonly failure = new FloorFailureRules();
     /** 独立危险提醒计时，不与判负延时共享状态。 */
     private readonly warning = new FloorWarningRules();
-    /** 本帧新接触双方的节点标识，物理步结束后检查。 */
-    private readonly contacts: [string, string][] = [];
     /** 是否允许当前棋盘处理输入和物理结果。 */
     private playing = false;
     /** 原版纵向补位协调器；动画期间锁定点击。 */
@@ -158,7 +156,6 @@ export class GameBoard extends Component {
         this.failed = false;
         return this.revival.begin(this.mode, this.spawner, (first, second) => this.removePair(first, second, true), () => {
             this.matches.clear();
-            this.contacts.length = 0;
             this.failure.reset();
             this.warning.reset();
             this.playing = true;
@@ -215,7 +212,6 @@ export class GameBoard extends Component {
         fruit.node.on(BoardEvents.GroundImpact, this.showGroundImpact, this);
         fruit.node.on(BoardEvents.ReleaseRequested, this.release, this);
         fruit.node.on(BoardEvents.FruitContact, this.contact, this);
-        fruit.node.on(BoardEvents.FruitContactBegan, this.recordContact, this);
     }
 
     /**
@@ -247,15 +243,6 @@ export class GameBoard extends Component {
         }
     }
 
-    /**
-     * 保存新接触，等本帧配对优先处理完毕后再检查失败。
-     * @param first 接触或配对中的第一方，标识与快照必须属于同一棋盘。
-     * @param second 接触或配对中的第二方，不得与第一方为同一实例。
-     */
-    private recordContact(first: FruitItem, second: FruitItem): void {
-        if (first.shakingSuspended || second.shakingSuspended) return;
-        if (this.playing) this.contacts.push([first.node.uuid, second.node.uuid]);
-    }
 
     /**
      * 在物理回调之外结算配对并检查底部失败。
@@ -292,8 +279,7 @@ export class GameBoard extends Component {
                 if (fruit.touchedFloor && !fruit.removing) fruit.visual.flashWarning();
             }
         }
-        const contactFailure = this.contacts.splice(0).some(([first, second]) =>
-            this.failure.losesOnContact(fruits, first, second, this.floorThreshold));
+        const contactFailure = this.failure.losesOnStack(fruits, this.floorThreshold);
         // 只有洞内最高水果与下方水果真实接触才判负，不按触地总数提前结束。
         if (contactFailure) {
             this.stop();
@@ -359,7 +345,6 @@ export class GameBoard extends Component {
         this.shift.stop();
         this.shiftGate.reset();
         this.matches.clear();
-        this.contacts.length = 0;
         this.failure.reset();
         this.spawner.freeze();
     }
@@ -384,7 +369,6 @@ export class GameBoard extends Component {
         this.shift.stop();
         this.shiftGate.reset();
         this.matches.clear();
-        this.contacts.length = 0;
         this.failure.reset();
         this.spawner.clear();
     }
@@ -400,7 +384,6 @@ export class GameBoard extends Component {
         this.shift.stop();
         this.shiftGate.reset();
         this.matches.clear();
-        this.contacts.length = 0;
         this.failure.reset();
     }
 

@@ -36,6 +36,8 @@ export class FruitItem extends Component {
     spawning = false;
     /** 随容器移动的固定水果；运动学碰撞不触发悬停水果的触地和配对业务。 */
     shakingSuspended = false;
+    /** 当前仍接触的水果ID；结束接触立即移除，休眠时保留有效接触。 */
+    private readonly touchingFruits = new Set<string>();
     /** 实例化的独立冰层表现，普通水果为空。 */
     private iceView: IceFruitView | null = null;
 
@@ -74,6 +76,7 @@ export class FruitItem extends Component {
         this.spawning = false;
         this.iceView = null;
         this.touchedFloor = false;
+        this.touchingFruits.clear();
         this.removing = false;
         this.released = false;
         this.floorEffectPlayed = false;
@@ -87,6 +90,7 @@ export class FruitItem extends Component {
         this.node.on(Node.EventType.TOUCH_END, this.requestRelease, this);
         this.collider.on(Contact2DType.BEGIN_CONTACT, this.onContactBegan, this);
         this.collider.on(Contact2DType.PRE_SOLVE, this.onContact, this);
+        this.collider.on(Contact2DType.END_CONTACT, this.onContactEnded, this);
     }
 
     /** 请求棋盘确认本局是否允许下落。 */
@@ -182,6 +186,9 @@ export class FruitItem extends Component {
         return {
             ...this.getMatchCandidate(),
             id: this.node.uuid,
+            x: this.node.position.x,
+            released: !this.waiting && !this.spawning && !this.shakingSuspended,
+            contacts: Array.from(this.touchingFruits),
             settled: this.body.type !== ERigidBody2DType.Dynamic
                 || (velocity.lengthSqr() <= PHYSICS_RULES.settledSpeedSquared && Math.abs(this.body.angularVelocity) <= PHYSICS_RULES.settledAngularSpeed),
         };
@@ -193,6 +200,8 @@ export class FruitItem extends Component {
      * @param other 物理引擎回调中的另一方碰撞体。
      */
     private onContact(_self: Collider2D, other: Collider2D): void {
+        const touching = other.getComponent(FruitItem);
+        if (touching) this.touchingFruits.add(touching.node.uuid);
         if (this.shakingSuspended) return;
         if (other.node.name === 'Floor' && !this.touchedFloor) {
             this.touchedFloor = true;
@@ -202,6 +211,12 @@ export class FruitItem extends Component {
         if (fruit) {
             this.node.emit(BoardEvents.FruitContact, this, fruit);
         }
+    }
+
+    /** @param _self 本水果碰撞体。 @param other 已分离的碰撞体，分离后不再计为堆叠。 */
+    private onContactEnded(_self: Collider2D, other: Collider2D): void {
+        const fruit = other.getComponent(FruitItem);
+        if (fruit) this.touchingFruits.delete(fruit.node.uuid);
     }
 
     /** 提供纯数据快照，规则模块无需读取引擎对象。 */
@@ -246,5 +261,7 @@ export class FruitItem extends Component {
         this.node.targetOff(this);
         this.collider?.off(Contact2DType.BEGIN_CONTACT, this.onContactBegan, this);
         this.collider?.off(Contact2DType.PRE_SOLVE, this.onContact, this);
+        this.collider?.off(Contact2DType.END_CONTACT, this.onContactEnded, this);
+        this.touchingFruits.clear();
     }
 }

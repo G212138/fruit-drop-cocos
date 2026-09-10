@@ -86,6 +86,23 @@ function pile(count) {
     }));
 }
 const failure = new FloorFailureRules();
+/** 四颗沿洞内向洞口连续堆叠，最高一颗中心已高于旧高度线。 */
+const stack = pile(4).map((fruit, i) => ({...fruit,x:0,y:-70-i*90,released:true,
+    contacts:[...(i>0?[String(i-1)]:[]),...(i<3?[String(i+1)]:[])]}));
+assert.equal(failure.losesOnStack(stack),true,'截图的四颗连续堆叠应判负');
+assert.equal(failure.losesOnStack(stack),true,'接触持续或休眠后仍能判断');
+assert.equal(failure.losesOnStack(stack.map(f=>({...f,y:f.y+400}))),false,'整体还在洞外不能判负');
+assert.equal(failure.losesOnStack(stack.map(f=>({...f,contacts:[]}))),false,'数量足够但没接触不能判负');
+assert.equal(failure.losesOnStack(stack.map((f,i)=>({...f,released:i!==0}))),false,'悬停水果不计入堆叠');
+assert.equal(failure.losesOnStack(stack.map(f=>({...f,x:200}))),false,'斜坡远端不属于洞口');
+assert.equal(failure.losesOnStack(stack.map((f,i)=>({...f,removing:i===2}))),false,'消除优先');
+assert.equal(failure.losesOnStack(stack.map((f,i)=>({...f,kind:i===1?1:f.kind}))),false,'接触同类优先配对');
+assert.equal(failure.losesOnStack(stack,5),false,'扩槽允许四颗');
+const expandedStack=stack.map(f=>({...f,contacts:[...f.contacts]}));
+expandedStack[0].contacts.push('extra');expandedStack.push({...stack[0],id:'extra',kind:9,y:20,contacts:['0']});
+assert.equal(failure.losesOnStack(expandedStack,5),true,'扩槽第五颗接触时判负');
+const separated=stack.map(f=>({...f,contacts:f.contacts.filter(id=>id!=='0')}));separated[0].contacts=[];
+assert.equal(failure.losesOnStack(separated),false,'分离后不保留假堆叠');
 failure.reset();
 const moving = pile(4);
 moving[0].settled = false;

@@ -4,10 +4,18 @@ const FLOOR_RULES = {
     bottomY: -250,
     /** 普通锁墙启用时的判负数量，单位个。 */
     normalThreshold: 4,
+    /** 洞口中心左右110设计像素内允许堆叠延伸；适配圆形水果半径，不纳入远处斜坡。 */
+    mouthHalfWidth: 110,
 } as const;
 
 /** 底部判定需要的纯数据，不依赖引擎或 UI。 */
 export interface FloorFruit {
+    /** 棋盘局部横坐标，单位设计像素；旧规则快照可省略。 */
+    x?: number;
+    /** 是否已点击释放；悬停或出现中的水果不能构成失败堆叠。 */
+    released?: boolean;
+    /** 物理引擎当前真实接触的水果ID，包含休眠中的有效接触。 */
+    contacts?: string[];
     /** 水果实例唯一标识，用于区分同种水果。 */
     id: string;
     /** 原版水果编号，只有同编号允许匹配。 */
@@ -42,6 +50,37 @@ function getBottomFruits(fruits: FloorFruit[]): FloorFruit[] {
 
 /** 普通窄槽规则；扩槽机制接入后由调用方传入五个的阈值。 */
 export class FloorFailureRules {
+    /**
+     * 从洞内水果沿真实接触寻找连续堆叠，顶部可自然延伸到洞口上方。
+     * @param fruits 当前物理步结束后的水果快照。
+     * @param threshold 普通洞4个、扩槽5个；不等待静止或额外计时。
+     */
+    losesOnStack(fruits: FloorFruit[], threshold: number = FLOOR_RULES.normalThreshold): boolean {
+        if (fruits.some(fruit => fruit.removing)) return false;
+        const eligible = fruits.filter(fruit => fruit.released === true && Number.isFinite(fruit.x)
+            && Math.abs(fruit.x!) <= FLOOR_RULES.mouthHalfWidth);
+        const remaining = new Set(eligible);
+        while (remaining.size) {
+            const seed = remaining.values().next().value as FloorFruit;
+            const stack = [seed];
+            remaining.delete(seed);
+            for (let index = 0; index < stack.length; index++) {
+                const current = stack[index];
+                for (const next of remaining) {
+                    if ((current.contacts ?? []).indexOf(next.id) < 0 && (next.contacts ?? []).indexOf(current.id) < 0) continue;
+                    remaining.delete(next);
+                    stack.push(next);
+                }
+            }
+            if (stack.length < threshold || !stack.some(fruit => fruit.y < FLOOR_RULES.bottomY)) continue;
+            // 同一连续堆叠中仍有可消除的真实接触时，先交给配对流程处理。
+            const canMatch = stack.some(first => stack.some(second => first !== second && first.kind === second.kind
+                && (first.touchedFloor || second.touchedFloor)
+                && ((first.contacts ?? []).indexOf(second.id) >= 0 || (second.contacts ?? []).indexOf(first.id) >= 0)));
+            if (!canMatch) return true;
+        }
+        return false;
+    }
     /** 保留棋盘重开/扩槽调用契约；即时规则没有跨帧计时状态。 */
     reset(): void {}
 
