@@ -7,8 +7,8 @@ export const DEGREES_PER_RADIAN = 180 / Math.PI;
 export const PHYSICS_RULES = {
     /** 水果碰撞恢复系数，无单位；手感适配从 0 提升至 0.2，越大反弹越明显。 */
     fruitRestitution: 0.2,
-    /** 原版重力纵向加速度，单位设计像素每平方秒，负数向下。 */
-    gravityY: -1600,
+    /** 向下重力，单位设计像素每平方秒；由原版 -1600 增强 10% 至 -1760，加快下落加速，负数向下。 */
+    gravityY: -1760,
     /** 原版负三百像素每秒换算为负九点三七五米每秒；直接填负三百会放大三十二倍。 */
     dropVelocityY: -300 / PIXELS_PER_PHYSICS_METER,
     /** 静止判断的线速度平方上限，单位为物理米每秒的平方。 */

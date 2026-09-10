@@ -11,7 +11,7 @@
 | targetBottom | -70 | 整体补位后最低水果的目标 y，单位设计像素 | 同上 |
 | speed | 300 | 距离除以该值计算动画秒数；正弦缓出，所以不是实际匀速 | animateShiftUnclickedBalls |
 | minDuration / maxDuration | 0.2 / 1.2 | 补位时间上下限，单位秒；调大会延长输入锁定时间 | 同上 |
-| PHYSICS_RULES.gravityY | -1600 | 向下重力，单位设计像素每平方秒；引擎内部按像素米比例转换 | 原 GameSc |
+| PHYSICS_RULES.gravityY | -1760 | 向下重力，单位设计像素每平方秒；引擎内部按像素米比例转换；比原值增强 10%，下落加速更明显 | 原 GameSc -1600，手感适配 |
 | dropVelocityY | -300 / 32 = -9.375 | 原版像素/秒转换为3.8米/秒，负数向下 | 2.4.15 CCRigidBody.linearVelocity 与3.8.8 setLinearVelocity 源码 |
 | settledSpeedSquared | 25 / 1024 | 原版像素速度平方转换为米速度平方，严格静止判定 | 两代引擎速度接口源码 |
 | settledAngularSpeed | 5 × π / 180 | 原版5度/秒转换为弧度/秒 | 2.4.15 CCRigidBody.angularVelocity 与3.8.8接口源码 |
