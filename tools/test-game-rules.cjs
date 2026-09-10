@@ -19,6 +19,20 @@ function load(file) {
     return module.exports;
 }
 const { canMatch } = load(expansion + '/matching/MatchRules.ts');
+const { safeDownwardDistance, planSlopeShift } = load(expansion + '/movement/VerticalShiftRules.ts');
+/** 安全圆包含水果半径和完整直径留白，必须覆盖斜线和端点。 */
+const flat=[{x:-1000,y:0},{x:1000,y:0}];
+assert.equal(safeDownwardDistance(0,300,90,flat),210);
+assert.equal(safeDownwardDistance(0,89,90,flat),0);
+const slope=[{x:-500,y:500},{x:500,y:-500}];
+assert.ok(Math.abs(safeDownwardDistance(0,300,90,slope)-(300-90*Math.sqrt(2)))<1e-7);
+const corner=[{x:0,y:0},{x:50,y:0}];
+assert.ok(Math.abs(safeDownwardDistance(-30,100,50,corner)-60)<1e-7);
+assert.equal(planSlopeShift(0),null);
+assert.equal(planSlopeShift(Infinity),null);
+assert.equal(planSlopeShift(1),null);
+assert.equal(planSlopeShift(210).delta,-210);
+assert.ok(Math.abs(safeDownwardDistance(300,1400,180,flat.map(p=>({x:p.x*2+300,y:p.y*2+800})))-420)<1e-7);
 const { MatchQueue } = load(expansion + '/matching/MatchQueue.ts');
 const { parseLevel, countFruits } = load(expansion + '/level/LevelDefinition.ts');
 const Game = load(root + '/app-builtin/app-model/store.game.ts').default;

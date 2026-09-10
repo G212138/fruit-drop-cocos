@@ -64,6 +64,41 @@ export interface ShiftPlan {
     duration: number;
 }
 
+/** 计算圆形安全区沿向下方向首次碰到地形线段的距离，单位为同一坐标系像素。
+ * @param x 水果中心横坐标。 @param y 水果中心纵坐标。
+ * @param clearance 中心到地形的安全距离，水果外接半径加一个完整直径。
+ * @param points 闭合地形轮廓顶点，已转换到水果父节点坐标系。
+ */
+export function safeDownwardDistance(x: number, y: number, clearance: number, points: ReadonlyArray<{ x: number; y: number }>): number {
+    let limit = Infinity;
+    for (let i = 0; i < points.length; i++) {
+        const a = points[i], b = points[(i + 1) % points.length];
+        const dx = b.x - a.x, dy = b.y - a.y, length2 = dx * dx + dy * dy;
+        const projection = length2 ? Math.max(0, Math.min(1, ((x - a.x) * dx + (y - a.y) * dy) / length2)) : 0;
+        if (Math.hypot(x - a.x - projection * dx, y - a.y - projection * dy) <= clearance) return 0;
+        for (const end of [a, b]) {
+            const horizontal = x - end.x;
+            if (Math.abs(horizontal) > clearance) continue;
+            const hit = y - end.y - Math.sqrt(Math.max(0, clearance * clearance - horizontal * horizontal));
+            if (hit >= 0) limit = Math.min(limit, hit);
+        }
+        if (!length2 || Math.abs(dx) < 1e-8) continue;
+        const length = Math.sqrt(length2);
+        for (const side of [-1, 1]) {
+            const hit = (dx * (y - a.y) - dy * (x - a.x) - side * clearance * length) / dx;
+            const along = ((x - a.x) * dx + (y - hit - a.y) * dy) / length2;
+            if (hit >= 0 && along >= 0 && along <= 1) limit = Math.min(limit, hit);
+        }
+    }
+    return limit;
+}
+
+/** @param allowed 根据斜坡碰撞轮廓计算的可下移距离；2像素死区避免浮点误差反复触发动画。 */
+export function planSlopeShift(allowed: number): ShiftPlan | null {
+    if (!Number.isFinite(allowed) || allowed <= 2) return null;
+    return { delta: -allowed, duration: Math.max(SHIFT_RULES.minDuration, Math.min(SHIFT_RULES.maxDuration, allowed / SHIFT_RULES.speed)) };
+}
+
 /** @param heights 尚未点击水果的棋盘局部纵坐标，单位设计像素。 */
 export function planVerticalShift(heights: number[], reachableTop: number = SHIFT_RULES.reachableTop): ShiftPlan | null {
     if (!heights.length) return null;

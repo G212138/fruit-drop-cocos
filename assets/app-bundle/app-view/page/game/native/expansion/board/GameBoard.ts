@@ -80,6 +80,8 @@ export class GameBoard extends Component {
     rightLine: Node = null!;
     /** 当前关卡原始移动模式。 */
     private mode: 1 | 2 = 1;
+    /** 第二关起的纵向关卡按斜坡安全距离自动补位；横向关卡保持原移动规则。 */
+    private automaticShift = false;
     /** 正在爆炸或入袋的普通配对数；入袋结束前不提交失败，避免丢失配对计数。 */
     private collectingPairs = 0;
     /** 清局使尚未结束的入袋通知失效。 */
@@ -172,6 +174,7 @@ export class GameBoard extends Component {
     begin(level: LevelDefinition): void {
         this.clear();
         this.mode = level.mode;
+        this.automaticShift = level.number >= 2 && level.mode === 1;
         this.lockWallRoot.getComponent(LockWallView)!.reset();
         // 左墙没有可见图片；仅停用刚体，避免节点与碰撞体同时停用时重复移除物理代理。
         this.leftBoundary.getComponent(RigidBody2D)!.enabled = this.mode !== 2;
@@ -268,7 +271,7 @@ export class GameBoard extends Component {
         }
         if (this.initialShiftPending) {
             this.initialShiftPending = false;
-            this.shift.begin(this.spawner.getWaiting(), this.fruitDisplayTop - 60);
+            if (!this.automaticShift) this.shift.begin(this.spawner.getWaiting(), this.fruitDisplayTop - 60, this.node.getChildByName('Floor'));
         }
         if (this.mode === 2 && !this.shake.busy) this.horizontal.tick(dt, this.spawner.getLive(), this.spawner.getWaiting(), this.rightLine, fruit => this.release(fruit, false));
         if (this.props.busy) return;
@@ -276,9 +279,12 @@ export class GameBoard extends Component {
         this.matchTouchingFruits();
         this.resolveMatches();
         if (!this.playing) return;
-        if (this.mode === 1 && !this.shake.busy && this.shiftGate.consume(
+        if (this.automaticShift && this.canUseProp) {
+            this.shift.begin(this.spawner.getWaiting(), this.fruitDisplayTop - 60, this.node.getChildByName('Floor'), true);
+        }
+        if (!this.automaticShift && this.mode === 1 && !this.shake.busy && this.shiftGate.consume(
             this.spawner.getLive().map(fruit => ({ id: fruit.node.uuid, y: fruit.node.position.y })), this.shift.busy,
-        )) this.shift.begin(this.spawner.getWaiting(), this.fruitDisplayTop - 60);
+        )) this.shift.begin(this.spawner.getWaiting(), this.fruitDisplayTop - 60, this.node.getChildByName('Floor'));
         if (this.collectingPairs > 0) return;
         const fruits = this.spawner.getFloorSnapshots();
         const warning = this.warning.tick(fruits, dt, this.floorThreshold === 5);
