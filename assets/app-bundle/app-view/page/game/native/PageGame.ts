@@ -9,7 +9,6 @@ import { RemovalEffects } from './expansion/effects/RemovalEffects';
 import { PropInventory } from './expansion/props/PropInventory';
 import { PropKind } from './expansion/props/PropRules';
 import { FruitViewportLayout } from './expansion/board/FruitViewportLayout';
-import { GameScreenLayout } from './expansion/board/GameScreenLayout';
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
 import { DEV } from 'cc/env';
 import { RewardGate } from '../../../../../app-builtin/app-model/expansion/RewardGate';
@@ -50,18 +49,15 @@ export class PageGame extends BaseView.BindController(GameController) {
     }
     /** 页面内固定结算层，与游戏同步加载，胜负时直接显示。 */
     @property(Node) resultRoot: Node = null!;
-    /** 根据安全区域统一缩放页面内容。 */
-    private readonly screenLayout = new GameScreenLayout();
-    /** 水果裁剪区域与HUD下沿保持一致。 */
+    /** 只读取编辑器布局中的补位标记，不调整裁剪区。 */
     private readonly fruitViewport = new FruitViewportLayout();
 
-    /** 每帧在布局变化后同步屏幕适配和水果显示区域。 */
+    /** 处理摇晃请求、引导跟随并读取补位标记；不写入UI适配位置。 */
     lateUpdate(): void {
         if (this.shakeRequested) {
             this.shakeRequested = false;
             if (this.canShake()) this.board?.shakeFruits();
         }
-        this.screenLayout.apply(this.node, this.boardRoot, this.hudRoot, this.hud?.topBar ?? null, this.backgroundNode, !!getTikTokGame());
         this.newbieGuide?.follow(this.board?.guideTarget ?? null);
         if (this.board && this.hud) {
             this.board.fruitDisplayTop = this.fruitViewport.apply(

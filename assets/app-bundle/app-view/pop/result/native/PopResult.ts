@@ -1,4 +1,3 @@
-import { ScreenLayout } from '../../../../../app-builtin/app-controller/expansion/ScreenLayout';
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
 import { _decorator, Label, Node, Sprite, SpriteFrame, sp, Tween, tween, UIOpacity, AudioSource } from 'cc';
 import { GameSettings } from '../../../../../app-builtin/app-model/expansion/GameSettings';
@@ -28,12 +27,9 @@ export class PopResult extends BaseView {
         } else this.hide();
     }
 
-    /** 结算页面按设计尺寸等比适配。 */
-    private readonly screenLayout = new ScreenLayout();
 
-    /** 跟随屏幕尺寸变化调整结算页面。@param deltaTime 本帧秒数；光圈按原版每秒顺时针90度旋转。 */
+    /** 更新解锁光圈动画，不调整页面布局。@param deltaTime 本帧秒数；光圈每秒顺时针90度旋转。 */
     lateUpdate(deltaTime: number): void {
-        this.screenLayout.apply(this.node);
         if (this.won && this.unlockRoot.active && this.unlockGlow) this.unlockGlow.angle -= 90 * deltaTime;
     }
 

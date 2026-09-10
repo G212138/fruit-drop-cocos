@@ -1,6 +1,5 @@
 import { GameTheme } from '../../../../../app-builtin/app-model/expansion/GameTheme';
 import { findEditorPlacement } from '../../../../../app-builtin/app-model/expansion/level/EditorPlacement';
-import { ScreenLayout } from '../../../../../app-builtin/app-controller/expansion/ScreenLayout';
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
 import { _decorator, Node, Label, EditBox, Prefab, SpriteFrame, instantiate, input, Input, EventKeyboard, KeyCode, EventMouse, JsonAsset } from 'cc';
 import BaseView from 'db://app/base/BaseView';
@@ -11,13 +10,7 @@ const { ccclass, property } = _decorator;
 /** 关卡编辑页面仅连接数据模型与独立标记预制体，不创建 UI 节点。 */
 @ccclass('PageEditor')
 export class PageEditor extends BaseView {
-    /** 编辑器页面适配，保持设计坐标与显示缩放分离。 */
-    private readonly screenLayout = new ScreenLayout();
 
-    /** 每帧检测尺寸变化并更新编辑器页面适配。 */
-    lateUpdate(): void {
-        this.screenLayout.apply(this.node);
-    }
 
     /** 编辑器已有水果挂载点，导出的坐标不含它的滚动偏移。 */
     @property(Node)

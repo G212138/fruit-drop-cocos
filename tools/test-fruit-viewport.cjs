@@ -1,31 +1,20 @@
-﻿const assert=require('node:assert/strict'),fs=require('fs');
+const assert=require('node:assert/strict'),fs=require('fs');
 const ts=require('C:/ProgramData/cocos/editors/Creator/3.8.8/resources/app.asar.unpacked/node_modules/typescript');
-let visible={width:750,height:1334},safe={x:0,y:0,width:750,height:1334};
 class Vec3 { constructor(x=0,y=0,z=0){Object.assign(this,{x,y,z});} }
 const mod={exports:{}};
-new Function('require','module','exports',ts.transpileModule(fs.readFileSync('assets/app-bundle/app-view/page/game/native/expansion/board/FruitViewportLayout.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(()=>({Vec3,Widget:'widget',sys:{getSafeAreaRect:()=>safe},view:{getVisibleSize:()=>visible}}),mod,mod.exports);
-/** 简化UI变换模型，验证裁剪和原点补偿，不模拟物理。 */
-function makeNode(uuid,y=0){
- const n={uuid,position:new Vec3(0,y),setPosition(x,y,z){this.position=new Vec3(x,y,z);}};
- const t={width:750,height:56,anchorY:.5,setContentSize(w,h){this.width=w;this.height=h;},setAnchorPoint(x,y){this.anchorY=y;},convertToWorldSpaceAR(p){return new Vec3(p.x+n.position.x,p.y+n.position.y);},convertToNodeSpaceAR(p){return new Vec3(p.x-n.position.x,p.y-n.position.y);}};
- n.getComponent=kind=>kind==='widget'?null:t;return n;
+new Function('require','module','exports',ts.transpileModule(fs.readFileSync('assets/app-bundle/app-view/page/game/native/expansion/board/FruitViewportLayout.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(()=>({Vec3}),mod,mod.exports);
+/** 所有写操作均拒绝，验证业务只能读取组件布局。 */
+function makeNode(y){
+ const n={y,setPosition(){throw Error('不能改位置');},setScale(){throw Error('不能改缩放');}};
+ const t={height:56,anchorY:.5,setContentSize(){throw Error('不能改尺寸');},setAnchorPoint(){throw Error('不能改锚点');},convertToWorldSpaceAR(p){return new Vec3(p.x,p.y+n.y,p.z);},convertToNodeSpaceAR(p){return new Vec3(p.x,p.y-n.y,p.z);}};
+ n.getComponent=()=>t;return n;
 }
-const page=makeNode('page'),board=makeNode('board'),status=makeNode('status',545),viewport=makeNode('viewport'),fruits=makeNode('fruits');fruits.parent=viewport;
-const widget={enabled:true},getViewportComponent=viewport.getComponent;
-viewport.getComponent=kind=>kind==='widget'?widget:getViewportComponent(kind);
-const layout=new mod.exports.FruitViewportLayout();
-assert.equal(layout.apply(page,board,fruits,status),501);
-assert.equal(widget.enabled,false,'动态裁剪停用冲突的Widget');
-assert.equal(viewport.position.y+viewport.getComponent().height/2,667);
-assert.equal(viewport.position.y-viewport.getComponent().height/2,-667);
-assert.equal(viewport.position.y+fruits.position.y,0,'裁剪中心改变不移动水果原点');
-visible={width:1024,height:1600};safe={x:20,y:40,width:984,height:1500};status.position.y=600;
-assert.equal(layout.apply(page,board,fruits,status),556);
-assert.equal(viewport.getComponent().width,1024,'裁剪宽度覆盖全屏，不按安全区缩进');
-assert.equal(viewport.position.y+viewport.getComponent().height/2,800,'顶部裁剪在屏幕边缘');
-assert.equal(viewport.position.y-viewport.getComponent().height/2,-800,'底部覆盖手势区');
-assert.equal(viewport.position.y+fruits.position.y,0);
-const nextBoard=makeNode('new-board'),nextViewport=makeNode('next-viewport'),nextFruits=makeNode('next-fruits');nextFruits.parent=nextViewport;
-layout.apply(page,nextBoard,nextFruits,status);
-assert.equal(nextViewport.getComponent().width,1024,'同尺寸重开也必须初始化新棋盘');
-console.log('通过：HUD补位下缘、全屏裁剪边界、居中锚点、原点补偿与同尺寸重开。');
+const layout=new mod.exports.FruitViewportLayout(),page=makeNode(0),board=makeNode(0),fruits=makeNode(0),marker=makeNode(545);
+assert.equal(layout.apply(page,board,fruits,marker),501);
+fruits.y=100;marker.y=600;
+assert.equal(layout.apply(page,board,fruits,marker),456,'按组件配置变化读取水果局部补位高度');
+for(const file of ['page/home/native/PageHome.ts','page/game/native/PageGame.ts','page/editor/native/PageEditor.ts','pop/result/native/PopResult.ts']) {
+ const source=fs.readFileSync('assets/app-bundle/app-view/'+file,'utf8');
+ assert.equal(/screenLayout\.apply|new (GameScreenLayout|ScreenLayout)/.test(source),false,file+'不得重新接入代码自适应');
+}
+console.log('通过：补位标记只读、父级偏移换算及四个页面取消代码自适应。');

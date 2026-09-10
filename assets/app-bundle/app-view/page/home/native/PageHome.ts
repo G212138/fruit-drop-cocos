@@ -1,5 +1,4 @@
 import { GameLanguage } from '../../../../../app-builtin/app-model/expansion/GameLanguage';
-import { ScreenLayout } from '../../../../../app-builtin/app-controller/expansion/ScreenLayout';
 import { TikTokStartup } from '../../../../../app-builtin/app-controller/expansion/TikTokStartup';
 import { _decorator, Prefab, JsonAsset, Node, Label } from 'cc';
 import { DEV } from 'cc/env';
@@ -28,15 +27,9 @@ export class PageHome extends BaseView {
     /** 原版三项开关面板。 */
     @property(SettingsPanel) settingsPanel: SettingsPanel = null!;
 
-    /** 首页适配器，只改变显示尺寸。 */
-    private readonly screenLayout = new ScreenLayout();
     /** 保持稳定引用，隐藏首页时解除语言监听。 */
     private readonly languageChanged = (): void => this.refreshLanguage();
 
-    /** 跟随屏幕尺寸调整首页布局。 */
-    lateUpdate(): void {
-        this.screenLayout.apply(this.node, -812.5, 812.5);
-    }
 
     /** 首页出现后提前加载游戏及入场必需资源，不显示页面、不启动关卡。 */
     onShow(): void {
