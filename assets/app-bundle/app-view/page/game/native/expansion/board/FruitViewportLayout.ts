@@ -1,6 +1,6 @@
-import { Node, UITransform, Vec3, Widget, sys, view } from 'cc';
+import { Node, UITransform, Vec3, Widget, view } from 'cc';
 
-/** 根据页面安全区布局已有裁剪节点，HUD下沿仅决定补位目标，水果原点与棋盘重合。 */
+/** 根据全屏边界布局已有裁剪节点，HUD下沿仅决定补位目标，水果原点与棋盘重合。 */
 export class FruitViewportLayout {
     /** 最近一次边界，避免每帧改写物理节点的父级变换。 */
     private signature = '';
@@ -19,17 +19,16 @@ export class FruitViewportLayout {
         const pageTransform = page.getComponent(UITransform)!;
         const boardTransform = board.getComponent(UITransform)!;
         const statusTransform = status.getComponent(UITransform)!;
-        const safe = sys.getSafeAreaRect(false);
         const visible = view.getVisibleSize();
         const lower = boardTransform.convertToNodeSpaceAR(pageTransform.convertToWorldSpaceAR(
-            new Vec3(safe.x - visible.width / 2, safe.y - visible.height / 2)));
+            new Vec3(-visible.width / 2, -visible.height / 2)));
         const upper = boardTransform.convertToNodeSpaceAR(pageTransform.convertToWorldSpaceAR(
-            new Vec3(safe.x + safe.width - visible.width / 2, safe.y + safe.height - visible.height / 2)));
+            new Vec3(visible.width / 2, visible.height / 2)));
         const statusBottom = boardTransform.convertToNodeSpaceAR(statusTransform.convertToWorldSpaceAR(
             new Vec3(0, -statusTransform.height * statusTransform.anchorY)));
         // 顶部栏与补位目标上界间隔16设计像素，适配留白，避免水果碰到进度文字。
         const top = Math.min(upper.y, statusBottom.y - 16);
-        // 裁剪覆盖整个安全区；top仅用于下移目标，避免屏幕中部出现硬切边。
+        // 画面覆盖整个屏幕，包括刘海和手势区域；安全区只约束操作控件，不裁切水果。
         const bottom = lower.y;
         const signature = [board.uuid, lower.x, upper.x, bottom, top, upper.y].join(',');
         if (signature === this.signature) return top;

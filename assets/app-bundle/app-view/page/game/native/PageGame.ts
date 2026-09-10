@@ -61,7 +61,7 @@ export class PageGame extends BaseView.BindController(GameController) {
             this.shakeRequested = false;
             if (this.canShake()) this.board?.shakeFruits();
         }
-        this.screenLayout.apply(this.node, this.boardRoot, this.hudRoot, this.hud?.topBar ?? null, this.backgroundNode);
+        this.screenLayout.apply(this.node, this.boardRoot, this.hudRoot, this.hud?.topBar ?? null, this.backgroundNode, !!getTikTokGame());
         this.newbieGuide?.follow(this.board?.guideTarget ?? null);
         if (this.board && this.hud) {
             this.board.fruitDisplayTop = this.fruitViewport.apply(
