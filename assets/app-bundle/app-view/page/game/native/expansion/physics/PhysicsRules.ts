@@ -3,8 +3,10 @@ export const PIXELS_PER_PHYSICS_METER = 32;
 /** 原版角速度接口为度每秒，3.8 为弧度每秒。 */
 export const DEGREES_PER_RADIAN = 180 / Math.PI;
 
-/** 原项目 GameSc 的物理数值，按两代引擎接口转换单位。 */
+/** 原项目 GameSc 的物理数值及手感适配参数，按两代引擎接口转换单位。 */
 export const PHYSICS_RULES = {
+    /** 水果碰撞恢复系数，无单位；手感适配从 0 提升至 0.2，越大反弹越明显。 */
+    fruitRestitution: 0.2,
     /** 原版重力纵向加速度，单位设计像素每平方秒，负数向下。 */
     gravityY: -1600,
     /** 原版负三百像素每秒换算为负九点三七五米每秒；直接填负三百会放大三十二倍。 */

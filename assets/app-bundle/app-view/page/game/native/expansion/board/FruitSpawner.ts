@@ -5,6 +5,7 @@ import { FloorFruit } from '../failure/FloorFailureRules';
 import { FruitItem } from '../fruit/FruitItem';
 import { FruitDefinition } from '../level/LevelDefinition';
 import { BlackHoleFlow } from '../black-hole/BlackHoleFlow';
+import { PHYSICS_RULES } from '../physics/PhysicsRules';
 const { ccclass, property } = _decorator;
 
 /** 水果实例集合，只实例化编辑器制作的预制体。 */
@@ -73,6 +74,8 @@ export class FruitSpawner extends Component {
         const fruit = node.getComponent(FruitItem)!;
         // 3.8.8 仅在创建物理刚体时读取 bullet；必须在挂入活动场景前开启连续检测，避免快速水果相互穿入。
         fruit.body.bullet = true;
+        // 挂入活动场景前设置，让首次创建物理夹具就采用统一弹性，水果和甜品共用。
+        fruit.collider.restitution = PHYSICS_RULES.fruitRestitution;
         node.setPosition(definition.x, definition.y);
         node.parent = this.fruitRoot;
         fruit.configure(definition.kind);
