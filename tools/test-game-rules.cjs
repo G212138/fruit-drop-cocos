@@ -89,7 +89,7 @@ function pile(count) {
     }));
 }
 const failure = new FloorFailureRules();
-const region = { left: -55, right: 55, bottom: -500, top: -250 };
+const region = { left: -55, right: 55, bottom: -500, top: -250, matchTop: 0 };
 const losesOnStack = (fruits, threshold = 4) => failure.losesOnStack(fruits, threshold, region);
 /** 四颗沿洞内向洞口连续堆叠，最高一颗中心已高于旧高度线。 */
 const stack = pile(4).map((fruit, i) => ({...fruit,x:0,y:-70-i*90,released:true,

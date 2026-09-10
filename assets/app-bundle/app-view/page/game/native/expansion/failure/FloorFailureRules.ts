@@ -54,7 +54,7 @@ export class FloorFailureRules {
      * @param threshold 普通洞4个、扩槽5个；不等待静止或额外计时。
      * @param region 地形局部坐标中的洞口左右边界、槽底和洞口高度，来自组件布局后的碰撞轮廓。
      */
-    losesOnStack(fruits: FloorFruit[], threshold: number, region: { left: number; right: number; bottom: number; top: number }): boolean {
+    losesOnStack(fruits: FloorFruit[], threshold: number, region: { left: number; right: number; bottom: number; top: number; matchTop?: number }): boolean {
         if (fruits.some(fruit => fruit.removing)) return false;
         const eligible = fruits.filter(fruit => fruit.released === true && Number.isFinite(fruit.x)
             && fruit.x! >= region.left && fruit.x! <= region.right && fruit.y >= region.bottom);
@@ -74,6 +74,8 @@ export class FloorFailureRules {
             if (stack.length < threshold || !stack.some(fruit => fruit.y < region.top)) continue;
             // 同一连续堆叠中仍有可消除的真实接触时，先交给配对流程处理。
             const canMatch = stack.some(first => stack.some(second => first !== second && first.kind === second.kind
+                && first.y <= (region.matchTop ?? region.top + region.right - region.left)
+                && second.y <= (region.matchTop ?? region.top + region.right - region.left)
                 && ((first.contacts ?? []).indexOf(second.id) >= 0 || (second.contacts ?? []).indexOf(first.id) >= 0)));
             if (!canMatch) return true;
         }

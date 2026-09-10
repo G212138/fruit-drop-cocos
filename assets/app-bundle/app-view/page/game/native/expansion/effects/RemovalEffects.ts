@@ -23,6 +23,12 @@ export class RemovalEffects extends Component {
 
     /** 页面预加载的原版触地草叶预制体。 */
     groundImpactPrefab: Prefab | null = null;
+    /** 成功开始摇晃时复用已预加载的草地音效，不生成草叶或重复触地事件。 */
+    playShakeSound(): void {
+        if (!GameSettings.current.snapshot.sound) return;
+        const clip = this.groundImpactPrefab?.data.getComponent(GroundImpactView)?.audio?.clip;
+        if (clip && this.mergeAudio && isValid(this.mergeAudio, true)) this.mergeAudio.playOneShot(clip);
+    }
     /** @param position 世界接触坐标，转换到独立特效层后播放。 */
     showGroundImpact(position: Vec3): void {
         if (!this.groundImpactPrefab) return;

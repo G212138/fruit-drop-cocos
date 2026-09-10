@@ -112,7 +112,10 @@ export class GameBoard extends Component {
     shakeFruits(): boolean {
         if (!this.canUseProp) return false;
         const count = this.shake.apply(this.spawner.getLive(), this.shakeTime, this.node);
-        if (count) GameHaptics.impact();
+        if (count) {
+            GameHaptics.impact();
+            this.removalEffects?.playShakeSound();
+        }
         return count > 0;
     }
     /** 当前棋盘是否接受道具操作。 */
@@ -239,6 +242,11 @@ export class GameBoard extends Component {
     private contact(first: FruitItem, second: FruitItem): void {
         if (first.shakingSuspended || second.shakingSuspended) return;
         if (this.playing) {
+            const layout = this.readCavityLayout();
+            if (!layout) return;
+            const firstY = layout.transform.convertToNodeSpaceAR(first.node.worldPosition).y;
+            const secondY = layout.transform.convertToNodeSpaceAR(second.node.worldPosition).y;
+            if (firstY > layout.region.matchTop || secondY > layout.region.matchTop) return;
             this.matches.enqueue(first, second);
         }
     }
@@ -301,25 +309,35 @@ export class GameBoard extends Component {
         }
     }
 
-    /** 只读地形轮廓和锁墙布局，在地形局部坐标中判定洞内接触堆叠。 */
-    private checkLayoutFailure(): boolean {
+    /** 只读当前地形轮廓和锁墙布局，统一提供消除入口与失败区域。 */
+    private readCavityLayout() {
         const floor = this.node.getChildByName('Floor');
         const transform = floor?.getComponent(UITransform);
         const collider = floor?.getComponent(PolygonCollider2D);
         const lock = this.lockWallRoot?.getComponent(UITransform);
-        if (!transform || !collider || !lock) return false;
+        if (!transform || !collider || !lock) return null;
         // 锁墙视觉宽度覆盖洞口内壁，用于从现有地形多边形筛出凹槽轮廓。
         const left = transform.convertToNodeSpaceAR(lock.convertToWorldSpaceAR(new Vec3(-lock.width * lock.anchorX, 0, 0))).x;
         const right = transform.convertToNodeSpaceAR(lock.convertToWorldSpaceAR(new Vec3(lock.width * (1 - lock.anchorX), 0, 0))).x;
         const neck = collider.points.map(point => ({ x: point.x + collider.offset.x, y: point.y + collider.offset.y }))
             .filter(point => point.x >= Math.min(left, right) && point.x <= Math.max(left, right));
-        if (neck.length < 4) return false;
+        if (neck.length < 4) return null;
         const region = {
             left: Math.min(...neck.map(point => point.x)),
             right: Math.max(...neck.map(point => point.x)),
             bottom: Math.min(...neck.map(point => point.y)),
             top: Math.max(...neck.map(point => point.y)),
+            // 洞口上方预留一个槽宽，容纳入口堆叠的水果；随地形缩放，不使用屏幕固定高度。
+            matchTop: Math.max(...neck.map(point => point.y)) + Math.max(...neck.map(point => point.x)) - Math.min(...neck.map(point => point.x)),
         };
+        return { transform, region };
+    }
+
+    /** 在地形局部坐标中判定洞内接触堆叠，消除保护使用同一入口边界。 */
+    private checkLayoutFailure(): boolean {
+        const layout = this.readCavityLayout();
+        if (!layout) return false;
+        const { transform, region } = layout;
         const fruits = this.spawner.getLive().map(fruit => {
             const position = transform.convertToNodeSpaceAR(fruit.node.worldPosition);
             return { ...fruit.getFloorSnapshot(), x: position.x, y: position.y };

@@ -42,6 +42,15 @@ for(const [dx,dy,scale] of [[0,0,1],[310,820,0.65],[-200,-300,1.4]]){
         getFloorSnapshot:()=>({id:String(i),kind:i+1,x:9999,y:9999,released:true,removing:false,
             contacts:[String(i-1),String(i+1)],touchedFloor:false,settled:true})}));
     board.spawner={getLive:()=>live};
+    let matched=0;
+    board.matches={enqueue:()=>matched++};
+    const airborne={node:{worldPosition:toWorld({x:0,y:700})}};
+    const entrance={node:{worldPosition:toWorld({x:0,y:250})}};
+    board.contact(airborne,airborne);
+    board.contact(entrance,airborne);
+    assert.equal(matched,0,'空中接触、只有一颗进入下方都不能入消除队列');
+    board.contact(entrance,{node:{worldPosition:toWorld({x:0,y:180})}});
+    assert.equal(matched,1,'双方到洞口附近下方才接受接触，且随布局平移缩放');
     assert.equal(board.checkLayoutFailure(),true,'世界位置转换到地形坐标，不依赖水果局部原点');
     live[3].getFloorSnapshot=()=>({...live[2].getFloorSnapshot(),id:'3',kind:4,contacts:[]});
     live[2].getFloorSnapshot=()=>({id:'2',kind:3,released:true,removing:false,contacts:['1']});

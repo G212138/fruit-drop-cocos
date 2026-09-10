@@ -57,7 +57,7 @@ assert.equal(waiting.body.linearVelocity.x, floor.body.linearVelocity.x, '地形
 assert.equal(ice.body.linearVelocity.x, floor.body.linearVelocity.x, '冰冻水果也固定在容器上');
 assert.equal(fast.body.linearVelocity.x, 3, '保留自由水果原速度');
 // 模拟刚体积分，仅检查控制器契约，不冒充真实碰撞求解。
-for (let i = 0; i < 80; i++) {
+for (let i = 0; i < 100; i++) {
     for (const body of board.getComponentsInChildren()) {
         if (body.type === 1) body.node.worldPosition.x += body.linearVelocity.x * 32 / 60;
     }
@@ -73,8 +73,8 @@ assert.equal(waiting.node.position.x, 5, '固定水果随容器归位');
 assert.equal(shake.busy, false);
 assert.equal(background.worldPosition.x, 0);
 assert.equal(background.scale.x, 1);
-assert.equal(shake.apply(fruits, 2.99, board), 0);
-assert.equal(shake.apply(fruits, 3, board), 5);
+assert.equal(shake.apply(fruits, 1.59, board), 0);
+assert.equal(shake.apply(fruits, 1.6, board), 5);
 waiting.node.worldPosition.x = 15;
 shake.release(waiting);
 waiting.waiting = false; waiting.body.type = 2;
