@@ -41,7 +41,7 @@ export class FruitShift {
         }
     }
 
-    /** 以最大水果外接直径作为整批统一留白，避免小水果旁的间隙显得过窄。
+    /** 以最大水果外接直径乘间距比例作为整批统一留白，开场和后续补位共用。
      * @param fruits 未释放水果。 @param floor 已有斜坡节点，不改写其布局或碰撞体。
      */
     private safeDrop(fruits: FruitItem[], floor?: Node | null): number {
@@ -65,7 +65,7 @@ export class FruitShift {
             }
             return Math.max(...outline.map(point => Math.hypot(point.x - center.x, point.y - center.y)));
         });
-        const gap = Math.max(...radii) * 2;
+        const gap = Math.max(...radii) * 2 * SHIFT_RULES.slopeGapRatio;
         const distance = Math.min(...fruits.map((fruit, index) => signedSlopeDistance(
             fruit.node.worldPosition.x, fruit.node.worldPosition.y, radii[index] + gap, points)));
         if (!Number.isFinite(distance)) return 0;

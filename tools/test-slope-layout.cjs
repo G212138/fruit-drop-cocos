@@ -34,9 +34,9 @@ for (const [sx,sy] of [[1,1],[2,0.5],[0.6,1.4]]) {
         const polygon={offset:{x:0,y:0},points:[{x:-1000,y:0},{x:1000,y:0}]};
         const floor={getComponent:type=>type===cc.UITransform?terrain:polygon};
         const drop=new FruitShift().safeDrop([fruit],floor);
-        // 图片外接半径50，留白100，中心最终离地150世界像素。
-        assert.ok(Math.abs(drop*sy-(worldY-150))<1e-7);
-        assert.equal(Math.sign(planSlopeShift(drop).delta),worldY<150?1:-1);
+        // 图片外接半径50，按直径0.8倍留白80，中心最终离地130世界像素。
+        assert.ok(Math.abs(drop*sy-(worldY-130))<1e-7);
+        assert.equal(Math.sign(planSlopeShift(drop).delta),worldY<130?1:-1);
     }
 }
 console.log('通过：图片与碰撞大小差异、过近上移、非等比父缩放、物理旧包围盒隔离与边界死区。');
