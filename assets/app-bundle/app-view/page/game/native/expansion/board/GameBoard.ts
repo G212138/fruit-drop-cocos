@@ -10,7 +10,7 @@ import { LockWallView } from '../reward/LockWallView';
 import { HorizontalFlow } from '../movement/HorizontalFlow';
 import { PHYSICS_RULES } from '../physics/PhysicsRules';
 import { FloorFailureRules } from '../failure/FloorFailureRules';
-import { FloorWarningRules } from '../failure/FloorWarningRules';
+import { FloorWarningRules, inWarningRegion } from '../failure/FloorWarningRules';
 import { FruitItem } from '../fruit/FruitItem';
 import { FruitShift } from '../movement/FruitShift';
 import { VerticalShiftGate } from '../movement/VerticalShiftRules';
@@ -281,21 +281,36 @@ export class GameBoard extends Component {
         if (!this.automaticShift && this.mode === 1 && !this.shake.busy && this.shiftGate.consume(
             this.spawner.getLive().map(fruit => ({ id: fruit.node.uuid, y: fruit.node.position.y })), this.shift.busy,
         )) this.shift.begin(this.spawner.getWaiting(), this.fruitDisplayTop - 60, this.node.getChildByName('Floor'));
+        this.updateCavityWarnings(dt);
         if (this.collectingPairs > 0) return;
-        const fruits = this.spawner.getFloorSnapshots();
-        const warning = this.warning.tick(fruits, dt, this.floorThreshold === 5);
-        if (warning === 'clear') this.restoreWarnings();
-        else if (warning === 'flash') {
-            for (const fruit of this.spawner.getLive()) {
-                if (fruit.touchedFloor && !fruit.removing) fruit.visual.flashWarning();
-            }
-        }
         const contactFailure = this.checkLayoutFailure();
         // 只有洞内最高水果与下方水果真实接触才判负，不按触地总数提前结束。
         if (contactFailure) {
             this.stop();
             this.failed = true;
             this.node.emit(BoardEvents.Failed);
+        }
+    }
+
+    /** 仅洞内已释放水果参与危险计数与闪红，离开洞内立即清除旧警告。
+     * @param dt 本帧时间，单位秒。
+     */
+    private updateCavityWarnings(dt: number): void {
+        const layout = this.readCavityLayout();
+        const targets: FruitItem[] = [];
+        const snapshots = [];
+        for (const fruit of this.spawner.getLive()) {
+            const position = layout?.transform.convertToNodeSpaceAR(fruit.node.worldPosition);
+            const snapshot = { ...fruit.getFloorSnapshot(), x: position?.x, y: position?.y ?? Infinity };
+            if (layout && inWarningRegion(snapshot, layout.region) && this.collectingPairs === 0) {
+                targets.push(fruit);
+                snapshots.push(snapshot);
+            } else fruit.visual.clearWarning();
+        }
+        const result = this.warning.tick(snapshots, dt, this.floorThreshold === 5);
+        for (const fruit of targets) {
+            if (result === 'flash') fruit.visual.flashWarning();
+            else if (result === 'clear') fruit.visual.clearWarning();
         }
     }
 
@@ -359,8 +374,8 @@ export class GameBoard extends Component {
 
     /** @param first 第一颗实例。 @param second 同类伙伴。 @param forced 是否为复活强制配对。 */
     private removePair(first: FruitItem, second: FruitItem, forced: boolean): void {
-        this.shake.release(first);
-        this.shake.release(second);
+        this.shake?.release?.(first);
+        this.shake?.release?.(second);
         if (forced) this.removalEffects?.showRevivePair(first.node, second.node);
         first.removing = second.removing = true;
         this.spawner.remove(first);

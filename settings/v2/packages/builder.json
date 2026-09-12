@@ -277,5 +277,16 @@
         }
       }
     }
+  },
+  "splash-setting": {
+    "logo": {
+      "image": "project://settings/title.png",
+      "type": "custom"
+    },
+    "background": {
+      "image": "project://settings/background.png",
+      "type": "custom"
+    },
+    "totalTime": 500
   }
 }

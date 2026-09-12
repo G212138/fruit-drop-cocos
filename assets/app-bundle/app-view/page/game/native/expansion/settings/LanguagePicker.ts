@@ -24,7 +24,10 @@ export class LanguagePicker extends Component {
     /** 隐藏设置后解除监听。 */
     onDisable(): void { GameLanguage.unsubscribe(this.languageChanged); }
     /** 打开或收起预制体中的选项列表。 */
-    toggle(): void { this.optionsRoot.active = !this.optionsRoot.active; }
+    toggle(): void {
+        this.optionsRoot.active = !this.optionsRoot.active;
+        if (this.optionsRoot.active) this.refresh();
+    }
     /** @param event 编辑器按钮事件。 @param code 编辑器绑定的稳定语言代码。 */
     choose(event: unknown, code: string): void {
         const saved = GameLanguage.select(code as LanguageChoice);
@@ -36,5 +39,17 @@ export class LanguagePicker extends Component {
         this.currentLabel.string = GameLanguage.choice === 'system'
             ? GameLanguage.text('system') + ' · ' + languageNames[GameLanguage.current]
             : languageNames[GameLanguage.current];
+        const content = this.optionsRoot.getChildByName('ScrollView')?.getChildByName('View')?.getChildByName('Content')
+            || this.optionsRoot.getChildByName('View')?.getChildByName('Content')
+            || this.optionsRoot.getChildByName('Content')
+            || this.optionsRoot;
+        for (const option of content.children) {
+            if (!option.name.startsWith('Language_')) continue;
+            const selected = option.name.slice('Language_'.length) === GameLanguage.choice;
+            const checkmark = option.getChildByName('Checkmark');
+            const selectedBackground = option.getChildByName('SelectedBackground');
+            if (checkmark) checkmark.active = selected;
+            if (selectedBackground) selectedBackground.active = selected;
+        }
     }
 }

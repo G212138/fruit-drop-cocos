@@ -82,7 +82,7 @@ export class PopResult extends BaseView {
         this.promptDismissed = true;
         this.revivePrompt.active = false;
         this.failureRoot.active = true;
-        this.failAnimation.setAnimation(0, '2', true);
+        this.failAnimation?.setAnimation(0, '2', true);
     }
 
     /** 本次失败所属页面的请求回调，隐藏后清除，避免引用旧局。 */
@@ -108,11 +108,13 @@ export class PopResult extends BaseView {
         this.nextButton.active = false;
         if (data.won) {
             if (GameSettings.current.snapshot.sound) this.successAudio?.play();
-            this.winAnimation.setCompleteListener(() => {
-                this.winAnimation.setCompleteListener(null);
-                this.winAnimation.setAnimation(0, '1.2', true);
-            });
-            this.winAnimation.setAnimation(0, '1', false);
+            if (this.winAnimation) {
+                this.winAnimation.setCompleteListener(() => {
+                    this.winAnimation.setCompleteListener(null);
+                    this.winAnimation.setAnimation(0, '1.2', true);
+                });
+                this.winAnimation.setAnimation(0, '1', false);
+            }
             const index = data.level - 1;
             this.unlockRoot.active = !!this.unlockIcons[index] && !!this.unlockTitles[index];
             if (this.unlockRoot.active) {
@@ -122,11 +124,11 @@ export class PopResult extends BaseView {
             this.scheduleOnce(() => {
                 if (EditorSession.trial) return;
                 this.nextButton.active = true;
-                const opacity = this.nextButton.getComponent(UIOpacity)!;
+                const opacity = this.nextButton.getComponent(UIOpacity) ?? this.nextButton.addComponent(UIOpacity);
                 opacity.opacity = 0;
                 tween(opacity).to(0.3, { opacity: 255 }).start();
             }, 0.7);
-        } else if (!showPrompt) this.failAnimation.setAnimation(0, '2', true);
+        } else if (!showPrompt && this.failAnimation) this.failAnimation.setAnimation(0, '2', true);
         this.reviveButton.active = !data.won && !!this.onRevive;
     }
 
@@ -143,8 +145,9 @@ export class PopResult extends BaseView {
     onHide(): void {
         this.successAudio?.stop();
         this.unscheduleAllCallbacks();
-        this.winAnimation.setCompleteListener(null);
-        Tween.stopAllByTarget(this.nextButton.getComponent(UIOpacity)!);
+        this.winAnimation?.setCompleteListener(null);
+        const nextOpacity = this.nextButton?.getComponent(UIOpacity);
+        if (nextOpacity) Tween.stopAllByTarget(nextOpacity);
         this.onRevive = null;
     }
 

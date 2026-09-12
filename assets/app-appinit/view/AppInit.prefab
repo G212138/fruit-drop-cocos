@@ -631,8 +631,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -270,
-      "y": 0,
+      "x": -213,
+      "y": 0.942,
       "z": 0
     },
     "_lrot": {
@@ -672,8 +672,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 540,
-      "height": 64
+      "width": 426,
+      "height": 35
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -709,10 +709,10 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "64dcb79b-5f7a-4c5e-ae31-aa910f7331e4@f9941",
+      "__uuid__": "1b973c91-645a-4dcc-889a-b24757975308@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
-    "_type": 3,
+    "_type": 1,
     "_fillType": 0,
     "_sizeMode": 0,
     "_fillCenter": {
@@ -721,7 +721,7 @@
       "y": 0
     },
     "_fillStart": 0,
-    "_fillRange": 0,
+    "_fillRange": 0.2,
     "_isTrimmedMode": true,
     "_useGrayscale": false,
     "_atlas": null,
@@ -917,8 +917,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 540,
-      "height": 64
+      "width": 450,
+      "height": 60
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -948,16 +948,16 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 70,
-      "g": 100,
-      "b": 125,
+      "r": 255,
+      "g": 255,
+      "b": 255,
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "64dcb79b-5f7a-4c5e-ae31-aa910f7331e4@f9941",
+      "__uuid__": "10b45ad3-6507-48c4-bbee-453ef2b2165d@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
-    "_type": 1,
+    "_type": 0,
     "_fillType": 0,
     "_sizeMode": 0,
     "_fillCenter": {
@@ -991,9 +991,9 @@
     "_barSprite": {
       "__id__": 28
     },
-    "_mode": 2,
-    "_totalLength": 1,
-    "_progress": 0,
+    "_mode": 0,
+    "_totalLength": 426,
+    "_progress": 1,
     "_reverse": false,
     "_id": ""
   },
@@ -1046,8 +1046,6 @@
       "__id__": 0
     },
     "fileId": "efesn4U9lDQILdEQBTE87D",
-    "instance": null,
-    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {

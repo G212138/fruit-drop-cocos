@@ -8,7 +8,7 @@ function load(file){
     return module.exports;
 }
 const {FloorWarningRules}=load(path.resolve('assets/app-bundle/app-view/page/game/native/expansion/failure/FloorWarningRules.ts'));
-const fruits=Array.from({length:4},(_,i)=>({id:String(i),kind:i+1,y:-300-i*90,touchedFloor:true,removing:false,settled:true}));
+const fruits=Array.from({length:4},(_,i)=>({id:String(i),kind:i+1,y:-300-i*90,released:true,contacts:[String(i-1),String(i+1)],touchedFloor:true,removing:false,settled:true}));
 const warning=new FloorWarningRules();
 assert.equal(warning.tick(fruits.slice(0,2),2,false),'clear');
 assert.equal(warning.tick(fruits.slice(0,3),10,false),'wait','进入危险的首帧不立即闪烁');

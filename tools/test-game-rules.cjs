@@ -19,6 +19,19 @@ function load(file) {
     return module.exports;
 }
 const { canMatch } = load(expansion + '/matching/MatchRules.ts');
+const { inWarningRegion, FloorWarningRules } = load(expansion + '/failure/FloorWarningRules.ts');
+const warningRegion = { left:-60, right:60, bottom:-300, top:0 };
+const warningFruit = { id:'w',kind:1,x:0,y:-100,released:true,removing:false,touchedFloor:false,settled:true,contacts:[] };
+assert.equal(inWarningRegion(warningFruit,warningRegion),true);
+for(const change of [{released:false},{removing:true},{x:100},{y:100},{y:-400}]) {
+    assert.equal(inWarningRegion({...warningFruit,...change,touchedFloor:true},warningRegion),false,'触地历史不能让洞外或未释放水果闪红');
+}
+const warningRules = new FloorWarningRules();
+const cavityFruits = [1,2,3].map(kind=>({...warningFruit,id:String(kind),kind}));
+assert.equal(warningRules.tick(cavityFruits,0,false),'wait');
+assert.equal(warningRules.tick(cavityFruits,1,false),'flash');
+assert.equal(warningRules.tick([],0,false),'clear');
+assert.equal(warningRules.tick(cavityFruits,1,true),'clear','扩槽后3颗不报警');
 const { safeDownwardDistance, planSlopeShift } = load(expansion + '/movement/VerticalShiftRules.ts');
 /** 安全圆包含水果半径和完整直径留白，必须覆盖斜线和端点。 */
 const flat=[{x:-1000,y:0},{x:1000,y:0}];

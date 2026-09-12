@@ -26,6 +26,8 @@ export class PageHome extends BaseView {
     @property(ThemePanel) themePanel: ThemePanel = null!;
     /** 原版三项开关面板。 */
     @property(SettingsPanel) settingsPanel: SettingsPanel = null!;
+    /** 尚未开放入口的轻量提示，由首页预制体决定位置。 */
+    @property(Label) featureNotice: Label = null!;
 
     /** 保持稳定引用，隐藏首页时解除语言监听。 */
     private readonly languageChanged = (): void => this.refreshLanguage();
@@ -41,6 +43,7 @@ export class PageHome extends BaseView {
         GameLanguage.subscribe(this.languageChanged);
         this.themePanel.close();
         this.settingsPanel.node.active = false;
+        if (this.featureNotice) this.featureNotice.node.active = false;
         this.settingsPanel.node.on('setting-request', this.changeSetting, this);
         this.settingsPanel.node.on('settings-action', this.closeSettings, this);
         app.manager.ui.load('PageGame');
@@ -73,6 +76,20 @@ export class PageHome extends BaseView {
     }
     /** 打开原版主题图鉴，使用正式进度。 */
     openTheme(): void { this.themePanel.open(app.controller.game.progress.level); }
+    /** 图鉴入口复用当前主题图鉴，保持已有解锁进度。 */
+    openCollection(): void { this.openTheme(); }
+    /** 尚未接入的首页功能显示真实状态，不打开空页面。 */
+    showComingSoon(): void {
+        if (!this.featureNotice) return;
+        this.unschedule(this.hideFeatureNotice);
+        this.featureNotice.string = GameLanguage.text('comingSoon');
+        this.featureNotice.node.active = true;
+        this.scheduleOnce(this.hideFeatureNotice, 1.4);
+    }
+    /** 到时隐藏首页功能提示。 */
+    private readonly hideFeatureNotice = (): void => {
+        if (this.featureNotice) this.featureNotice.node.active = false;
+    };
     /** 打开首页设置。 */
     openSettings(): void { this.settingsPanel.open(GameSettings.current.snapshot); }
     /** @param key 当前点击的开关。 */
