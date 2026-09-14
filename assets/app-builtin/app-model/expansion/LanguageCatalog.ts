@@ -22,6 +22,7 @@ const english = {
     watchAd: 'WATCH AD', noThanks: 'NO THANKS', giveAnotherTry: 'Give it another try!', tryAgain: 'TRY AGAIN',
     paused: 'PAUSED', privacyPolicy: 'Privacy Policy', termsOfUse: 'Terms of Use',
     pairHint: 'Match 2 identical items to clear them',
+    confirmTheme: 'CONFIRM USE', themePreview: 'PREVIEW', themeInUse: 'IN USE', themeCount: '{count} / {total} UNLOCKED', themeConfirmHint: 'Applies after confirmation', themeSaveError: 'Could not save. Please try again.',
 };
 /** 译文键，以英文表为结构基准。 */
 export type LanguageKey = keyof typeof english;
@@ -51,8 +52,18 @@ const extendedLabels: Record<string, string[]> = {
     fil: ['KOLEKSYON','ARAW-ARAW NA REGALO','RANGGO','Malapit na','NALINIS NA ANG LAHAT!','Linisin ang lagusan at magpatuloy','MANOOD NG AD','HINDI, SALAMAT','Subukan muli!','SUBUKAN MULI','NAKA-PAUSE','Patakaran sa Privacy','Mga Tuntunin ng Paggamit','Pagtambalin ang 2 magkaparehong bagay'],
     zh: ['图鉴','每日礼物','排行','即将开放','全部消除！','清理洞口并继续游戏','观看广告','不用了','再试一次吧！','重新挑战','暂停','隐私政策','使用条款','2 个相同物品即可消除'],
 };
+/** 主题预览与确认使用的独立译文，顺序对应新增词条。 */
+const themeLabels: Record<string, string[]> = {
+ zh: ['确认使用','预览','使用中','已解锁 {count} / {total}','确认后生效','保存失败，请重试'],
+ ja: ['使用する','プレビュー','使用中','{count} / {total} 解放済み','確認後に適用','保存できませんでした。再試行してください'],
+ id: ['GUNAKAN','PRATINJAU','DIPAKAI','{count} / {total} TERBUKA','Diterapkan setelah konfirmasi','Gagal menyimpan. Coba lagi.'],
+ th: ['ยืนยันใช้','ดูตัวอย่าง','ใช้อยู่','ปลดล็อก {count} / {total}','ใช้หลังจากยืนยัน','บันทึกไม่สำเร็จ โปรดลองอีกครั้ง'],
+ vi: ['XÁC NHẬN','XEM TRƯỚC','ĐANG DÙNG','ĐÃ MỞ {count} / {total}','Áp dụng sau khi xác nhận','Không lưu được. Hãy thử lại.'],
+ ms: ['GUNAKAN','PRATONTON','DIGUNAKAN','{count} / {total} DIBUKA','Digunakan selepas pengesahan','Gagal menyimpan. Cuba lagi.'],
+ fil: ['GAMITIN','PREVIEW','GINAGAMIT','{count} / {total} NA-UNLOCK','Ilalapat pagkatapos kumpirmahin','Hindi na-save. Subukan muli.'],
+};
 for (const code of Object.keys(rows)) {
-    const values = rows[code].concat(shakeLabels[code], extendedLabels[code]);
+    const values = rows[code].concat(shakeLabels[code], extendedLabels[code], themeLabels[code]);
     const keys = Object.keys(english) as LanguageKey[];
     if (values.length !== keys.length) throw new Error('语言词条数量不一致：' + code);
     const translated = {} as Record<LanguageKey, string>;
