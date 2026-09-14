@@ -1,0 +1,1 @@
+{"package_version":2,"name":"mini-package-optimizer","version":"1.0.0","editor":">=3.8.0","description":"小游戏共享字体去重与启动背景压缩","contributions":{"builder":"./builder.js"}}
