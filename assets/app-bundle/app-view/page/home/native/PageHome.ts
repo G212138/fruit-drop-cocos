@@ -1,3 +1,4 @@
+import { UiClickSound } from '../../../../../app-builtin/app-controller/expansion/UiClickSound';
 import { GameLanguage } from '../../../../../app-builtin/app-model/expansion/GameLanguage';
 import { TikTokStartup } from '../../../../../app-builtin/app-controller/expansion/TikTokStartup';
 import { _decorator, Prefab, JsonAsset, Node, Label } from 'cc';
@@ -18,7 +19,7 @@ export class PageHome extends BaseView {
     @property(Label) playLabel: Label = null!;
     /** 主题入口译文。 */
     @property(Label) themesLabel: Label = null!;
-    /** 开发环境编辑器入口；发布构建隐藏。 */
+    /** 关卡编辑器入口；显示状态由预制体手动设置，代码只刷新译文。 */
     @property(Label) editorLabel: Label = null!;
     /** 首页当前待挑战关卡。 */
     @property(Label) levelLabel: Label = null!;
@@ -35,6 +36,8 @@ export class PageHome extends BaseView {
 
     /** 首页出现后提前加载游戏及入场必需资源，不显示页面、不启动关卡。 */
     onShow(): void {
+        UiClickSound.bind(this.node);
+        app.controller.settings.begin();
         TikTokStartup.enter();
         // XForge 隐藏模式 2：缓存页面，防止卸载分包破坏共享图片；退出仍执行 onHide 清理。
         this.hideEvent = 2;
@@ -63,12 +66,13 @@ export class PageHome extends BaseView {
         this.levelLabel.string = GameLanguage.text('level', { level });
         if (this.editorLabel) {
             this.editorLabel.string = GameLanguage.text('editor');
-            this.editorLabel.node.active = DEV;
         }
     }
 
     /** 退出首页时解除设置监听并关闭内嵌面板。 */
     onHide(): void {
+        // 页面缓存期间保留按钮监听，保证开始游戏等切页点击仍能在业务回调后播放；下次显示先解绑，避免重复。
+        app.controller.settings.end();
         GameLanguage.unsubscribe(this.languageChanged);
         this.settingsPanel.node.targetOff(this);
         this.themePanel.close();

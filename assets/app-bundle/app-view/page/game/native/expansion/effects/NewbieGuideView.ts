@@ -15,7 +15,14 @@ export class NewbieGuideView extends Component {
         if (showing) this.skeleton.setAnimation(0, '1', true);
         if (!target) return;
         const position = this.node.parent!.getComponent(UITransform)!.convertToNodeSpaceAR(target.worldPosition);
-        // 原手指根相对首关右侧水果的偏移，单位设计像素，保持指尖指向果心。
-        this.node.setPosition(Vec3.add(position, position, new Vec3(8.703, -16.941, 0)));
+        // 以原动画光圈骨骼为对齐点；同时移动手指，消除旧固定偏移在自适应后的误差。
+        const circle = this.skeleton.findBone('love2');
+        if (circle) {
+            const circleWorld = this.skeleton.node.getComponent(UITransform)!.convertToWorldSpaceAR(
+                new Vec3(circle.worldX, circle.worldY, 0));
+            const circleLocal = this.node.parent!.getComponent(UITransform)!.convertToNodeSpaceAR(circleWorld);
+            position.subtract(circleLocal).add(this.node.position);
+        }
+        this.node.setPosition(position);
     }
 }

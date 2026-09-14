@@ -65,6 +65,8 @@ export interface TikTokGameApi {
     offHide?(callback: () => void): void;
     /** 原生短震，时长由官方 SDK 固定为 15 毫秒。 */
     vibrateShort?(options: TikTokCallbacks<void>): void;
+    /** 官方长震，固定400毫秒。 */
+    vibrateLong?(options: TikTokCallbacks<void>): void;
 }
 
 /** 原生运行时由宿主注入；HTML 运行时需在启动引擎前初始化官方 SDK。 */

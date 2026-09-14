@@ -1,3 +1,4 @@
+import { FirstLaunch } from './FirstLaunch';
 import { assetManager, sp, Node, UIOpacity, _decorator, Prefab, ProgressBar, Label } from 'cc';
 import BaseAppInit from '../../../extensions/app/assets/base/BaseAppInit';
 /** 启动包只访问宿主已有接口，不能静态引用尚未下载的业务分包。 */
@@ -73,19 +74,20 @@ export class AppInit extends BaseAppInit {
         if (opacity) opacity.opacity = 255;
     }
 
-    /** 加载首页预制体及依赖；按资源回调推进 65%～95%，失败后重试。 */
+    /** 加载本次首屏预制体及依赖；按资源回调推进 65%～95%，失败后重试。 */
     private loadHome(): void {
-        const bundle = assetManager.getBundle('page-home');
+        const page = FirstLaunch.page;
+        const bundle = assetManager.getBundle(page === 'PageGame' ? 'page-game' : 'page-home');
         if (!bundle) {
             this.scheduleOnce(() => this.loadNextStartupBundle(), 1);
             return;
         }
-        bundle.load('PageHome', Prefab, (completed, total) => {
+        bundle.load(page, Prefab, (completed, total) => {
             if (this.isValid && total > 0) this.setProgress(0.65 + 0.3 * completed / total);
         }, (error) => {
             if (!this.isValid) return;
             if (error) {
-                console.warn('[AppInit] 首页资源加载失败，1 秒后重试', error);
+                console.warn('[AppInit] 首屏资源加载失败，1 秒后重试', error);
                 this.scheduleOnce(() => this.loadHome(), 1);
                 return;
             }
@@ -117,6 +119,7 @@ export class AppInit extends BaseAppInit {
 
     /** 初始化结束后释放启动界面。 */
     protected onFinish() {
+        FirstLaunch.complete();
         this.setProgress(1);
         // 执行完成操作
         this.node.destroy();

@@ -1,15 +1,15 @@
-import { _decorator, Component, Node, Tween, tween, Vec3 } from 'cc';
+import { _decorator, CCFloat, Component, Node, Tween, tween, Vec3 } from 'cc';
 const { ccclass, property } = _decorator;
 
 /** 首页标志的轻量循环表现，挂在适配容器内部，避免与屏幕适配竞争变换。 */
 @ccclass('HomeLogoMotion')
 export class HomeLogoMotion extends Component {
     /** 上下浮动半幅，单位设计像素；适配值 7，增大会更明显。 */
-    @property({ type: Number }) floatDistance = 7;
+    @property({ type: CCFloat }) floatDistance = 7;
     /** 呼吸缩放增量，适配值 0.015 表示最大放大 1.5%。 */
-    @property({ type: Number }) scaleAmount = 0.015;
+    @property({ type: CCFloat }) scaleAmount = 0.015;
     /** 单程时长，单位秒；适配值 1.8，一轮为其两倍。 */
-    @property({ type: Number }) halfCycleSeconds = 1.8;
+    @property({ type: CCFloat }) halfCycleSeconds = 1.8;
     /** 初始位置快照，重复显示不累计位移。 */
     private originPosition: Vec3 | null = null;
     /** 初始比例快照。 */

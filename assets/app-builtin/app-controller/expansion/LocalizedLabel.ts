@@ -1,4 +1,4 @@
-import { _decorator, Component, Label } from 'cc';
+import { _decorator, CCString, Component, Label } from 'cc';
 import { GameLanguage } from '../../app-model/expansion/GameLanguage';
 import { LanguageKey } from '../../app-model/expansion/LanguageCatalog';
 const { ccclass, property } = _decorator;
@@ -7,7 +7,9 @@ const { ccclass, property } = _decorator;
 @ccclass('LocalizedLabel')
 export class LocalizedLabel extends Component {
     /** 统一词条键，制作时写入预制体。 */
-    @property({ type: String }) key = '';
+    @property({ type: CCString }) key = '';
+    /** 结算按钮使用大写拉丁字母；不改变原始翻译或中文。 */
+    @property uppercase = false;
     /** 稳定监听引用，确保禁用后不会积累回调。 */
     private readonly refreshLanguage = (): void => this.refresh();
     /** 显示时同步当前语言并监听设置变化。 */
@@ -17,6 +19,9 @@ export class LocalizedLabel extends Component {
     /** 更新当前节点已有标签，使用系统字体覆盖东南亚文字。 */
     private refresh(): void {
         const label = this.getComponent(Label);
-        if (label && this.key) label.string = GameLanguage.text(this.key as LanguageKey);
+        if (label && this.key) {
+            const text = GameLanguage.text(this.key as LanguageKey);
+            label.string = this.uppercase ? text.toLocaleUpperCase() : text;
+        }
     }
 }

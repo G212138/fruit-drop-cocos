@@ -55,8 +55,14 @@ export class TikTokLifecycle {
                 try { api.offShow?.(this.show); } catch { /* 不影响启动。 */ }
             }
         }
-        if (supportsTikTok(api, 'vibrateShort')) {
-            GameHaptics.register(() => {
+        if (supportsTikTok(api, 'vibrateShort') || supportsTikTok(api, 'vibrateLong')) {
+            GameHaptics.register(milliseconds => {
+                if (milliseconds >= 400) {
+                    if (!supportsTikTok(api, 'vibrateLong')) return false;
+                    api.vibrateLong!({ success: () => {}, fail: () => {} });
+                    return true;
+                }
+                if (!supportsTikTok(api, 'vibrateShort')) return false;
                 api.vibrateShort!({ success: () => {}, fail: () => {} });
                 return true;
             });

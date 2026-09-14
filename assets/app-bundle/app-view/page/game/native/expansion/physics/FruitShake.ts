@@ -42,6 +42,8 @@ export class FruitShake {
     private previous = -Infinity;
     /** 已运行时间，单位秒。 */
     private elapsed = Infinity;
+    /** 已通知的往返周期编号；首周反馈由成功启动时触发。 */
+    private feedbackCycle = 0;
     /** 地形、锁墙以及未点击水果的固定刚体。 */
     private readonly fixed = new Map<RigidBody2D, FixedBody>();
     /** 参与本次运动的固定水果，用于屏蔽悬停水果的业务接触。 */
@@ -109,6 +111,7 @@ export class FruitShake {
             this.scenery.push({ node, origin: node.worldPosition.clone(), scale: node.scale.clone() });
         }
         this.elapsed = 0;
+        this.feedbackCycle = 0;
         this.previous = now;
         return live.length;
     }
@@ -129,8 +132,9 @@ export class FruitShake {
      * 通过刚体速度驱动碰撞体，不直接平移水果父节点。
      * @param fruits 当前存活水果，用于处理消除和回收。
      * @param dt 当前帧间隔，单位秒。
+     * @param onCycle 进入下一往返周期时播放音效和震动；掉帧时不补播过期反馈。
      */
-    tick(fruits: FruitItem[], dt: number): void {
+    tick(fruits: FruitItem[], dt: number, onCycle?: () => void): void {
         if (!this.busy || !Number.isFinite(dt) || dt <= 0) return;
         for (const fruit of this.held) {
             if (fruits.indexOf(fruit) < 0 || fruit.removing || !fruit.waiting) this.release(fruit);
@@ -152,6 +156,11 @@ export class FruitShake {
         }
         this.elapsed = Math.min(SHAKE_RULES.duration, this.elapsed + dt);
         const progress = this.elapsed / SHAKE_RULES.duration;
+        const cycle = Math.min(SHAKE_RULES.cycles - 1, Math.floor(progress * SHAKE_RULES.cycles));
+        if (cycle > this.feedbackCycle && progress < 1) {
+            this.feedbackCycle = cycle;
+            onCycle?.();
+        }
         const offset = SHAKE_RULES.amplitude * Math.sin(progress * Math.PI) ** 2
             * Math.sin(progress * Math.PI * 2 * SHAKE_RULES.cycles);
         for (const state of this.fixed.values()) {

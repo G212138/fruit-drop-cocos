@@ -1,3 +1,4 @@
+import { UiClickSound } from '../../../../../app-builtin/app-controller/expansion/UiClickSound';
 import { GameTheme } from '../../../../../app-builtin/app-model/expansion/GameTheme';
 import { game } from 'cc';
 import { PhoneShakeInput } from './expansion/physics/PhoneShakeInput';
@@ -49,6 +50,18 @@ export class PageGame extends BaseView.BindController(GameController) {
     }
     /** 页面内固定结算层，与游戏同步加载，胜负时直接显示。 */
     @property(Node) resultRoot: Node = null!;
+    /** 首关首次放下物品后的配对说明，编辑器绑定。 */
+    @property(Node) pairHintRoot: Node = null!;
+
+    /** 原版首关说明停留1.5秒，按页面代次取消旧局回调。 */
+    private showPairHint(): void {
+        if (!this.pairHintRoot || this.levelNumber !== 1) return;
+        const generation = this.generation;
+        this.pairHintRoot.active = true;
+        this.scheduleOnce(() => {
+            if (this.isCurrent(generation) && this.pairHintRoot) this.pairHintRoot.active = false;
+        }, 1.5);
+    }
     /** 只读取编辑器布局中的补位标记，不调整裁剪区。 */
     private readonly fruitViewport = new FruitViewportLayout();
 
@@ -150,6 +163,7 @@ export class PageGame extends BaseView.BindController(GameController) {
      * @param data 页面传入的关卡或结算参数；未传关卡时读取存档。
      */
     onShow(data?: { level?: number }): void {
+        UiClickSound.bind(this.node);
         TikTokStartup.enter();
         // XForge 隐藏模式 2：缓存页面，防止卸载分包破坏共享图片；退出仍执行 onHide 清理。
         this.hideEvent = 2;
@@ -170,6 +184,7 @@ export class PageGame extends BaseView.BindController(GameController) {
         this.controller.on(GameController.Event.Changed, this.refreshState, this);
         this.bindFixedViews();
         this.phoneShake.start(() => this.canShake(), () => this.requestShake());
+        this.loadLevel(generation);
         this.loadCollectionFeedback(generation);
         this.loadSettings(generation);
         this.bindProps();
@@ -192,6 +207,7 @@ export class PageGame extends BaseView.BindController(GameController) {
         this.hud.progressViewRoot = this.bottomProgressRoot;
         this.gameBoardNode.targetOff(this);
         this.gameHudNode.targetOff(this);
+        this.gameBoardNode.on('first-guide-drop', this.showPairHint, this);
         this.gameBoardNode.on(BoardEvents.Matched, this.onMatched, this);
         this.gameBoardNode.on(BoardEvents.Failed, this.onFailed, this);
         this.gameBoardNode.on('expand-request', this.requestExpansion, this);
@@ -231,7 +247,7 @@ export class PageGame extends BaseView.BindController(GameController) {
         this.controller.matched();
     }
 
-    /** @param generation 等待双星资源就绪后开局，避免首次消除缺失反馈。 */
+    /** @param generation 异步准备双星反馈，不阻塞水果显示；未就绪时沿用入袋完成通知。 */
     private loadCollectionFeedback(generation: number): void {
         this.loadRes('prefabs/StarFlightView', Prefab, prefab => {
             if (!this.isCurrent(generation) || !this.board) return;
@@ -249,13 +265,13 @@ export class PageGame extends BaseView.BindController(GameController) {
         });
     }
 
-    /** @param generation 触地特效准备完毕后再开始物理关卡。 */
+    /** @param generation 异步准备触地特效和首关引导，不串行阻塞关卡加载。 */
     private loadGroundFeedback(generation: number): void {
         this.loadRes('prefabs/GroundImpactView', Prefab, prefab => {
             if (!this.isCurrent(generation) || !this.board) return;
             if (!prefab) { this.reportLoadError('触地特效加载失败'); return; }
             this.board.removalEffectsRoot.getComponent(RemovalEffects)!.groundImpactPrefab = prefab;
-            if (this.levelNumber !== 1) { this.loadLevel(generation); return; }
+            if (this.levelNumber !== 1) return;
             this.loadRes('prefabs/NewbieGuideView', Prefab, guide => {
                 if (!this.isCurrent(generation)) return;
                 if (!guide) { this.reportLoadError('首关引导加载失败'); return; }
@@ -263,7 +279,7 @@ export class PageGame extends BaseView.BindController(GameController) {
                 node.active = false;
                 node.parent = this.hudRoot;
                 this.newbieGuide = node.getComponent(NewbieGuideView);
-                this.loadLevel(generation);
+
             });
         });
     }
@@ -404,6 +420,7 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 固定棋盘和HUD只清局解绑，动态弹窗和特效才销毁。 */
     private releaseChildren(): void {
+        if (this.pairHintRoot) this.pairHintRoot.active = false;
         this.phoneShake.stop();
         this.shakeRequested = false;
         if (this.resultRoot && isValid(this.resultRoot, true)) this.resultRoot.getComponent(PopResult)?.closeResult();

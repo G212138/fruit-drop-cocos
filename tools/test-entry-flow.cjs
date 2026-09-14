@@ -40,3 +40,12 @@ for(const delta of [-200,160]){
     assert.equal(item.body.enabled,true);
 }
 console.log('通过：入场方向、屏幕外边距、时长限制、缓动推进、碰撞状态恢复、中断和空关处理。');
+for(const mode of [1,2]) {
+    const item=fruit(10,20,false);
+    entry.begin([item],mode,{left:-375,top:667},-150,true);
+    assert.equal(entry.busy,false);
+    assert.equal(item.node.position.x,10);
+    assert.equal(item.node.position.y,-130);
+    assert.equal(item.body.enabled,false);
+}
+console.log('直接入场：纵横关卡首次显示即最终安全坐标，保持刚体状态。');

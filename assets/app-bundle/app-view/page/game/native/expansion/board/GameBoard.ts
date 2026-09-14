@@ -112,12 +112,15 @@ export class GameBoard extends Component {
     shakeFruits(): boolean {
         if (!this.canUseProp) return false;
         const count = this.shake.apply(this.spawner.getLive(), this.shakeTime, this.node);
-        if (count) {
-            GameHaptics.impact();
-            this.removalEffects?.playShakeSound();
-        }
+        if (count) this.playShakeFeedback();
         return count > 0;
     }
+    /** 每次往返开始同步播放草地音效和长震，遵循各自设置开关。 */
+    private playShakeFeedback(): void {
+        GameHaptics.longImpact(true);
+        this.removalEffects?.playShakeSound();
+    }
+
     /** 当前棋盘是否接受道具操作。 */
     get canUseProp(): boolean {
         return this.playing && !this.levelHint?.busy && !this.entry.busy && !this.shift.busy
@@ -193,6 +196,7 @@ export class GameBoard extends Component {
         this.spawner.updateBlackHoles(0);
         if (!this.levelHint) throw new Error('关卡提示预制体绑定缺失');
         this.levelHint.play(chooseHint(level));
+        if (!this.entry.busy) this.levelHint.finishEntrance();
     }
 
     /** 第一关第一次有效点击后永久隐藏本局手指。 */
@@ -227,6 +231,7 @@ export class GameBoard extends Component {
      */
     private release(fruit: FruitItem, userTriggered = true): void {
         if (this.playing && !this.levelHint?.busy && !this.entry.busy && !this.shift.busy && !this.props.busy && fruit.waiting && !fruit.spawning && fruit.iceLayers === 0) {
+            if (!this.guideDismissed && userTriggered) this.node.emit('first-guide-drop');
             this.guideDismissed = true;
             this.shake.release(fruit);
             this.spawner.releaseBlackHole(fruit);
@@ -262,13 +267,13 @@ export class GameBoard extends Component {
     lateUpdate(dt: number): void {
         if (!this.playing) return;
         this.shakeTime += dt;
-        this.shake.tick(this.spawner.getLive(), dt);
-        if (this.levelHint?.busy) return;
+        this.shake.tick(this.spawner.getLive(), dt, () => this.playShakeFeedback());
         if (this.entry.busy) {
-            this.entry.tick(dt);
+            if (this.entry.tick(dt)) this.levelHint?.finishEntrance();
             this.spawner.updateBlackHoles(0);
             return;
         }
+        if (this.levelHint?.busy) return;
         if (this.mode === 2 && !this.shake.busy) this.horizontal.tick(dt, this.spawner.getLive(), this.spawner.getWaiting(), this.rightLine, fruit => this.release(fruit, false));
         if (this.props.busy) return;
         this.spawner.updateBlackHoles(dt);

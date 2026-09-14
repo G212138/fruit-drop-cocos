@@ -1,3 +1,4 @@
+import { TikTokSilentLogin } from '../../app-model/expansion/platform/TikTokSilentLogin';
 import { TikTokLifecycle } from './TikTokLifecycle';
 import { TikTokConfig } from '../../app-model/expansion/platform/TikTokConfig';
 import { TikTokLogin } from '../../app-model/expansion/platform/TikTokLogin';
@@ -8,6 +9,7 @@ export class TikTokStartup {
     /** 从首页或直接进入关卡时调用；生命周期与登录各自保证重复调用安全。 */
     static enter(): void {
         TikTokLifecycle.install();
+        void TikTokSilentLogin.shared.login();
         if (TikTokConfig.loginEndpoint) {
             TikTokLogin.shared.configure(TikTokLoginBackend.exchange);
             void TikTokLogin.shared.login();

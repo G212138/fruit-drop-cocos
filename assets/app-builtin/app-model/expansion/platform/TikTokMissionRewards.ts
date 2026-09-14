@@ -6,7 +6,23 @@ export class TikTokMissionRewards {
     /** 与游戏道具库存共用原有存档键，不修改初始道具规则。 */
     private static readonly key = 'fruit-drop.props.v1';
 
-    /** @param mission 平台确认有资格的任务。 @param playerId 后端确认的玩家标识，禁止用临时 code 代替。 */
+    /** @param mission 无后端版本按当前设备存档记录的任务用途。 */
+    static hasLocalClaim(mission: TikTokMission): boolean {
+        try {
+            const raw = PlatformStorage.getItem(this.key);
+            const saved = raw ? JSON.parse(raw) : {};
+            return Array.isArray(saved?.missionRewards) && saved.missionRewards.includes('local:' + mission);
+        } catch {
+            return false;
+        }
+    }
+
+    /** @param mission 仅在官方 canReceiveReward 为 true 后调用；本地标记不代表 TikTok 用户身份。 */
+    static grantLocal(mission: TikTokMission): 'granted' | 'already' | 'failed' {
+        return this.grant(mission, 'local');
+    }
+
+    /** @param mission 平台确认有资格的任务。 @param playerId 已确认玩家标识；无后端模式使用固定本地命名空间，禁止用临时 code 代替。 */
     static grant(mission: TikTokMission, playerId: string): 'granted' | 'already' | 'failed' {
         if (!playerId) return 'failed';
         try {

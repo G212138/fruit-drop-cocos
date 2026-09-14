@@ -1,3 +1,6 @@
+import { ThemeProgress } from '../../../../../app-builtin/app-model/expansion/ThemeProgress';
+import { ResultPresentation } from './expansion/ResultPresentation';
+import { UiClickSound } from '../../../../../app-builtin/app-controller/expansion/UiClickSound';
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
 import { _decorator, Label, Node, Sprite, SpriteFrame, sp, Tween, tween, UIOpacity, AudioSource } from 'cc';
 import { GameSettings } from '../../../../../app-builtin/app-model/expansion/GameSettings';
@@ -10,6 +13,10 @@ const { ccclass, property } = _decorator;
 export class PopResult extends BaseView {
     /** 为真时作为PageGame固定子节点，不使用弹窗管理器显示或关闭。 */
     @property embedded = false;
+    /** 结算装饰动画和状态音效，编辑器绑定。 */
+    @property(ResultPresentation) presentation: ResultPresentation = null!;
+    /** 可选解锁信息；通关时展示本关对应的新物品。 */
+    @property showUnlock = true;
 
     /** 直接打开已有结算节点；参数与独立弹窗相同。 */
     showEmbedded(data: { won: boolean; level: number; onRevive?: () => void; notice?: string }): void {
@@ -55,14 +62,12 @@ export class PopResult extends BaseView {
     @property(sp.Skeleton) failAnimation: sp.Skeleton = null!;
     /** 解锁内容容器，超出资源范围隐藏。 */
     @property(Node) unlockRoot: Node = null!;
-    /** 解锁图标及对应中文名称图片。 */
+    /** 当前解锁物图标。 */
     @property(Sprite) unlockIcon: Sprite = null!;
-    /** 当前解锁物名称文字。 */
+    /** 兼容已有预制体的名称标签；展示时隐藏。 */
     @property(Label) unlockName: Label = null!;
     /** 按原资源31起顺序绑定的图标。 */
     @property([SpriteFrame]) unlockIcons: SpriteFrame[] = [];
-    /** 原版31至60号解锁物名称，按图片核对；下标对应关卡减一。 */
-    private readonly unlockTitles = ['舒芙蕾','樱花布丁','黑糖饼','抹茶卷','草莓芝士','软心甜圈','磅蛋糕','糍粑饼','蓝莓芝士','树莓果冻','焦糖布丁','巧克力甜圈','枣泥糕','马卡龙','蓝莓饼','玛德琳蛋糕','纸杯蛋糕','瑞士卷','提拉米苏','柠檬布丁','黑森林','芝士布丁','抹茶栗子','马卡龙塔','布朗尼','树莓夏洛特','草莓布丁','香蕉蛋糕','草莓蛋糕','蓝莓慕斯'];
     /** 成功试玩的重新挑战入口。 */
     @property(Node) trialButton: Node = null!;
 
@@ -83,6 +88,7 @@ export class PopResult extends BaseView {
         this.revivePrompt.active = false;
         this.failureRoot.active = true;
         this.failAnimation?.setAnimation(0, '2', true);
+        this.presentation?.play(2);
     }
 
     /** 本次失败所属页面的请求回调，隐藏后清除，避免引用旧局。 */
@@ -94,6 +100,7 @@ export class PopResult extends BaseView {
 
     /** @param data 页面已确认的胜负结果和原关卡编号。 */
     onShow(data: { won: boolean; level: number; onRevive?: () => void; notice?: string }): void {
+        UiClickSound.bind(this.node);
         this.level = data.level;
         this.won = data.won;
         this.onRevive = data.onRevive ?? null;
@@ -115,21 +122,22 @@ export class PopResult extends BaseView {
                 });
                 this.winAnimation.setAnimation(0, '1', false);
             }
-            const index = data.level - 1;
-            this.unlockRoot.active = !!this.unlockIcons[index] && !!this.unlockTitles[index];
+            const index = ThemeProgress.unlockIndex(data.level);
+            this.unlockRoot.active = this.showUnlock && !EditorSession.trial && index >= 0 && !!this.unlockIcons[index];
+            if (this.unlockName) this.unlockName.node.active = false;
             if (this.unlockRoot.active) {
                 this.unlockIcon.spriteFrame = this.unlockIcons[index];
-                this.unlockName.string = this.unlockTitles[index];
             }
             this.scheduleOnce(() => {
                 if (EditorSession.trial) return;
                 this.nextButton.active = true;
-                const opacity = this.nextButton.getComponent(UIOpacity) ?? this.nextButton.addComponent(UIOpacity);
+                const opacity = this.nextButton.getComponent(UIOpacity)!;
                 opacity.opacity = 0;
                 tween(opacity).to(0.3, { opacity: 255 }).start();
             }, 0.7);
         } else if (!showPrompt && this.failAnimation) this.failAnimation.setAnimation(0, '2', true);
         this.reviveButton.active = !data.won && !!this.onRevive;
+        this.presentation?.play(data.won ? 0 : showPrompt ? 1 : 2);
     }
 
     /** 关闭结算遮罩后交给页面请求广告，点击本身不发放奖励。 */
@@ -143,6 +151,7 @@ export class PopResult extends BaseView {
 
     /** 隐藏后不保留旧关卡回调。 */
     onHide(): void {
+        this.presentation?.stop();
         this.successAudio?.stop();
         this.unscheduleAllCallbacks();
         this.winAnimation?.setCompleteListener(null);
@@ -170,3 +179,6 @@ export class PopResult extends BaseView {
         app.manager.ui.show({ name: EditorSession.trial ? 'PageEditor' : 'PageHome' });
     }
 }
+
+
+

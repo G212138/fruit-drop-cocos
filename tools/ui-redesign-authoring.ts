@@ -3,6 +3,8 @@ import * as cc from 'cc';
 
 /** 仅在 Creator 编辑器中执行的首页、设置和结算制作脚本。 */
 const base = 'db://assets/app-bundle/app-view/';
+const settingsTextures = base + 'page/game/resources/textures/settings/';
+const settingsRedesign = settingsTextures + 'redesign/';
 
 /** 读取项目资源，图片可选择读取其 SpriteFrame 子资源。 */
 async function loadAsset(url: string, frame = false): Promise<any> {
@@ -113,6 +115,30 @@ function clearChildren(parent: cc.Node, keep: cc.Node[] = []): void {
     }
 }
 
+/** 按效果图重建一个设置开关：主页为横条，游戏内为竖向小卡片。 */
+async function rebuildToggleRow(row: cc.Node, kind: 'music' | 'sound' | 'vibrate', mode: 'home' | 'game'): Promise<void> {
+    const view = row.getComponent('SettingsToggleView');
+    clearChildren(row);
+    const home = mode === 'home';
+    row.getComponent(cc.UITransform).setContentSize(home ? 620 : 192, home ? 118 : 238);
+    const card = await makeSprite('Card', row, settingsRedesign + (home ? 'row-card.png' : 'small-card.png'),
+        home ? 620 : 192, home ? 118 : 238);
+    card.setSiblingIndex(0);
+    const titles = { music: 'MUSIC', sound: 'SOUND', vibrate: 'HAPTICS' };
+    const keys = { music: 'music', sound: 'sound', vibrate: 'vibrate' };
+    await makeSprite('Icon', row, settingsRedesign + kind + (home ? '-home.png' : '-game.png'),
+        home ? 82 : 78, home ? 82 : 78, home ? -245 : 0, home ? 0 : 52);
+    makeLabel('Caption', row, titles[kind], home ? 31 : 24, home ? 270 : 174, 55,
+        home ? -70 : 0, home ? 0 : -12, keys[kind], home ? new cc.Color(28, 45, 82, 255) : new cc.Color(112, 59, 29, 255));
+    const switchNode = await makeSprite('Switch', row, settingsRedesign + 'switch-on.png',
+        home ? 176 : 132, home ? 78 : 59, home ? 205 : 0, home ? 0 : -78);
+    view.switchPicture = switchNode.getComponent(cc.Sprite);
+    view.onFrame = await loadAsset(settingsRedesign + 'switch-on.png', true);
+    view.offFrame = await loadAsset(settingsRedesign + 'switch-off.png', true);
+    view.stateLabel = null;
+    bindButton(row, row, 'SettingsToggleView', 'requestToggle');
+}
+
 /** 重建一套设置面板外观，首页与游戏内通过 mode 区分功能。 */
 async function rebuildSettings(root: cc.Node, mode: 'home' | 'game', owner?: cc.Node): Promise<void> {
     cce.Prefab.removePrefabInfoFromNode(root, true);
@@ -129,56 +155,63 @@ async function rebuildSettings(root: cc.Node, mode: 'home' | 'game', owner?: cc.
     const mask = await makeSprite('Mask', root, base + 'page/game/resources/textures/settings/mask.png', 2000, 2800);
     mask.getComponent(cc.Sprite)!.color = new cc.Color(0, 24, 48, 175);
     mask.addComponent(cc.BlockInputEvents);
-    const panelHeight = mode === 'home' ? 940 : 850;
-    const content = makeNode('Content', root, 650, panelHeight, 0, 20);
+    const panelHeight = mode === 'home' ? 720 : 790;
+    const content = makeNode('Content', root, 700, panelHeight, 0, mode === 'home' ? 55 : 20);
     content.addComponent(cc.BlockInputEvents);
-    await makeSprite('Background', content, base + 'pop/result/resources/original/revive-panel.png', 650, panelHeight);
+    await makeSprite('Background', content, settingsRedesign + (mode === 'home' ? 'home-panel.png' : 'pause-panel.png'), 700, panelHeight);
     view.content = content;
-    makeLabel('Title', content, mode === 'home' ? 'Settings' : 'Paused', 52, 470, 84, 0, panelHeight / 2 - 70,
-        mode === 'home' ? 'settings' : 'paused');
-    const close = await makeSprite('CloseButton', content, base + 'pop/result/resources/original/revive-close.png', 68, 75,
-        270, panelHeight / 2 - 62);
+    await makeSprite('Title', content, settingsRedesign + (mode === 'home' ? 'settings-title.png' : 'paused-title.png'),
+        mode === 'home' ? 620 : 560, mode === 'home' ? 160 : 161, 0, panelHeight / 2 - 5);
+    const close = await makeSprite('CloseButton', content, settingsRedesign + 'close-button.png', 104, 104,
+        310, panelHeight / 2 - 5);
     bindButton(close, root, 'SettingsPanel', 'continueGame');
-    const rowYs = mode === 'home' ? [270, 145, 20] : [225, 90, -45];
-    rows.forEach((row: cc.Node, index: number) => {
+    const kinds: Array<'music' | 'sound' | 'vibrate'> = ['music', 'sound', 'vibrate'];
+    for (let index = 0; index < rows.length; index++) {
+        const row = rows[index];
         row.parent = content;
-        row.setPosition(0, rowYs[index]);
-        row.getComponent(cc.UITransform).setContentSize(540, 105);
-    });
+        row.setPosition(mode === 'home' ? 0 : -210 + index * 210, mode === 'home' ? 210 - index * 135 : 135);
+        await rebuildToggleRow(row, kinds[index], mode);
+    }
     view.musicRow = rows[0];
     view.soundRow = rows[1];
     view.vibrateRow = rows[2];
-    const warning = makeLabel('Warning', content, '', 18, 520, 52, 0, mode === 'home' ? -380 : -360,
+    const warning = makeLabel('Warning', content, '', 18, 560, 45, 0, mode === 'home' ? -305 : -355,
         '', new cc.Color(170, 82, 55, 255));
     view.warningLabel = warning;
 
     if (mode === 'game') {
-        await makeButton('Continue', content, base + 'page/game/resources/textures/settings/blank-button.png', 'Continue', 'continue',
-            520, 150, 0, -190, root, 'SettingsPanel', 'continueGame');
-        await makeButton('Restart', content, base + 'pop/result/resources/redesign/button-orange.png', 'Retry', 'restart',
-            250, 96, -140, -315, root, 'SettingsPanel', 'restartGame');
-        await makeButton('Home', content, base + 'pop/result/resources/redesign/button-blue.png', 'Home', 'home',
-            250, 96, 140, -315, root, 'SettingsPanel', 'returnHome');
+        const resume = await makeButton('Continue', content, settingsRedesign + 'resume-button.png', 'RESUME', 'continue',
+            606, 152, 0, -85, root, 'SettingsPanel', 'continueGame');
+        resume.getChildByName('Caption')!.setPosition(45, 0);
+        await makeSprite('PlayIcon', resume, settingsRedesign + 'play-icon.png', 78, 70, -205, 2);
+        const restart = await makeSprite('Restart', content, settingsRedesign + 'action-card.png', 286, 112, -153, -265);
+        bindButton(restart, root, 'SettingsPanel', 'restartGame');
+        await makeSprite('Icon', restart, settingsRedesign + 'restart-icon.png', 64, 64, -85, 0);
+        makeLabel('Caption', restart, 'RESTART', 27, 175, 55, 38, 0, 'restart', new cc.Color(110, 57, 27, 255));
+        const homeButton = await makeSprite('Home', content, settingsRedesign + 'action-card.png', 286, 112, 153, -265);
+        bindButton(homeButton, root, 'SettingsPanel', 'returnHome');
+        await makeSprite('Icon', homeButton, settingsRedesign + 'home-icon.png', 66, 62, -82, 0);
+        makeLabel('Caption', homeButton, 'HOME', 28, 175, 55, 38, 0, 'home', new cc.Color(110, 57, 27, 255));
         return;
     }
 
-    const languageRow = makeNode('LanguageRow', content, 540, 110, 0, -110);
-    makeLabel('LanguageTitle', languageRow, 'Language', 28, 210, 60, -145, 0, 'language');
-    const choose = await makeSprite('ChooseLanguage', languageRow, base + 'pop/result/resources/redesign/button-blue.png', 290, 78, 115, 0);
+    const languageRow = makeNode('LanguageRow', content, 620, 118, 0, -195);
+    await makeSprite('Card', languageRow, settingsRedesign + 'row-card.png', 620, 118);
+    await makeSprite('GlobeIcon', languageRow, settingsRedesign + 'language-home.png', 82, 82, -245, 0);
+    makeLabel('LanguageTitle', languageRow, 'LANGUAGE', 31, 250, 60, -75, 0, 'language', new cc.Color(28, 45, 82, 255));
+    const choose = await makeSprite('ChooseLanguage', languageRow, settingsRedesign + 'action-card.png', 245, 76, 175, 0);
     const picker = languageRow.addComponent('LanguagePicker');
-    picker.currentLabel = makeLabel('CurrentLanguage', choose, 'English', 23, 235, 52, -12, 0, '', cc.Color.WHITE);
-    makeLabel('Arrow', choose, '›', 38, 35, 50, 110, 0, '', cc.Color.WHITE);
+    picker.currentLabel = makeLabel('CurrentLanguage', choose, 'English', 24, 175, 52, -18, 0, '', new cc.Color(28, 45, 82, 255));
+    await makeSprite('Arrow', choose, settingsRedesign + 'chevron-icon.png', 28, 40, 88, 0);
     bindButton(choose, languageRow, 'LanguagePicker', 'toggle');
     picker.warningLabel = makeLabel('LanguageWarning', languageRow, '', 16, 520, 38, 0, -58,
         '', new cc.Color(170, 82, 55, 255));
-    makeLabel('PrivacyPolicy', content, 'Privacy Policy', 21, 240, 45, -140, -285, 'privacyPolicy');
-    makeLabel('TermsOfUse', content, 'Terms of Use', 21, 240, 45, 140, -285, 'termsOfUse');
 
-    const options = makeNode('LanguageOptions', root, 650, 960, 0, 10);
+    const options = makeNode('LanguageOptions', root, 680, 980, 0, 10);
     options.addComponent(cc.BlockInputEvents);
-    await makeSprite('Background', options, base + 'pop/result/resources/original/revive-panel.png', 650, 960);
+    await makeSprite('Background', options, settingsRedesign + 'language-panel.png', 680, 980);
     makeLabel('OptionsTitle', options, 'Language', 46, 450, 70, 0, 405, 'language');
-    const optionsClose = await makeSprite('CloseButton', options, base + 'pop/result/resources/original/revive-close.png', 64, 70, 270, 415);
+    const optionsClose = await makeSprite('CloseButton', options, settingsRedesign + 'close-button.png', 78, 78, 298, 430);
     bindButton(optionsClose, languageRow, 'LanguagePicker', 'toggle');
     const scroll = makeNode('ScrollView', options, 540, 720, 0, -20);
     const scrollView = scroll.addComponent(cc.ScrollView);

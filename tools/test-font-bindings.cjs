@@ -1,0 +1,2 @@
+const fs=require('fs'),path=require('path'),assert=require('assert');
+const root='assets';let labels=0,bindings=0;function walk(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,e.name);if(e.isDirectory())walk(p);else if(p.endsWith('.prefab')){const data=JSON.parse(fs.readFileSync(p));const ls=data.filter(x=>x.__type__==='cc.Label');const fonts=data.filter(x=>x.chineseFont&&x.englishFont);if(p.includes('app-bundle')){assert.equal(ls.length,fonts.length,p);labels+=ls.length;bindings+=fonts.length;}}}}walk(root);console.log({labels,bindings});

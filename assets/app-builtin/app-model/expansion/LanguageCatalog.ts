@@ -14,13 +14,14 @@ const english = {
     language: 'Language', system: 'System default', on: 'ON', off: 'OFF',
     continue: 'Continue', home: 'Home', restart: 'Retry', close: 'Close',
     remaining: 'Left', eliminate: 'Remove', shuffle: 'Shuffle', unlock: 'Unlock',
-    next: 'Next', revive: 'Revive', unlocked: 'Unlocked!', fruits: 'Fruit', sweets: 'Sweets',
+    next: 'Next Level', revive: 'Revive', unlocked: 'Unlocked!', fruits: 'Fruit', sweets: 'Sweets',
     selected: 'Selected', themeLocked: 'Clear 30 levels to unlock', saveError: 'Could not save language. Your choice applies for this session.',
     shake: 'Shake',
     collection: 'COLLECTION', dailyGift: 'DAILY GIFT', leaderboard: 'RANK', comingSoon: 'Coming soon',
-    allFruitCleared: 'ALL FRUIT CLEARED', clearChute: 'Clear the chute and keep playing',
+    allFruitCleared: 'ALL CLEARED!', clearChute: 'Clear the chute and keep playing',
     watchAd: 'WATCH AD', noThanks: 'NO THANKS', giveAnotherTry: 'Give it another try!', tryAgain: 'TRY AGAIN',
     paused: 'PAUSED', privacyPolicy: 'Privacy Policy', termsOfUse: 'Terms of Use',
+    pairHint: 'Match 2 identical items to clear them',
 };
 /** 译文键，以英文表为结构基准。 */
 export type LanguageKey = keyof typeof english;
@@ -42,13 +43,13 @@ const shakeLabels: Record<string, string> = {
 };
 /** 新首页、设置及结算界面的补充译文，标题图片固定为英文，不进入词表。 */
 const extendedLabels: Record<string, string[]> = {
-    ja: ['コレクション','デイリーギフト','ランキング','近日公開','フルーツをすべて消しました','シュートを空けて続けよう','広告を見る','やめる','もう一度挑戦しよう！','もう一度','一時停止','プライバシーポリシー','利用規約'],
-    id: ['KOLEKSI','HADIAH HARIAN','PERINGKAT','Segera hadir','SEMUA BUAH BERSIH','Kosongkan jalur dan lanjut bermain','TONTON IKLAN','TIDAK, TERIMA KASIH','Coba sekali lagi!','COBA LAGI','DIJEDA','Kebijakan Privasi','Ketentuan Penggunaan'],
-    th: ['คอลเลกชัน','ของขวัญรายวัน','อันดับ','เร็ว ๆ นี้','เก็บผลไม้ครบแล้ว','เคลียร์ช่องแล้วเล่นต่อ','ดูโฆษณา','ไม่ ขอบคุณ','ลองอีกครั้ง!','ลองใหม่','หยุดชั่วคราว','นโยบายความเป็นส่วนตัว','ข้อกำหนดการใช้งาน'],
-    vi: ['BỘ SƯU TẬP','QUÀ HẰNG NGÀY','XẾP HẠNG','Sắp ra mắt','ĐÃ DỌN HẾT TRÁI CÂY','Dọn máng và chơi tiếp','XEM QUẢNG CÁO','KHÔNG, CẢM ƠN','Thử lại lần nữa!','THỬ LẠI','TẠM DỪNG','Chính sách quyền riêng tư','Điều khoản sử dụng'],
-    ms: ['KOLEKSI','HADIAH HARIAN','KEDUDUKAN','Akan datang','SEMUA BUAH DIKOSONGKAN','Kosongkan laluan dan terus bermain','TONTON IKLAN','TIDAK, TERIMA KASIH','Cuba sekali lagi!','CUBA LAGI','DIJEDA','Dasar Privasi','Terma Penggunaan'],
-    fil: ['KOLEKSYON','ARAW-ARAW NA REGALO','RANGGO','Malapit na','NALINIS NA ANG LAHAT NG PRUTAS','Linisin ang lagusan at magpatuloy','MANOOD NG AD','HINDI, SALAMAT','Subukan muli!','SUBUKAN MULI','NAKA-PAUSE','Patakaran sa Privacy','Mga Tuntunin ng Paggamit'],
-    zh: ['图鉴','每日礼物','排行','即将开放','水果已全部清除','清理洞口并继续游戏','观看广告','不用了','再试一次吧！','重新挑战','暂停','隐私政策','使用条款'],
+    ja: ['コレクション','デイリーギフト','ランキング','近日公開','すべて消しました！','シュートを空けて続けよう','広告を見る','やめる','もう一度挑戦しよう！','もう一度','一時停止','プライバシーポリシー','利用規約','同じアイテムを2個そろえると消せます'],
+    id: ['KOLEKSI','HADIAH HARIAN','PERINGKAT','Segera hadir','SEMUA BERHASIL DIBERSIHKAN!','Kosongkan jalur dan lanjut bermain','TONTON IKLAN','TIDAK, TERIMA KASIH','Coba sekali lagi!','COBA LAGI','DIJEDA','Kebijakan Privasi','Ketentuan Penggunaan','Cocokkan 2 benda yang sama'],
+    th: ['คอลเลกชัน','ของขวัญรายวัน','อันดับ','เร็ว ๆ นี้','เคลียร์ทั้งหมดแล้ว!','เคลียร์ช่องแล้วเล่นต่อ','ดูโฆษณา','ไม่ ขอบคุณ','ลองอีกครั้ง!','ลองใหม่','หยุดชั่วคราว','นโยบายความเป็นส่วนตัว','ข้อกำหนดการใช้งาน','จับคู่สิ่งของที่เหมือนกัน 2 ชิ้น'],
+    vi: ['BỘ SƯU TẬP','QUÀ HẰNG NGÀY','XẾP HẠNG','Sắp ra mắt','ĐÃ DỌN SẠCH TẤT CẢ!','Dọn máng và chơi tiếp','XEM QUẢNG CÁO','KHÔNG, CẢM ƠN','Thử lại lần nữa!','THỬ LẠI','TẠM DỪNG','Chính sách quyền riêng tư','Điều khoản sử dụng','Ghép 2 vật phẩm giống nhau để xóa'],
+    ms: ['KOLEKSI','HADIAH HARIAN','KEDUDUKAN','Akan datang','SEMUANYA SELESAI!','Kosongkan laluan dan terus bermain','TONTON IKLAN','TIDAK, TERIMA KASIH','Cuba sekali lagi!','CUBA LAGI','DIJEDA','Dasar Privasi','Terma Penggunaan','Padankan 2 objek yang sama'],
+    fil: ['KOLEKSYON','ARAW-ARAW NA REGALO','RANGGO','Malapit na','NALINIS NA ANG LAHAT!','Linisin ang lagusan at magpatuloy','MANOOD NG AD','HINDI, SALAMAT','Subukan muli!','SUBUKAN MULI','NAKA-PAUSE','Patakaran sa Privacy','Mga Tuntunin ng Paggamit','Pagtambalin ang 2 magkaparehong bagay'],
+    zh: ['图鉴','每日礼物','排行','即将开放','全部消除！','清理洞口并继续游戏','观看广告','不用了','再试一次吧！','重新挑战','暂停','隐私政策','使用条款','2 个相同物品即可消除'],
 };
 for (const code of Object.keys(rows)) {
     const values = rows[code].concat(shakeLabels[code], extendedLabels[code]);

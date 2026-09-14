@@ -18,8 +18,8 @@ export class EntryFlow {
         return this.targets.length > 0;
     }
 
-    /** @param fruits 当前初始可见水果。 @param mode 原版模式。 @param bounds 棋盘对应屏幕范围。 @param finalDeltaY 安全落点相对关卡数据的纵向偏移，单位水果父节点像素。 */
-    begin(fruits: FruitItem[], mode: 1 | 2, bounds: EntryBounds, finalDeltaY = 0): void {
+    /** @param fruits 当前初始可见水果。 @param mode 原版模式。 @param bounds 棋盘对应屏幕范围。 @param finalDeltaY 安全落点相对关卡数据的纵向偏移，单位水果父节点像素。 @param immediate 是否直接显示在最终落点，省略屏幕外入场。 */
+    begin(fruits: FruitItem[], mode: 1 | 2, bounds: EntryBounds, finalDeltaY = 0, immediate = false): void {
         this.cancel();
         if (!fruits.length) return;
         let bottom = Infinity, right = -Infinity;
@@ -29,7 +29,7 @@ export class EntryFlow {
             right = Math.max(right, fruit.node.position.x + size.width / 2);
         }
         const plan = planEntry(mode, bottom, right, bounds);
-        if (!plan.x && !plan.y) {
+        if (immediate || (!plan.x && !plan.y)) {
             for (const fruit of fruits) {
                 const position = fruit.node.position;
                 fruit.node.setPosition(position.x, position.y + finalDeltaY, position.z);
