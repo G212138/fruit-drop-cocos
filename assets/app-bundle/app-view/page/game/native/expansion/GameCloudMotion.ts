@@ -38,9 +38,11 @@ export class GameCloudMotion extends Component {
         if (this.opacity) this.opacity.opacity = Math.round(this.baseOpacity * (0.94 + 0.06 * Math.sin(angle * 0.61)));
         const bound = (parent.width + own.width * Math.abs(this.baseX) * 1.025) / 2 + 20;
         const p = this.node.position;
-        let x = p.x + this.speed * step;
+        // 用户要求加快漂移，适配倍率 1.5；保留各云层原有速度比例。
+        let x = p.x + this.speed * 1.5 * step;
         if (x > bound) x = -bound;
         if (x < -bound) x = bound;
         this.node.setPosition(x, p.y, p.z);
     }
 }
+
