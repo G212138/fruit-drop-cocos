@@ -1,3 +1,4 @@
+import { slotCapacity } from '../failure/SlotCapacityRules';
 import { BoardPropFlow } from '../props/BoardPropFlow';
 import { FruitShake } from '../physics/FruitShake';
 import { GameHaptics } from '../../../../../../../app-builtin/app-controller/expansion/GameHaptics';
@@ -35,19 +36,34 @@ export class GameBoard extends Component {
     /** 独立锁墙预制体节点，保持原版位置并由奖励流程解锁。 */
     @property(Node)
     lockWallRoot: Node = null!;
+    /** 第二格广告锁墙，必须在第一格已解锁后才能操作。 */
+    @property(Node)
+    lowerLockWallRoot: Node = null!;
+    /** 本局已扩展格数，范围0至2，决定判负与提醒容量。 */
+    get expandedSlots(): number {
+        if (!this.lockWallRoot?.getComponent(LockWallView)?.unlocked) return 0;
+        return this.lowerLockWallRoot?.getComponent(LockWallView)?.unlocked ? 2 : 1;
+    }
+    /** 当前可领取奖励的锁墙；始终优先上格。 */
+    private get nextLockWall(): LockWallView | null {
+        return [this.lockWallRoot, this.lowerLockWallRoot]
+            .map(node => node?.getComponent(LockWallView))
+            .find(wall => wall && !wall.unlocked) ?? null;
+    }
     /** 当前局是否可以发起扩槽；提示和入场期间不接收请求。 */
     get canExpand(): boolean {
         return this.playing && !this.levelHint?.busy && !this.entry.busy && !this.shake.busy
-            && !!this.lockWallRoot && !this.lockWallRoot.getComponent(LockWallView)!.unlocked;
+            && !!this.nextLockWall;
     }
-    /** 原版普通槽四个判负，扩槽后五个判负，单位个。 */
+    /** 普通槽四个判负，每解锁一格增加一个，最多六个，单位个。 */
     private get floorThreshold(): number {
-        return this.lockWallRoot?.getComponent(LockWallView)?.unlocked ? 5 : 4;
+        return slotCapacity(this.expandedSlots).failure;
     }
 
     /** 注册预制体锁墙的请求事件，不直接绑定广告平台。 */
     onLoad(): void {
         this.lockWallRoot.on('unlock-request', this.requestExpansion, this);
+        this.lowerLockWallRoot.on('unlock-request', this.requestExpansion, this);
     }
 
     /** 向页面发布当前局扩槽意图，页面负责广告门禁。 */
@@ -56,10 +72,14 @@ export class GameBoard extends Component {
     }
 
     /** 仅在本局仍可接收奖励时移除锁墙，返回是否实际发放。 */
-    expandSlot(): boolean {
-        if (!this.canExpand) return false;
-        const expanded = this.lockWallRoot.getComponent(LockWallView)!.unlock();
-        if (expanded) this.failure.reset();
+    expandSlot(expectedSlot = this.expandedSlots): boolean {
+        if (!this.canExpand || expectedSlot !== this.expandedSlots) return false;
+        const expanded = this.nextLockWall!.unlock();
+        if (expanded) {
+            this.lowerLockWallRoot.getComponent(LockWallView)!.setAvailable(true);
+            this.failure.reset();
+            this.warning.reset();
+        }
         return expanded;
     }
     /** 独立原版机制提示，展示结束后才推进水果入场。 */
@@ -177,6 +197,9 @@ export class GameBoard extends Component {
         this.mode = level.mode;
         this.automaticShift = level.number >= 2 && level.mode === 1;
         this.lockWallRoot.getComponent(LockWallView)!.reset();
+        const lower = this.lowerLockWallRoot.getComponent(LockWallView)!;
+        lower.reset();
+        lower.setAvailable(false);
         // 左墙没有可见图片；仅停用刚体，避免节点与碰撞体同时停用时重复移除物理代理。
         this.leftBoundary.getComponent(RigidBody2D)!.enabled = this.mode !== 2;
         this.rightLine.active = this.mode === 2;
@@ -312,7 +335,7 @@ export class GameBoard extends Component {
                 snapshots.push(snapshot);
             } else fruit.visual.clearWarning();
         }
-        const result = this.warning.tick(snapshots, dt, this.floorThreshold === 5);
+        const result = this.warning.tick(snapshots, dt, this.expandedSlots);
         for (const fruit of targets) {
             if (result === 'flash') fruit.visual.flashWarning();
             else if (result === 'clear') fruit.visual.clearWarning();
@@ -336,13 +359,15 @@ export class GameBoard extends Component {
         const floor = this.node.getChildByName('Floor');
         const transform = floor?.getComponent(UITransform);
         const collider = floor?.getComponent(PolygonCollider2D);
-        const lock = this.lockWallRoot?.getComponent(UITransform);
-        if (!transform || !collider || !lock) return null;
-        // 锁墙视觉宽度覆盖洞口内壁，用于从现有地形多边形筛出凹槽轮廓。
-        const left = transform.convertToNodeSpaceAR(lock.convertToWorldSpaceAR(new Vec3(-lock.width * lock.anchorX, 0, 0))).x;
-        const right = transform.convertToNodeSpaceAR(lock.convertToWorldSpaceAR(new Vec3(lock.width * (1 - lock.anchorX), 0, 0))).x;
-        const neck = collider.points.map(point => ({ x: point.x + collider.offset.x, y: point.y + collider.offset.y }))
-            .filter(point => point.x >= Math.min(left, right) && point.x <= Math.max(left, right));
+        if (!transform || !collider) return null;
+        // 从中央凹槽两侧最近的碰撞顶点读取宽度，不依赖可调整的障碍图片尺寸。
+        const points = collider.points.map(point => ({ x: point.x + collider.offset.x, y: point.y + collider.offset.y }));
+        const left = Math.max(...points.filter(point => point.x < 0).map(point => point.x));
+        const right = Math.min(...points.filter(point => point.x > 0).map(point => point.x));
+        if (!Number.isFinite(left) || !Number.isFinite(right)) return null;
+        // 向两侧各留半个槽宽，包含洞壁的倾斜顶点并排除外侧地块轮廓。
+        const margin = (right - left) / 2;
+        const neck = points.filter(point => point.x >= left - margin && point.x <= right + margin);
         if (neck.length < 4) return null;
         const region = {
             left: Math.min(...neck.map(point => point.x)),

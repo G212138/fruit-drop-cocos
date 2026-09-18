@@ -12140,7 +12140,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 565,
+      "y": 593.025,
       "z": 0
     },
     "_lrot": {
@@ -12823,7 +12823,7 @@
     "_string": "FRUIT",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 40,
+    "_actualFontSize": 28,
     "_fontSize": 28,
     "_fontFamily": "Arial",
     "_lineHeight": 32.199999999999996,
@@ -13389,7 +13389,7 @@
     "_string": "FRUIT",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 40,
+    "_actualFontSize": 28,
     "_fontSize": 28,
     "_fontFamily": "Arial",
     "_lineHeight": 32.199999999999996,
@@ -14189,7 +14189,7 @@
     "_string": "DESSERT",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 40,
+    "_actualFontSize": 28,
     "_fontSize": 28,
     "_fontFamily": "Arial",
     "_lineHeight": 32.199999999999996,
@@ -14755,7 +14755,7 @@
     "_string": "DESSERT",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 40,
+    "_actualFontSize": 28,
     "_fontSize": 28,
     "_fontFamily": "Arial",
     "_lineHeight": 32.199999999999996,
@@ -15307,7 +15307,7 @@
     },
     "_fillStart": 0,
     "_fillRange": 0,
-    "_isTrimmedMode": true,
+    "_isTrimmedMode": false,
     "_useGrayscale": false,
     "_atlas": null,
     "_id": ""
@@ -15435,7 +15435,7 @@
     "_string": "FRUIT",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 40,
+    "_actualFontSize": 26,
     "_fontSize": 26,
     "_fontFamily": "Arial",
     "_lineHeight": 29.9,
@@ -15546,7 +15546,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 102,
+      "x": 107.93999999999998,
       "y": 330,
       "z": 0
     },
@@ -15587,7 +15587,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 118.35995483398438,
+      "width": 323.87995483398436,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -15626,7 +15626,7 @@
     "_string": "IN USE",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 40,
+    "_actualFontSize": 23,
     "_fontSize": 23,
     "_fontFamily": "Arial",
     "_lineHeight": 26.45,
@@ -24097,7 +24097,7 @@
     "_string": "30 / 30 UNLOCKED",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 40,
+    "_actualFontSize": 24,
     "_fontSize": 24,
     "_fontFamily": "Arial",
     "_lineHeight": 27.599999999999998,
@@ -24348,7 +24348,7 @@
     "_string": "CONFIRM USE",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 40,
+    "_actualFontSize": 35,
     "_fontSize": 35,
     "_fontFamily": "Arial",
     "_lineHeight": 40.25,
@@ -24716,7 +24716,7 @@
     "_string": "Applies after confirmation",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 40,
+    "_actualFontSize": 21,
     "_fontSize": 21,
     "_fontFamily": "Arial",
     "_lineHeight": 24.15,
@@ -37696,6 +37696,7 @@
       "__id__": 0
     },
     "fileId": "9d/dKqm1hEZYF+ch4k6eCa",
+    "instance": null,
     "targetOverrides": null
   }
 ]

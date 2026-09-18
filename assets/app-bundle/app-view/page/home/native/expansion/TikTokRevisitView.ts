@@ -1,3 +1,4 @@
+import { app } from '../../../../../../app/app';
 import { _decorator, Button, Component, Label, Node } from 'cc';
 import { DEV } from 'cc/env';
 import { GameLanguage } from '../../../../../../app-builtin/app-model/expansion/GameLanguage';
@@ -21,7 +22,7 @@ export class TikTokRevisitView extends Component {
     @property(Label) shortcutLabel: Label = null!;
     /** 侧边栏入口名称。 */
     @property(Label) profileLabel: Label = null!;
-    /** 首页任务结果提示。 */
+    /** 兼容旧预制体绑定，结果提示改用框架Toast，此节点始终隐藏。 */
     @property(Label) notice: Label = null!;
     /** 桌面弹窗及全屏遮罩。 */
     @property(Node) shortcutDialog: Node = null!;
@@ -49,8 +50,6 @@ export class TikTokRevisitView extends Component {
     private deferredCheck = false;
     /** 当前打开的任务；关闭弹窗时清空。 */
     private selected: TikTokMission | null = null;
-    /** 首页结果提示序号。 */
-    private message = -1;
     /** 两个任务的独立结果提示，避免互相覆盖。 */
     private readonly messages: Record<TikTokMission, number> = { shortcut: -1, profile: -1 };
     /** 平台登录成功只作为调用任务能力的前置条件。 */
@@ -63,8 +62,7 @@ export class TikTokRevisitView extends Component {
         const text = (index: number): string => revisitDialogText(GameLanguage.current, index);
         this.shortcutLabel.string = text(1);
         this.profileLabel.string = text(0);
-        this.notice.string = this.message < 0 ? '' : tikTokText(GameLanguage.current, this.message);
-        this.notice.node.active = this.message >= 0 && !this.selected;
+        if (this.notice) this.notice.node.active = false;
         for (const mission of ['shortcut', 'profile'] as TikTokMission[]) {
             const shortcut = mission === 'shortcut';
             const description = shortcut ? this.shortcutDescription : this.profileDescription;
@@ -138,7 +136,7 @@ export class TikTokRevisitView extends Component {
         this.selected = null;
         if (this.shortcutDialog) this.shortcutDialog.active = false;
         if (this.profileDialog) this.profileDialog.active = false;
-        if (this.shortcutLabel && this.profileLabel && this.notice) this.refreshText();
+        if (this.shortcutLabel && this.profileLabel) this.refreshText();
     }
 
     /** @param event 主按钮事件。 @param mission 当前弹窗任务。 */
@@ -154,8 +152,12 @@ export class TikTokRevisitView extends Component {
     /** @param mission 消息对应任务。 @param index 平台结果词条索引。 */
     private showMessage(mission: TikTokMission, index: number): void {
         this.messages[mission] = index;
-        this.message = index === 11 ? -1 : index;
-        if (this.isValid && this.enabledInHierarchy) this.refreshText();
+        if (!this.isValid || !this.enabledInHierarchy) return;
+        this.refreshText();
+        // 仅在首页收到新结果时弹出，重绘、切换语言或关闭弹窗不重复提示。
+        if (!this.selected && index !== 11) {
+            app.manager.ui.showToast(tikTokText(GameLanguage.current, index));
+        }
     }
 
     /** @param mission 任务用途。 @param checkOnly 返回前台时只查询资格。 */
@@ -203,3 +205,4 @@ export class TikTokRevisitView extends Component {
         }
     }
 }
+

@@ -16,8 +16,6 @@ export class FruitProgressView extends Component {
     @property(Sprite) bright: Sprite = null!;
     /** 原版31至60号进度图片，按关卡顺序绑定。 */
     @property([SpriteFrame]) frames: SpriteFrame[] = [];
-    /** 独立进度条填充图，编辑器绑定；沿用百分比真实数值。 */
-    @property(Sprite) barFill: Sprite = null!;
     /** 最近的真实进度，范围0至1，用于闪烁结束时恢复。 */
     private ratio = 0;
     /** 提亮动画经过秒数；负数表示未播放。 */
@@ -33,7 +31,6 @@ export class FruitProgressView extends Component {
     render(level: number, remaining: number, total: number): void {
         const percent = total > 0 ? Math.max(0, Math.min(100, Math.floor((total - remaining) / total * 100))) : 0;
         this.ratio = percent / 100;
-        if (this.barFill) this.barFill.fillRange = this.ratio;
         this.remaining.string = total > 0 ? String(remaining) : '—';
         this.percentage.string = percent + '%';
         const frame = this.frames[Math.max(0, level - 1) % this.frames.length];

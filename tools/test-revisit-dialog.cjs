@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const ts = require('C:/ProgramData/cocos/editors/Creator/3.8.8/resources/app.asar.unpacked/node_modules/typescript');
 const storage = new Map();
+const toasts=[];
 const modules = {};
 class Component { constructor() { this.isValid=true; this.enabledInHierarchy=true; } }
 class Button {}
@@ -18,6 +19,7 @@ function load(file) {
  const exports=modules[file]={};
  const code=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.CommonJS,experimentalDecorators:true}}).outputText;
  new Function('exports','require',code)(exports,name=>{
+  if(name.endsWith('/app/app')) return {app:{manager:{ui:{showToast:text=>toasts.push(text)}}}};
   if(name==='cc') return cc;
   if(name==='cc/env') return {DEV:true};
   if(name.endsWith('/GameLanguage')) return {GameLanguage:language};
@@ -49,7 +51,14 @@ async function main() {
  const view=new TikTokRevisitView();
  for(const name of ['shortcutButton','profileButton','shortcutDialog','profileDialog']) view[name]={active:false};
  for(const name of ['shortcutLabel','profileLabel','notice','shortcutDescription','profileDescription','shortcutReward','profileReward','shortcutAction','profileAction','shortcutNotice','profileNotice']) view[name]=label();
- view.onEnable(); view.request(null,'profile');
+ view.onEnable();
+ view.showMessage('profile',3);
+ assert.equal(toasts.length,1);assert.equal(view.notice.node.active,false);
+ view.refreshText();view.close();assert.equal(toasts.length,1,'刷新或关闭不重复弹Toast');
+ view.request(null,'profile');view.showMessage('profile',3);
+ assert.equal(toasts.length,1,'弹窗内部继续使用自己的提示标签');
+ view.enabledInHierarchy=false;view.showMessage('profile',3);assert.equal(toasts.length,1);
+ view.enabledInHierarchy=true;
  assert.equal(view.profileDialog.active,true);assert.equal(view.shortcutDialog.active,false);
  view.begin(null,'profile');
  assert.match(view.profileNotice.string,/TikTok/);
@@ -84,3 +93,4 @@ async function main() {
  console.log('通过：无后端静默登录、并发合并、临时码不落盘、浏览器不伪造领奖、任务资格、导航回调竞态、两种道具发放与重复领取、关闭和写入失败。');
 }
 main().catch(e=>{delete global.TTMinis;console.error(e);process.exitCode=1;});
+

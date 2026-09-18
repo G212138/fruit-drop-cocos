@@ -84,16 +84,8 @@ export class PageHome extends BaseView {
     openCollection(): void { this.openTheme(); }
     /** 尚未接入的首页功能显示真实状态，不打开空页面。 */
     showComingSoon(): void {
-        if (!this.featureNotice) return;
-        this.unschedule(this.hideFeatureNotice);
-        this.featureNotice.string = GameLanguage.text('comingSoon');
-        this.featureNotice.node.active = true;
-        this.scheduleOnce(this.hideFeatureNotice, 1.4);
+        app.manager.ui.showToast(GameLanguage.text('comingSoon'));
     }
-    /** 到时隐藏首页功能提示。 */
-    private readonly hideFeatureNotice = (): void => {
-        if (this.featureNotice) this.featureNotice.node.active = false;
-    };
     /** 打开首页设置。 */
     openSettings(): void { this.settingsPanel.open(GameSettings.current.snapshot); }
     /** @param key 当前点击的开关。 */
@@ -114,3 +106,4 @@ export class PageHome extends BaseView {
         app.manager.ui.show({ name: 'PageGame' });
     }
 }
+

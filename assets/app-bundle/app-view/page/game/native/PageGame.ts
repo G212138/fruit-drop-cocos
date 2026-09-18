@@ -404,10 +404,11 @@ export class PageGame extends BaseView.BindController(GameController) {
     private async requestExpansion(): Promise<void> {
         if (!this.rewardGate || !this.board?.canExpand || this.ended) return;
         const generation = this.generation;
+        const expectedSlot = this.board.expandedSlots;
         const result = await this.rewardGate.request('expand-slot');
         if (!this.isCurrent(generation) || this.ended) return;
         if (result === 'rewarded') {
-            if (this.board?.expandSlot()) this.hud?.showNotice('底部空间已扩展');
+            if (this.board?.expandSlot(expectedSlot)) this.hud?.showNotice('底部空间已扩展');
         } else if (result === 'cancelled') this.hud?.showNotice('已取消，底部空间未改变');
         else if (result === 'failed') this.hud?.showNotice('广告暂时无法完成，请稍后重试');
         else if (result === 'unavailable') this.hud?.showNotice('广告暂不可用，请稍后重试');

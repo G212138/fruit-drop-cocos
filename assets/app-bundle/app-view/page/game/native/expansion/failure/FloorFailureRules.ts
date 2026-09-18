@@ -46,12 +46,12 @@ function getBottomFruits(fruits: FloorFruit[]): FloorFruit[] {
     return fruits.filter(fruit => !fruit.removing && fruit.y < FLOOR_RULES.bottomY).sort((a, b) => b.y - a.y);
 }
 
-/** 普通窄槽规则；扩槽机制接入后由调用方传入五个的阈值。 */
+/** 窄槽连续接触判负；调用方按实际解锁0/1/2格传入4/5/6的阈值。 */
 export class FloorFailureRules {
     /**
      * 从洞内水果沿真实接触寻找连续堆叠，顶部可自然延伸到洞口上方。
      * @param fruits 当前物理步结束后的水果快照。
-     * @param threshold 普通洞4个、扩槽5个；不等待静止或额外计时。
+     * @param threshold 未扩槽4个、解锁上格5个、两格全开6个；不等待静止或额外计时。
      * @param region 地形局部坐标中的洞口左右边界、槽底和洞口高度，来自组件布局后的碰撞轮廓。
      */
     losesOnStack(fruits: FloorFruit[], threshold: number, region: { left: number; right: number; bottom: number; top: number; matchTop?: number }): boolean {
@@ -89,7 +89,7 @@ export class FloorFailureRules {
      * @param fruits 当前棋盘的水果状态集合，包含尚未完成的消除。
      * @param first 接触或配对中的第一方，标识与快照必须属于同一棋盘。
      * @param second 接触或配对中的第二方，不得与第一方为同一实例。
-     * @param threshold 判负数量阈值，普通槽四个、扩槽五个；调大允许更多堆积。
+     * @param threshold 判负数量阈值，普通槽四个、上格解锁五个、两格全开六个；调大允许更多堆积。
      */
     losesOnContact(fruits: FloorFruit[], first: string, second: string, threshold: number = FLOOR_RULES.normalThreshold): boolean {
         if (fruits.some(fruit => fruit.removing) || canEliminateAtFloor(fruits)) return false;

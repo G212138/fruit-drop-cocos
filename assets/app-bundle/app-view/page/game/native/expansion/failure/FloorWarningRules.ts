@@ -1,3 +1,4 @@
+import { slotCapacity } from './SlotCapacityRules';
 import { FloorFruit } from './FloorFailureRules';
 import { canMatch } from '../matching/MatchRules';
 
@@ -21,13 +22,13 @@ export class FloorWarningRules {
         this.remaining = 0;
     }
 
-    /** @param fruits 调用方筛选后的洞内水果快照。 @param dt 当前帧时长，秒。 @param expanded 本局是否已扩槽。 */
-    tick(fruits: FloorFruit[], dt: number, expanded: boolean): 'clear' | 'wait' | 'flash' {
-        // 普通槽3个、扩槽4个已释放的洞内水果开始提醒；不按历史触地状态计数。
+    /** @param fruits 调用方筛选后的洞内水果快照。 @param dt 当前帧时长，秒。 @param expanded 本局已扩格数（0至2）；兼容旧调用的布尔值。 */
+    tick(fruits: FloorFruit[], dt: number, expanded: number | boolean): 'clear' | 'wait' | 'flash' {
+        // 普通槽3个、每扩一格增加1个已释放物品才开始提醒；不按历史触地状态计数。
         const count = fruits.filter(fruit => fruit.released === true && !fruit.removing).length;
         const matching = fruits.some(first => fruits.some(second => canMatch(first, second)
             && ((first.contacts ?? []).indexOf(second.id) >= 0 || (second.contacts ?? []).indexOf(first.id) >= 0)));
-        if (count < (expanded ? 4 : 3) || matching) {
+        if (count < slotCapacity(Number(expanded)).warning || matching) {
             this.reset();
             return 'clear';
         }

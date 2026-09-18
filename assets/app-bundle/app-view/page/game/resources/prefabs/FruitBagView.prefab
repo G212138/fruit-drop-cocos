@@ -150,7 +150,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 82.598,
+      "y": 15,
       "z": 0
     },
     "_lrot": {
@@ -190,8 +190,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 156,
-      "height": 46
+      "width": 167,
+      "height": 182
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -240,7 +240,7 @@
     },
     "_fillStart": 0,
     "_fillRange": 0,
-    "_isTrimmedMode": true,
+    "_isTrimmedMode": false,
     "_useGrayscale": false,
     "_atlas": null,
     "_id": ""
@@ -273,6 +273,7 @@
       "__expectedType__": "cc.SpriteFrame"
     },
     "mouth": true,
+    "lockPlug": false,
     "_id": ""
   },
   {
@@ -407,7 +408,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 0,
+      "y": 15,
       "z": 0
     },
     "_lrot": {
@@ -448,7 +449,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 167,
-      "height": 152
+      "height": 182
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -497,7 +498,7 @@
     },
     "_fillStart": 0,
     "_fillRange": 0,
-    "_isTrimmedMode": true,
+    "_isTrimmedMode": false,
     "_useGrayscale": false,
     "_atlas": null,
     "_id": ""
@@ -530,6 +531,7 @@
       "__expectedType__": "cc.SpriteFrame"
     },
     "mouth": false,
+    "lockPlug": false,
     "_id": ""
   },
   {
@@ -679,6 +681,7 @@
       "__id__": 0
     },
     "fileId": "4c6XL68SZLkJNqTT5KgGhz",
+    "instance": null,
     "targetOverrides": null
   }
 ]

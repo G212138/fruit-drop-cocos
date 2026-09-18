@@ -34,8 +34,8 @@ export class GameScreenLayout {
         // 原地形宽750设计像素；极短屏至少保留1100设计像素高度，避免洞口与顶部栏重叠。
         const scale = Math.min(safe.width / 750, safe.height / 1100);
         const centerX = safe.x + safe.width / 2 - visible.width / 2;
-        // 地形下沿为-733.538；画面贴屏幕底部，HUD仍上移到底部安全区。
-        const centerY = -visible.height / 2 + 733.538 * scale;
+        // 地形下沿为-823.538；画面贴屏幕底部，HUD仍上移到底部安全区。
+        const centerY = -visible.height / 2 + 823.538 * scale;
         for (const root of [boardRoot, hudRoot]) {
             root.setScale(scale, scale, 1);
             root.setPosition(centerX, centerY + (root === hudRoot ? safe.y : 0), 0);
@@ -44,12 +44,12 @@ export class GameScreenLayout {
         if (bag) {
             if (!this.bagOrigins.has(bag)) this.bagOrigins.set(bag, { position: bag.position.clone(), scale: bag.scale.clone() });
             const origin = this.bagOrigins.get(bag)!;
-            const lock = board?.getChildByName('LockWallLayout');
+            const lock = board?.getChildByName('LowerLockWallLayout');
             const lockSize = lock?.getComponent(UITransform);
             const bagSize = bag.getComponent(UITransform)!;
             // 袋子置于锁墙下沿和安全区底边之间；不足时等比缩小，禁止直接上移遮挡锁墙。
-            const bottom = -733.538 + safe.y / scale + 8;
-            const top = lock && lockSize ? lock.position.y - lockSize.height * lockSize.anchorY - 12 : -525.825;
+            const bottom = -823.538 + safe.y / scale + 8;
+            const top = lock && lockSize ? lock.position.y - lockSize.height * lockSize.anchorY - 12 : -615.825;
             const fit = Math.min(1, Math.max(1, top - bottom) / (bagSize.height * origin.scale.y));
             bag.setScale(origin.scale.x * fit, origin.scale.y * fit, origin.scale.z);
             const half = bagSize.height * origin.scale.y * fit / 2;
