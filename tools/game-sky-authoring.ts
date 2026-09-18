@@ -21,17 +21,18 @@ export class GameSkyAuthoring extends cc.Component {
         if(!bg)throw Error('Background missing');
         for(const old of [...bg.children])if(old.name.startsWith('SkyCloud')){old.removeFromParent();old.destroy();}
         const frame=await load('db://assets/app-bundle/app-view/page/game/resources/textures/sky-cloud.png',true);
-        const rows=[[-340,510,350,175,105,3],[340,310,420,210,130,4.5],[-300,-420,480,240,150,5.5],[360,-650,540,270,165,6]];
+        const rows=[[-290,680,220,110,100,2.5],[280,580,330,165,120,3.5],[-380,430,460,230,135,4.5],[160,290,180,90,75,2],[-240,140,270,135,85,3],[360,-20,390,195,110,4],[-360,-230,340,170,120,4.2],[280,-420,500,250,140,5.5],[-260,-600,540,270,150,6],[350,-760,300,150,115,3.5]];
         for(let i=0;i<rows.length;i++){
             const [x,y,w,h,opacity,speed]=rows[i];
             const n=new cc.Node('SkyCloud'+i);n.layer=bg.layer;n.parent=bg;n.setPosition(x,y);
             const transform=n.addComponent(cc.UITransform);
             const sprite=n.addComponent(cc.Sprite);sprite.spriteFrame=frame;sprite.sizeMode=cc.Sprite.SizeMode.CUSTOM;
             transform.setContentSize(w,h);n.addComponent(cc.UIOpacity).opacity=opacity;
-            n.addComponent(GameCloudMotion).speed=speed;
+            const motion=n.addComponent(GameCloudMotion);motion.speed=speed;motion.phase=i*1.37;motion.period=24+(i%5)*3;if(i%2)n.setScale(-1,1,1);
         }
         const data=cce.Prefab.generatePrefabDataFromNode(root);
         await Editor.Message.request('asset-db','save-asset',url,data.prefabData||data);
-        root.destroy();return 'Added 4 realistic cloud layers';
+        root.destroy();return 'Added 10 varied evolving cloud layers';
     }
 }
+
