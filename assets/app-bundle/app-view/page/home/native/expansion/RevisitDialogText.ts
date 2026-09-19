@@ -1,7 +1,7 @@
 /** 礼包弹窗的可翻译文案，标题使用独立英文美术字。 */
 const copy: Record<string, string[]> = {
     en: ['Sidebar Gift', 'Add to Home', 'Find us in your TikTok sidebar!', 'Add a shortcut. Play anytime!', 'FREE SHUFFLE ×1', 'FREE CLEAR ×1', 'GO NOW', 'ADD NOW', 'CHECK REWARD', 'CLAIMED', 'Please wait…', 'Available in TikTok.'],
-    zh: ['侧边栏礼包', '桌面礼包', '从 TikTok 个人主页侧边栏找到游戏！', '添加桌面快捷方式，随时回来玩！', '刷新道具 ×1', '消除道具 ×1', '前往完成', '添加到桌面', '检查并领取', '已领取', '请稍候…', '请在 TikTok 中完成此任务。'],
+    zh: ['侧边栏礼包', '添加到桌面', '从 TikTok 个人主页侧边栏找到游戏！', '添加桌面快捷方式，随时回来玩！', '刷新道具 ×1', '消除道具 ×1', '前往完成', '添加到桌面', '检查并领取', '已领取', '请稍候…', '请在 TikTok 中完成此任务。'],
     ja: ['サイドバー特典', 'ホームに追加', 'TikTokのサイドバーからゲームを開こう！', 'ショートカットを追加して、いつでもプレイ！', 'シャッフル ×1', '消去 ×1', '移動する', '追加する', '報酬を確認', '受取済み', 'お待ちください…', 'TikTokで利用できます。'],
     id: ['Hadiah Sidebar', 'Tambah ke Beranda', 'Temukan kami di sidebar TikTok!', 'Tambah pintasan. Main kapan saja!', 'ACAK GRATIS ×1', 'HAPUS GRATIS ×1', 'BUKA', 'TAMBAHKAN', 'CEK HADIAH', 'DIKLAIM', 'Tunggu…', 'Tersedia di TikTok.'],
     th: ['ของขวัญแถบข้าง', 'เพิ่มบนหน้าจอหลัก', 'พบเกมได้ในแถบข้าง TikTok!', 'เพิ่มทางลัด เล่นได้ทุกเมื่อ!', 'สับเปลี่ยนฟรี ×1', 'ลบฟรี ×1', 'ไปเลย', 'เพิ่มเลย', 'ตรวจสอบรางวัล', 'รับแล้ว', 'โปรดรอ…', 'ใช้งานได้ใน TikTok'],
