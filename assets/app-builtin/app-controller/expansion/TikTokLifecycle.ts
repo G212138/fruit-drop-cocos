@@ -69,12 +69,4 @@ export class TikTokLifecycle {
         }
     }
 
-    /** @param progress 已完成资源加载比例，范围 0 到 1；不支持时忽略。 */
-    static loading(progress: number): void {
-        const api = getTikTokGame();
-        if (!supportsTikTok(api, 'setLoadingProgress')) return;
-        try {
-            api!.setLoadingProgress!({ progress: Math.max(0, Math.min(1, progress)), success: () => {}, fail: () => {} });
-        } catch { /* 宿主进度上报失败不阻塞游戏资源加载。 */ }
-    }
 }

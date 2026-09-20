@@ -1,5 +1,5 @@
 const { optimize } = require('./optimize');
-exports.title = '小游戏资源去重与包体检查';
+exports.title = '小游戏资源去重与包体统计';
 exports.throwError = true;
 /** 构建结束后处理输出目录，不更改工程图片或引擎代码。 */
 exports.onAfterBuild = async (options, result) => {

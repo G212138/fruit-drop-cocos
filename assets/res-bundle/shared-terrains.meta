@@ -1,0 +1,14 @@
+{
+  "ver": "1.2.0",
+  "importer": "directory",
+  "imported": true,
+  "uuid": "69c48aec-c3da-47bf-9f57-edf09f56a275",
+  "files": [],
+  "subMetas": {},
+  "userData": {
+    "isBundle": true,
+    "bundleName": "shared-terrains",
+    "bundleConfigID": "default",
+    "priority": 10
+  }
+}

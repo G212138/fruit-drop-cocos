@@ -254,8 +254,8 @@ async function rebuildHome(): Promise<void> {
     const settings = home.settingsPanel.node;
     const revisit = root.getChildByName('TikTokRevisitView');
     clearChildren(root, [theme, settings, revisit].filter(Boolean));
-    await makeSprite('Background', root, base + 'page/home/resources/redesign/background.png', 750, 1625);
-    const title = await makeSprite('Title', root, base + 'page/home/resources/redesign/title.png', 700, 350, 0, 455);
+    await makeSprite('Background', root, base + 'page/home/resources/textures/home/background.png', 750, 1625);
+    const title = await makeSprite('Title', root, base + 'page/home/resources/textures/home/title.png', 700, 350, 0, 455);
     const visual = makeNode('LogoVisual', title, 700, 350);
     const titleSprite = title.getComponent(cc.Sprite)!;
     const visualSprite = visual.addComponent(cc.Sprite);
@@ -263,18 +263,18 @@ async function rebuildHome(): Promise<void> {
     visualSprite.spriteFrame = titleSprite.spriteFrame;
     titleSprite.enabled = false;
     visual.addComponent('HomeLogoMotion');
-    const fruitUrls = [1,2,3,4].map(index => base + 'page/home/resources/redesign/demo-fruit-' + index + '.png');
+    const fruitUrls = [1,2,3,4].map(index => base + 'page/home/resources/textures/home/demo-fruit-' + index + '.png');
     const positions = [[-165,160],[10,200],[165,130],[-10,70]];
     for (let index = 0; index < fruitUrls.length; index++) {
         const fruit = await makeSprite('DemoFruit' + (index + 1), root, fruitUrls[index], 115, 115,
             positions[index][0], positions[index][1]);
         fruit.angle = [-10,7,14,-6][index];
     }
-    const play = await makeSprite('StartButton', root, base + 'page/home/resources/redesign/play.png', 570, 190, 0, -185);
+    const play = await makeSprite('StartButton', root, base + 'page/home/resources/textures/home/play.png', 570, 190, 0, -185);
     bindButton(play, root, 'PageHome', 'startGame');
     home.playLabel = makeLabel('PlayLabel', play, 'PLAY', 58, 430, 78, 0, 20, 'play', cc.Color.WHITE);
     home.levelLabel = makeLabel('LevelLabel', play, 'Level 1', 30, 400, 48, 0, -42, '', cc.Color.WHITE);
-    const setting = await makeSprite('SettingsButton', root, base + 'page/home/resources/redesign/settings.png', 82, 82, -305, 610);
+    const setting = await makeSprite('SettingsButton', root, base + 'page/home/resources/textures/home/settings.png', 82, 82, -305, 610);
     bindButton(setting, root, 'PageHome', 'openSettings');
     const dock = makeNode('FeatureDock', root, 700, 210, 0, -525);
     const entries = [
@@ -286,7 +286,7 @@ async function rebuildHome(): Promise<void> {
     for (let index = 0; index < entries.length; index++) {
         const [name, file, caption, key, handler] = entries[index];
         const item = makeNode(name, dock, 155, 190, -255 + index * 170, 0);
-        const icon = await makeSprite('Icon', item, base + 'page/home/resources/redesign/home-icons/' + file, 118, 118, 0, 28);
+        const icon = await makeSprite('Icon', item, base + 'page/home/resources/textures/home/home-icons/' + file, 118, 118, 0, 28);
         bindButton(icon, root, 'PageHome', handler);
         const captionLabel = makeLabel('Caption', item, caption, 21, 150, 45, 0, -58, key, cc.Color.WHITE);
         const captionOutline = captionLabel.node.addComponent(cc.LabelOutline);
@@ -341,14 +341,14 @@ async function rebuildResult(): Promise<void> {
     result.titleLabel = notice;
 
     const success = await makeResultPanel(root, 'Success');
-    await makeSprite('Title', success.card, base + 'pop/result/resources/redesign/title-level-complete.png', 620, 310, 0, 410);
-    await makeSprite('Illustration', success.card, base + 'pop/result/resources/redesign/illustration-success.png', 470, 394, 0, 135);
+    await makeSprite('Title', success.card, base + 'pop/result/resources/textures/result/title-level-complete.png', 620, 310, 0, 410);
+    await makeSprite('Illustration', success.card, base + 'pop/result/resources/textures/result/illustration-success.png', 470, 394, 0, 135);
     makeLabel('Summary', success.card, 'ALL FRUIT CLEARED', 35, 540, 62, 0, -175, 'allFruitCleared', new cc.Color(45, 132, 34, 255));
     await makeSprite('Progress', success.card, base + 'page/game/resources/textures/settings/blank-button.png', 520, 52, 0, -235);
     result.nextButton = await makeButton('NextButton', success.card, base + 'page/game/resources/textures/settings/blank-button.png',
         'NEXT LEVEL', 'next', 530, 150, 0, -340, root, 'PopResult', 'next');
     result.nextButton.addComponent(cc.UIOpacity);
-    await makeButton('HomeButton', success.card, base + 'pop/result/resources/redesign/button-blue.png',
+    await makeButton('HomeButton', success.card, base + 'pop/result/resources/textures/result/button-blue.png',
         'HOME', 'home', 220, 82, 0, -465, root, 'PopResult', 'home');
     const unlock = makeNode('Unlock', success.card, 500, 125, 0, -75);
     const glow = await makeSprite('Glow', unlock, base + 'pop/result/resources/original/glow.png', 125, 125, -175, 0);
@@ -361,26 +361,26 @@ async function rebuildResult(): Promise<void> {
     result.unlockGlow = glow;
     result.unlockIcons = unlockIcons;
     result.successRoot = success.layer;
-    result.trialButton = await makeButton('TrialRestart', success.card, base + 'pop/result/resources/redesign/button-orange.png',
+    result.trialButton = await makeButton('TrialRestart', success.card, base + 'pop/result/resources/textures/result/button-orange.png',
         'Retry', 'restart', 260, 92, -145, -350, root, 'PopResult', 'restart');
-    result.trialReturn = await makeButton('TrialReturn', success.card, base + 'pop/result/resources/redesign/button-blue.png',
+    result.trialReturn = await makeButton('TrialReturn', success.card, base + 'pop/result/resources/textures/result/button-blue.png',
         'Level Editor', 'editor', 260, 92, 145, -350, root, 'PopResult', 'home');
     result.trialButton.active = false;
     result.trialReturn.active = false;
 
     const failure = await makeResultPanel(root, 'Failure');
-    await makeSprite('Title', failure.card, base + 'pop/result/resources/redesign/title-level-failed.png', 620, 230, 0, 425);
-    await makeSprite('Illustration', failure.card, base + 'pop/result/resources/redesign/illustration-failed.png', 500, 469, 0, 120);
+    await makeSprite('Title', failure.card, base + 'pop/result/resources/textures/result/title-level-failed.png', 620, 230, 0, 425);
+    await makeSprite('Illustration', failure.card, base + 'pop/result/resources/textures/result/illustration-failed.png', 500, 469, 0, 120);
     makeLabel('Summary', failure.card, 'Give it another try!', 34, 540, 64, 0, -145, 'giveAnotherTry');
     await makeButton('RestartButton', failure.card, base + 'page/game/resources/textures/settings/blank-button.png',
         'TRY AGAIN', 'tryAgain', 530, 150, 0, -275, root, 'PopResult', 'restart');
-    await makeButton('HomeButton', failure.card, base + 'pop/result/resources/redesign/button-blue.png',
+    await makeButton('HomeButton', failure.card, base + 'pop/result/resources/textures/result/button-blue.png',
         'HOME', 'home', 330, 100, 0, -410, root, 'PopResult', 'home');
     result.failureRoot = failure.layer;
 
     const revive = await makeResultPanel(root, 'RevivePrompt');
-    await makeSprite('Title', revive.card, base + 'pop/result/resources/redesign/title-one-more-chance.png', 620, 206, 0, 430);
-    await makeSprite('Illustration', revive.card, base + 'pop/result/resources/redesign/illustration-revive.png', 345, 518, 0, 105);
+    await makeSprite('Title', revive.card, base + 'pop/result/resources/textures/result/title-one-more-chance.png', 620, 206, 0, 430);
+    await makeSprite('Illustration', revive.card, base + 'pop/result/resources/textures/result/illustration-revive.png', 345, 518, 0, 105);
     makeLabel('Summary', revive.card, 'Clear the chute and keep playing', 29, 560, 64, 0, -185, 'clearChute');
     const reviveButton = await makeButton('ReviveButton', revive.card, base + 'page/game/resources/textures/settings/blank-button.png',
         'WATCH AD', 'watchAd', 540, 155, 0, -315, root, 'PopResult', 'revive');

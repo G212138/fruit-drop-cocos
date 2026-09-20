@@ -2,7 +2,7 @@
 import * as cc from 'cc';
 
 /** 首页内独立礼包素材所在分包，避免从首页跨包加载游戏图片。 */
-const folder = 'db://assets/app-bundle/app-view/page/game/resources/textures/hud-redesign/';
+const folder = 'db://assets/app-bundle/app-view/page/game/resources/textures/hud-actions/';
 
 /** @param url Creator 资源 URL。 @param frame 是否读取 SpriteFrame 子资源。 */
 async function asset(url, frame = false) {
@@ -96,7 +96,7 @@ export class HudRedesignAuthoring extends cc.Component {
         const caption=find('RemainingCaption');caption.active=false;
         localized(card,'Caption','remaining',90,33,24,31,27);
         const count=view.remaining.node;const countWidget=count.getComponent(cc.Widget);if(countWidget)countWidget.enabled=false;count.parent=card;count.setPosition(32,-22,0);plain(view.remaining,90,52,40);
-        const fruit=cc.instantiate(await asset('db://assets/app-bundle/app-view/page/game/resources/themes/items/fruit/prefabs/Fruit01.prefab'));
+        const fruit=cc.instantiate(await asset('db://assets/app-bundle/app-view/page/game/resources/prefabs/fruit/Fruit01.prefab'));
         const fs=fruit.getComponentInChildren(cc.Sprite);
         const icon=node(card,'FruitIcon',66,70,-47,0);const is=icon.addComponent(cc.Sprite);is.spriteFrame=fs.spriteFrame;is.sizeMode=cc.Sprite.SizeMode.CUSTOM;size(icon,66,70);fruit.destroy();
         const collectible=view.progressRoot;

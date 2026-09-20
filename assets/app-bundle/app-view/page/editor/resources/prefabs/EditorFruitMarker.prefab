@@ -167,7 +167,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "c6c81c25-aeae-4225-8bc0-992f09d3d09f@f9941",
+      "__uuid__": "70af64f3-1e1e-4113-82ab-62e0e1a68ccd@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -454,6 +454,7 @@
       "__id__": 0
     },
     "fileId": "68C96RPERMibBitHgK/Arb",
+    "instance": null,
     "targetOverrides": null
   }
 ]

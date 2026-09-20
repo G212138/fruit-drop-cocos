@@ -5,4 +5,4 @@ for(const [name,c]of configs){for(let i=0;i<c.redirect.length;i+=2){const uuid=c
 for(const name of ['page-home','page-game','pop-result'])assert.ok(!configs.get(name).deps.includes('page-editor-res'),name);
 const hash=()=>require('crypto').createHash('sha256').update(JSON.stringify([...configs])).digest('hex');
 const before=hash();const result=require('../extensions/mini-package-optimizer/optimize').optimize(root);assert.equal(result.duplicateFontBytesRemoved,0);for(const [n]of configs)configs.set(n,JSON.parse(fs.readFileSync(path.join(base,n,'config.json'))));assert.equal(hash(),before);
-console.log('通过：所有重定向目标存在、正式页面不依赖编辑器资源、优化幂等及包体门槛。',result);
+console.log('通过：所有重定向目标存在、正式页面不依赖编辑器资源、优化幂等及包体统计。',result);

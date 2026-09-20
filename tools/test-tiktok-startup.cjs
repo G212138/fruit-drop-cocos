@@ -81,13 +81,13 @@ function instantiate(host, first = false) {
     assert.equal(completed, 0);
     init.onUserInit();
     const firstRequest = pending.shift();
-    assert.equal(firstRequest.name, 'page-game-res');
+    assert.equal(firstRequest.name, 'shared-items');
     const warn = console.warn;
     try { console.warn = () => {}; firstRequest.callback(new Error('temporary network failure')); }
     finally { console.warn = warn; }
     assert.equal(completed, 0, '分包失败不能放行首页');
     retries.shift()();
-    for (const expected of ['page-game-res', 'page-home-res', 'pop-result-res', 'pop-result', 'page-game', 'page-home']) {
+    for (const expected of ['shared-items', 'shared-terrains', 'shared-ui', 'page-game-res', 'page-home-res', 'pop-result-res', 'pop-result', 'page-game', 'page-home']) {
         const request = pending.shift();
         assert.equal(request.name, expected);
         request.callback(null);
@@ -111,8 +111,8 @@ instantiate(undefined, true);
 instantiate({game:{}}, true);
 const progress = [];
 instantiate({ game: { setLoadingProgress: options => progress.push(options.progress) } });
-assert.equal(progress[0], 0);
-assert.equal(progress.at(-1), 1);
+assert.equal(progress.length, 0, 'Native 启动不得调用 HTML5 专用进度接口');
+
 assert.ok(progress.every((value, index) => index === 0 || value >= progress[index - 1]));
 instantiate({ game: { setLoadingProgress: () => { throw Error('SDK unavailable'); } } });
-console.log('通过：Native 启动包边界、分包失败重试、首页依赖加载后放行、实际进度不倒退及宿主进度接口失败。');
+console.log('通过：Native 启动包边界、分包失败重试、首页依赖加载后放行、实际进度不倒退及不调用HTML5专用进度接口。');

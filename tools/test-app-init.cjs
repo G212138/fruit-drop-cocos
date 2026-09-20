@@ -27,7 +27,7 @@ const output = ts.transpileModule(source, {compilerOptions: {
 }}).outputText;
 const mod = {exports: {}};
 new Function('require', 'module', 'exports', 'TTMinis', 'console', output)(
-    name => name === 'cc' ? cc : {default: Base}, mod, mod.exports,
+    name => name === 'cc' ? cc : name === './FirstLaunch' ? {FirstLaunch: {page: 'PageHome', complete() {}}} : {default: Base}, mod, mod.exports,
     {game: {setLoadingProgress({progress}) {reports.push(progress);}}}, {warn() {}}
 );
 const init = new mod.exports.AppInit();
@@ -47,5 +47,5 @@ assert.equal(completed, 1); assert.equal(init.loadingBar.progress, 0.95);
 assert.equal(destroyed, false, '首页尚未展示不能释放启动画面');
 init.onFinish(); assert.equal(init.loadingBar.progress, 1);
 assert.equal(init.progressLabel.string, '100%'); assert.equal(destroyed, true);
-assert.ok(reports.every((value, index) => index === 0 || value >= reports[index - 1]));
+assert.equal(reports.length, 0, '不调用 HTML5 专用进度接口');
 console.log('AppInit：启动依赖顺序、失败重试、进度不倒退及首页完成门槛通过');

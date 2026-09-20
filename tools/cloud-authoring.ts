@@ -2,7 +2,7 @@
 import * as cc from 'cc';
 
 /** 首页内独立礼包素材所在分包，避免从首页跨包加载游戏图片。 */
-const folder = 'db://assets/app-bundle/app-view/page/home/resources/revisit/';
+const folder = 'db://assets/app-bundle/app-view/page/home/resources/textures/retention/';
 
 /** @param url Creator 资源 URL。 @param frame 是否读取 SpriteFrame 子资源。 */
 async function asset(url, frame = false) {
@@ -91,7 +91,7 @@ export class CloudAuthoring extends cc.Component {
         const layer = node(root, 'CloudLayer', 750, 1625);
         stretch(layer);
         layer.setSiblingIndex(bg.getSiblingIndex() + 1);
-        const frame = await asset('db://assets/app-bundle/app-view/page/home/resources/redesign/cloud.png', true);
+        const frame = await asset('db://assets/app-bundle/app-view/page/home/resources/textures/home/cloud.png', true);
         for (const [index, top, x, width, speed, alpha] of [[1,140,-230,280,10,190],[2,400,260,230,-7,150],[3,690,-180,320,8,130]]) {
             const row = node(layer, 'CloudRow'+index, 750, 140);
             const widget=row.addComponent(cc.Widget);

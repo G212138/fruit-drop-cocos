@@ -2,7 +2,7 @@
 import * as cc from 'cc';
 
 /** 首页内独立礼包素材所在分包，避免从首页跨包加载游戏图片。 */
-const folder = 'db://assets/app-bundle/app-view/page/home/resources/revisit/';
+const folder = 'db://assets/app-bundle/app-view/page/home/resources/textures/retention/';
 
 /** @param url Creator 资源 URL。 @param frame 是否读取 SpriteFrame 子资源。 */
 async function asset(url, frame = false) {

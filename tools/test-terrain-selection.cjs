@@ -21,7 +21,7 @@ data.set('fruit-drop.terrain.v1','{broken');assert.equal(new TerrainProgress(sto
 assert.equal(items.select(2,30),false);
 assert.equal(new Set(terrainCatalog.map(x=>x.id)).size,terrainCatalog.length);
 assert.equal(terrainCatalog.length,11);
-for(const entry of terrainCatalog){const path='assets/app-bundle/app-view/page/game/resources/textures/terrains/'+entry.file+'.png';assert.ok(fs.existsSync(path));const m=JSON.parse(fs.readFileSync(path+'.meta'));assert.ok(Object.values(m.subMetas).some(x=>x.importer==='sprite-frame'));}
+for(const entry of terrainCatalog){const path='assets/res-bundle/shared-terrains/terrains/'+entry.file+'.png';assert.ok(fs.existsSync(path));const m=JSON.parse(fs.readFileSync(path+'.meta'));assert.ok(Object.values(m.subMetas).some(x=>x.importer==='sprite-frame'));}
 // 真实面板异步行为：翻页丢弃过期图片，关闭释放，确认才写入。
 const pending=[];const terrainState={selected:'grass',select(id){this.selected=id;return true;}};
 const cc={_decorator:{ccclass:()=>x=>x,property:()=>()=>{}},Component:class{},isValid:()=>true};

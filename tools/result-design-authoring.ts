@@ -3,7 +3,7 @@ import * as cc from 'cc';
 import { ResultPresentation } from './app-bundle/app-view/pop/result/native/expansion/ResultPresentation';
 import { LocalizedLabel } from './app-builtin/app-controller/expansion/LocalizedLabel';
 const base='db://assets/app-bundle/app-view/';
-const art=base+'pop/result/resources/redesign/';
+const art=base+'pop/result/resources/textures/result/';
 /** 编辑器资源加载，SpriteFrame UUID 取自真实导入元数据。 */
 async function asset(url,frame=false){const info=await Editor.Message.request('asset-db','query-asset-info',url);if(!info)throw Error(url);let uuid=info.uuid;if(frame){const meta=await Editor.Message.request('asset-db','query-asset-meta',url);uuid=Object.values(meta.subMetas).find(x=>x.importer==='sprite-frame').uuid;}return new Promise((resolve,reject)=>cc.assetManager.loadAny(uuid,(e,a)=>e?reject(e):resolve(a)));}
 /** 创建编辑器节点；所有尺寸为设计像素。 */

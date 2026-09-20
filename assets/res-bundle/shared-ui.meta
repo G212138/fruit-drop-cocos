@@ -1,0 +1,14 @@
+{
+  "ver": "1.2.0",
+  "importer": "directory",
+  "imported": true,
+  "uuid": "3d1d7401-ae5a-4015-a7eb-12e4b1200bcd",
+  "files": [],
+  "subMetas": {},
+  "userData": {
+    "isBundle": true,
+    "bundleName": "shared-ui",
+    "bundleConfigID": "default",
+    "priority": 10
+  }
+}
