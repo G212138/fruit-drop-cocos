@@ -126,3 +126,44 @@ shake.reset();shake.apply(fruits,200,board);shake.stop();
 shake.tick(fruits,1,()=>feedback++);
 assert.equal(feedback,4,'中断后不能继续播反馈');
 console.log('通过：四次摇晃反馈与停止后的回调取消。');
+
+// 验证海外宿主缺失接口时，仍可尝试全局tt，且失败后切换陀螺仪。
+let gyroCallback, removed, stopped = 0, triggered = 0;
+let now = 10000;
+const realNow = Date.now;
+Date.now = () => now;
+host = {};
+globalThis.tt = {
+    onAccelerometerChange() {}, offAccelerometerChange() {}, stopAccelerometer() {},
+    startAccelerometer(options) { options.fail('unsupported'); },
+    onGyroscopeChange(callback) { gyroCallback = callback; },
+    offGyroscopeChange(callback) { removed = callback; },
+    stopGyroscope() { stopped++; },
+    startGyroscope(options) { assert.equal(options.interval, 100); }
+};
+let allowed = true;
+phone.start(() => allowed, () => triggered++);
+gyroCallback({ x: 3, y: 0, z: 0 }); now += 100;
+gyroCallback({ x: -3, y: 0, z: 0 });
+assert.equal(triggered, 1, '反向旋转触发现有摇晃入口');
+now += 100; gyroCallback({ x: 3, y: 0, z: 0 });
+now += 100; gyroCallback({ x: -3, y: 0, z: 0 });
+assert.equal(triggered, 1, '冷却期间不重复触发');
+now += 2000; allowed = false;
+gyroCallback({ x: 3, y: 0, z: 0 }); now += 100;
+gyroCallback({ x: -3, y: 0, z: 0 });
+assert.equal(triggered, 1, '暂停期间不触发');
+const stale = gyroCallback;
+lifecycle.get('hide')();
+assert.equal(removed, stale, '仅移除自己的监听');
+assert.equal(stopped, 1);
+allowed = true; now += 2000;
+stale({ x: 3, y: 0, z: 0 }); now += 100; stale({ x: -3, y: 0, z: 0 });
+assert.equal(triggered, 1, '后台后旧回调失效');
+lifecycle.get('show')();
+assert.notEqual(gyroCallback, stale);
+phone.stop();
+assert.equal(stopped, 2);
+delete globalThis.tt;
+Date.now = realNow;
+console.log('通过：tt接口探测、失败切换陀螺仪、反向摇晃、冷却、暂停与前后台清理。');
