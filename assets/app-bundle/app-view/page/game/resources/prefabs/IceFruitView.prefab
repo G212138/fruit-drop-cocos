@@ -136,7 +136,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 39.75999450683594,
+      "width": 44.4921875,
       "height": 110.88
     },
     "_anchorPoint": {
@@ -181,11 +181,8 @@
     "_lineHeight": 88,
     "_overflow": 0,
     "_enableWrapText": true,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -233,14 +230,8 @@
     "__prefab": {
       "__id__": 8
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -345,7 +336,7 @@
       "__uuid__": "d52b20a1-0fb9-4ba1-b532-eb93f9c01173",
       "__expectedType__": "sp.SkeletonData"
     },
-    "defaultSkin": "",
+    "defaultSkin": "default",
     "defaultAnimation": "",
     "_premultipliedAlpha": false,
     "_timeScale": 1,
@@ -395,6 +386,7 @@
       "__id__": 0
     },
     "fileId": "4dP/77KHdMR5wQUppvHgQp",
+    "instance": null,
     "targetOverrides": null
   }
 ]

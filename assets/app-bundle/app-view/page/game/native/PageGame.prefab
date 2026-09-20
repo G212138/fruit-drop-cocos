@@ -2510,15 +2510,12 @@
     "_verticalAlign": 1,
     "_actualFontSize": 22,
     "_fontSize": 21,
-    "_fontFamily": "sans-serif",
+    "_fontFamily": "Arial",
     "_lineHeight": 26,
     "_overflow": 2,
     "_enableWrapText": true,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -2604,14 +2601,8 @@
     "__prefab": {
       "__id__": 116
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -3770,17 +3761,14 @@
     "_string": "unlock",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 21,
-    "_fontFamily": "sans-serif",
+    "_fontFamily": "Arial",
     "_lineHeight": 26,
     "_overflow": 2,
     "_enableWrapText": true,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -3866,14 +3854,8 @@
     "__prefab": {
       "__id__": 177
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -7955,15 +7937,12 @@
     "_verticalAlign": 1,
     "_actualFontSize": 39,
     "_fontSize": 38,
-    "_fontFamily": "sans-serif",
+    "_fontFamily": "Arial",
     "_lineHeight": 43,
     "_overflow": 2,
     "_enableWrapText": true,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -8029,14 +8008,8 @@
     "__prefab": {
       "__id__": 364
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -8443,15 +8416,12 @@
     "_verticalAlign": 1,
     "_actualFontSize": 27,
     "_fontSize": 27,
-    "_fontFamily": "sans-serif",
+    "_fontFamily": "Arial",
     "_lineHeight": 32,
     "_overflow": 2,
     "_enableWrapText": false,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -8519,14 +8489,8 @@
     "__prefab": {
       "__id__": 386
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -8657,15 +8621,12 @@
     "_verticalAlign": 1,
     "_actualFontSize": 47,
     "_fontSize": 46,
-    "_fontFamily": "sans-serif",
+    "_fontFamily": "Arial",
     "_lineHeight": 51,
     "_overflow": 2,
     "_enableWrapText": true,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -8749,14 +8710,8 @@
     "__prefab": {
       "__id__": 396
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -9506,15 +9461,12 @@
     "_verticalAlign": 1,
     "_actualFontSize": 25,
     "_fontSize": 28,
-    "_fontFamily": "sans-serif",
+    "_fontFamily": "Arial",
     "_lineHeight": 33,
     "_overflow": 2,
     "_enableWrapText": true,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -9582,14 +9534,8 @@
     "__prefab": {
       "__id__": 428
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -9911,11 +9857,8 @@
     "_lineHeight": 32,
     "_overflow": 2,
     "_enableWrapText": true,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -9963,14 +9906,8 @@
     "__prefab": {
       "__id__": 443
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -10584,15 +10521,12 @@
     "_verticalAlign": 1,
     "_actualFontSize": 29,
     "_fontSize": 28,
-    "_fontFamily": "sans-serif",
+    "_fontFamily": "Arial",
     "_lineHeight": 33,
     "_overflow": 2,
     "_enableWrapText": true,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -10660,14 +10594,8 @@
     "__prefab": {
       "__id__": 475
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -10989,11 +10917,8 @@
     "_lineHeight": 32,
     "_overflow": 2,
     "_enableWrapText": true,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -11041,14 +10966,8 @@
     "__prefab": {
       "__id__": 490
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -11957,15 +11876,12 @@
     "_verticalAlign": 1,
     "_actualFontSize": 30,
     "_fontSize": 30,
-    "_fontFamily": "sans-serif",
+    "_fontFamily": "Arial",
     "_lineHeight": 42,
     "_overflow": 2,
     "_enableWrapText": false,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -12103,14 +12019,8 @@
     "__prefab": {
       "__id__": 542
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -12593,7 +12503,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 110.537109375,
+      "width": 108.91357421875,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -12638,11 +12548,8 @@
     "_lineHeight": 40,
     "_overflow": 0,
     "_enableWrapText": true,
-    "_font": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -12690,14 +12597,8 @@
     "__prefab": {
       "__id__": 564
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -13251,11 +13152,8 @@
     "_lineHeight": 32,
     "_overflow": 0,
     "_enableWrapText": true,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -13303,14 +13201,8 @@
     "__prefab": {
       "__id__": 592
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -13713,11 +13605,8 @@
     "_lineHeight": 34.8,
     "_overflow": 2,
     "_enableWrapText": false,
-    "_font": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -13785,14 +13674,8 @@
     "__prefab": {
       "__id__": 617
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -14322,11 +14205,8 @@
     "_lineHeight": 27.599999999999998,
     "_overflow": 2,
     "_enableWrapText": false,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -14374,14 +14254,8 @@
     "__prefab": {
       "__id__": 644
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -17252,11 +17126,8 @@
     "_lineHeight": 42,
     "_overflow": 2,
     "_enableWrapText": false,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -17324,14 +17195,8 @@
     "__prefab": {
       "__id__": 784
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -17662,17 +17527,14 @@
     "_string": "NEXT LEVEL",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 60,
+    "_actualFontSize": 56,
     "_fontSize": 60,
     "_fontFamily": "Arial",
     "_lineHeight": 60,
     "_overflow": 2,
     "_enableWrapText": false,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -17758,14 +17620,8 @@
     "__prefab": {
       "__id__": 803
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -18749,11 +18605,8 @@
     "_lineHeight": 33,
     "_overflow": 2,
     "_enableWrapText": false,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -18801,14 +18654,8 @@
     "__prefab": {
       "__id__": 849
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -18943,11 +18790,8 @@
     "_lineHeight": 31,
     "_overflow": 2,
     "_enableWrapText": false,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -19015,14 +18859,8 @@
     "__prefab": {
       "__id__": 859
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -19252,17 +19090,14 @@
     "_string": "TRY AGAIN",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 34,
+    "_actualFontSize": 28,
     "_fontSize": 42,
     "_fontFamily": "Arial",
     "_lineHeight": 50.4,
     "_overflow": 2,
     "_enableWrapText": false,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -19348,14 +19183,8 @@
     "__prefab": {
       "__id__": 875
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -19700,17 +19529,14 @@
     "_string": "EDITOR",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 42,
+    "_actualFontSize": 41,
     "_fontSize": 42,
     "_fontFamily": "Arial",
     "_lineHeight": 50.4,
     "_overflow": 2,
     "_enableWrapText": false,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -19796,14 +19622,8 @@
     "__prefab": {
       "__id__": 896
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -22749,11 +22569,8 @@
     "_lineHeight": 33.6,
     "_overflow": 2,
     "_enableWrapText": false,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -22821,14 +22638,8 @@
     "__prefab": {
       "__id__": 1042
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -23029,11 +22840,8 @@
     "_lineHeight": 40,
     "_overflow": 2,
     "_enableWrapText": false,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -23119,14 +22927,8 @@
     "__prefab": {
       "__id__": 1055
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -23397,11 +23199,8 @@
     "_lineHeight": 60,
     "_overflow": 2,
     "_enableWrapText": false,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -23469,14 +23268,8 @@
     "__prefab": {
       "__id__": 1071
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -23906,11 +23699,8 @@
     "_lineHeight": 32.4,
     "_overflow": 2,
     "_enableWrapText": false,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -24048,14 +23838,8 @@
     "__prefab": {
       "__id__": 1098
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -25715,11 +25499,8 @@
     "_lineHeight": 42,
     "_overflow": 2,
     "_enableWrapText": false,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -25787,14 +25568,8 @@
     "__prefab": {
       "__id__": 1180
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -25992,11 +25767,8 @@
     "_lineHeight": 60,
     "_overflow": 2,
     "_enableWrapText": false,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -26082,14 +25854,8 @@
     "__prefab": {
       "__id__": 1193
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -26579,11 +26345,8 @@
     "_lineHeight": 50.4,
     "_overflow": 2,
     "_enableWrapText": false,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
@@ -26669,14 +26432,8 @@
     "__prefab": {
       "__id__": 1220
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {

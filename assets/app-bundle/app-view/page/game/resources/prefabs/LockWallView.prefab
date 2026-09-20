@@ -295,24 +295,21 @@
     "_string": "Unlock",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 22,
     "_fontSize": 21,
-    "_fontFamily": "sans-serif",
+    "_fontFamily": "Arial",
     "_lineHeight": 26,
     "_overflow": 2,
     "_enableWrapText": true,
-    "_font": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "_isSystemFontUsed": false,
+    "_font": null,
+    "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": false,
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
-    "_enableOutline": false,
+    "_enableOutline": true,
     "_outlineColor": {
       "__type__": "cc.Color",
       "r": 37,
@@ -391,14 +388,8 @@
     "__prefab": {
       "__id__": 14
     },
-    "chineseFont": {
-      "__uuid__": "8a848a4d-a87c-42c2-a7a5-c5386c62efd3",
-      "__expectedType__": "cc.TTFFont"
-    },
-    "englishFont": {
-      "__uuid__": "65899713-27f0-4ab8-92cc-805191b96549",
-      "__expectedType__": "cc.TTFFont"
-    },
+    "chineseFont": null,
+    "englishFont": null,
     "_id": ""
   },
   {
@@ -917,6 +908,7 @@
       "__id__": 0
     },
     "fileId": "20w0e5IVpNJIq8FzXN3T89",
+    "instance": null,
     "targetOverrides": null
   }
 ]
