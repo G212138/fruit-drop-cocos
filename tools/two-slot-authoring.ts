@@ -18,7 +18,7 @@ export class TwoSlotAuthoring extends cc.Component {
             icon=new cc.Node('VideoIcon');icon.layer=prompt.layer;icon.parent=prompt;
             const transform=icon.addComponent(cc.UITransform);
             const sprite=icon.addComponent(cc.Sprite);
-            const meta=await Editor.Message.request('asset-db','query-asset-meta','db://assets/app-bundle/app-view/page/game/resources/textures/hud/video.png');
+            const meta=await Editor.Message.request('asset-db','query-asset-meta','db://assets/res-bundle/shared-ui/images/ad-video.png');
             const uuid=Object.values(meta.subMetas).find(x=>x.importer==='sprite-frame').uuid;
             sprite.spriteFrame=await new Promise((resolve,reject)=>cc.assetManager.loadAny(uuid,(e,a)=>e?reject(e):resolve(a)));
             sprite.sizeMode=cc.Sprite.SizeMode.CUSTOM;transform.setContentSize(43,32);icon.setPosition(0,16,0);

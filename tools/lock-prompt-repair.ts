@@ -10,7 +10,7 @@ export class LockPromptRepair extends cc.Component {
         const info=await Editor.Message.request('asset-db','query-asset-info',url);
         const prefab:any=await new Promise((resolve,reject)=>cc.assetManager.loadAny(info.uuid,(e,a)=>e?reject(e):resolve(a)));
         const root=cc.instantiate(prefab);cce.Prefab.removePrefabInfoFromNode(root,true);
-        const meta=await Editor.Message.request('asset-db','query-asset-meta','db://assets/app-bundle/app-view/page/game/resources/textures/hud/video.png');
+        const meta=await Editor.Message.request('asset-db','query-asset-meta','db://assets/res-bundle/shared-ui/images/ad-video.png');
         const id=Object.values(meta.subMetas).find(x=>x.importer==='sprite-frame').uuid;
         const frame:any=await new Promise((resolve,reject)=>cc.assetManager.loadAny(id,(e,a)=>e?reject(e):resolve(a)));
         for(const name of ['LockWallLayout','LowerLockWallLayout']) {
