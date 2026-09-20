@@ -1,7 +1,7 @@
 const fs=require('fs'),assert=require('assert/strict'),ts=require('C:/ProgramData/cocos/editors/Creator/3.8.8/resources/app.asar.unpacked/node_modules/typescript');
 const base='assets/app-bundle/app-view/';
 for(const [dir,name,fields]of [['theme','PopTheme',['preview','heading','title','count','status','confirmButton','confirmLabel']],['collection','PopCollection',['content','icons','frames','title','heading','status','tabs','confirmButton','confirmLabel','countLabel','equippedChecks']],['settings','PopSettings',['content','opacity','musicRow','soundRow','vibrateRow','warningLabel']]]){
-const a=JSON.parse(fs.readFileSync(base+'pop/'+dir+'/native/'+name+'.prefab'));const wrapper=a.find(x=>x.panel);assert(wrapper,name+' wrapper missing');const panel=a[wrapper.panel.__id__];for(const key of fields)assert(panel[key]&&(!Array.isArray(panel[key])||panel[key].length),name+' empty '+key);if(dir==='collection'){assert.equal(panel.frames.length,60);assert.equal(panel.icons.length,30);}assert.equal(wrapper._hideEvent,1);
+const a=JSON.parse(fs.readFileSync(base+'pop/'+dir+'/native/'+name+'.prefab'));const wrapper=a.find(x=>x.panel);assert(wrapper,name+' wrapper missing');const panel=a[wrapper.panel.__id__];for(const key of fields)assert(panel[key]&&(!Array.isArray(panel[key])||panel[key].length),name+' empty '+key);if(dir==='collection'){assert.equal(panel.frames.length,60);assert.equal(panel.icons.length,30);}assert.equal(wrapper._hideEvent,2);
 for(const type of ['native','resources']){const m=JSON.parse(fs.readFileSync(base+'pop/'+dir+'/'+type+'.meta'));assert.equal(m.userData.bundleName,'pop-'+dir+(type==='resources'?'-res':''));}
 const events=new Map();let opened=0,hidden;
 class Base{hide(data){hidden=data??true;this.onHide(data);}}
