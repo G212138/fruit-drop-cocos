@@ -46,9 +46,9 @@ async function main() {
  const bad=new TikTokSilentLogin(()=>({login:o=>o.success({code:''})}));
  assert.equal(await bad.login(),false);
  assert.equal(storage.size,0,'登录临时 code 不得写入存档');
- const {TikTokRevisitView}=load('assets/app-bundle/app-view/page/home/native/expansion/TikTokRevisitView.ts');
+ const {TikTokRevisitView}=load('assets/app-bundle/app-view/pop/platform-reward/native/expansion/TikTokRevisitView.ts');
  const {TikTokMissionRewards}=load(base+'TikTokMissionRewards.ts');
- const view=new TikTokRevisitView();
+ const view=new TikTokRevisitView(); view.node={emit(){}};
  for(const name of ['shortcutButton','profileButton','shortcutDialog','profileDialog']) view[name]={active:false};
  for(const name of ['shortcutLabel','profileLabel','notice','shortcutDescription','profileDescription','shortcutReward','profileReward','shortcutAction','profileAction','shortcutNotice','profileNotice']) view[name]=label();
  view.onEnable();

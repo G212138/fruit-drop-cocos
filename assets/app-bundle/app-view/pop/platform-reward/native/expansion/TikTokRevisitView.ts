@@ -8,7 +8,7 @@ import { TikTokMissionRewards } from '../../../../../../app-builtin/app-model/ex
 import { PlatformStorage } from '../../../../../../app-builtin/app-model/expansion/platform/PlatformStorage';
 import { getTikTokGame, supportsTikTok } from '../../../../../../app-builtin/app-model/expansion/platform/TikTokRuntime';
 import { tikTokText } from '../../../../../../app-builtin/app-model/expansion/platform/TikTokMessages';
-import { revisitDialogText } from './RevisitDialogText';
+import { revisitDialogText } from '../../../../../../app-builtin/app-model/expansion/platform/RevisitDialogText';
 const { ccclass, property } = _decorator;
 
 /** 首页回访入口和两个独立弹窗，所有 UI 由编辑器预制体配置。 */
@@ -60,8 +60,8 @@ export class TikTokRevisitView extends Component {
     /** 刷新两种弹窗的多语言内容和按钮状态。 */
     private readonly refreshText = (): void => {
         const text = (index: number): string => revisitDialogText(GameLanguage.current, index);
-        this.shortcutLabel.string = text(1);
-        this.profileLabel.string = text(0);
+        if(this.shortcutLabel) this.shortcutLabel.string = text(1);
+        if(this.profileLabel) this.profileLabel.string = text(0);
         if (this.notice) this.notice.node.active = false;
         for (const mission of ['shortcut', 'profile'] as TikTokMission[]) {
             const shortcut = mission === 'shortcut';
@@ -106,8 +106,8 @@ export class TikTokRevisitView extends Component {
     /** 开发预览展示入口供验收；发布版本按真实能力显示。 */
     onEnable(): void {
         const api = getTikTokGame();
-        this.shortcutButton.active = DEV || (!!api?.canIUse && supportsTikTok(api, 'addShortcut') && supportsTikTok(api, 'getShortcutMissionReward'));
-        this.profileButton.active = DEV || (!!api?.canIUse && supportsTikTok(api, 'startEntranceMission') && supportsTikTok(api, 'getEntranceMissionReward'));
+        if(this.shortcutButton) this.shortcutButton.active = DEV || (!!api?.canIUse && supportsTikTok(api, 'addShortcut') && supportsTikTok(api, 'getShortcutMissionReward'));
+        if(this.profileButton) this.profileButton.active = DEV || (!!api?.canIUse && supportsTikTok(api, 'startEntranceMission') && supportsTikTok(api, 'getEntranceMissionReward'));
         this.close();
         GameLanguage.subscribe(this.refreshText);
         api?.onShow?.(this.returned);
@@ -136,7 +136,8 @@ export class TikTokRevisitView extends Component {
         this.selected = null;
         if (this.shortcutDialog) this.shortcutDialog.active = false;
         if (this.profileDialog) this.profileDialog.active = false;
-        if (this.shortcutLabel && this.profileLabel) this.refreshText();
+        this.refreshText();
+        this.node.emit("reward-close");
     }
 
     /** @param event 主按钮事件。 @param mission 当前弹窗任务。 */

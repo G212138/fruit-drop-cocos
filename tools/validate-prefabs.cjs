@@ -44,7 +44,7 @@ function inspect(value, entries, location) {
     if (value.node && value.__type__ && !value.__type__.startsWith('cc.') && !value.__type__.startsWith('sp.')) {
         assert.ok(scriptTypes.has(value.__type__), '缺失组件脚本：' + location + ' ' + value.__type__);
         const required = {
-            PopTheme: ['panel'], PopCollection: ['panel'], PopSettings: ['panel'],
+            PopPlatformReward: ['panel'], HomeRevisitEntry: ['shortcutButton','profileButton','shortcutLabel','profileLabel'], TikTokRevisitView: ['shortcutDialog','profileDialog','shortcutDescription','profileDescription','shortcutReward','profileReward','shortcutAction','profileAction','shortcutNotice','profileNotice'], PopTheme: ['panel'], PopCollection: ['panel'], PopSettings: ['panel'],
             TerrainPanel: ['preview','heading','title','count','status','confirmButton','confirmLabel'],
             ThemePanel: ['content','icons','frames','title','heading','status','tabs','confirmButton','confirmLabel','countLabel','equippedChecks'],
             SettingsPanel: ['content','opacity','musicRow','soundRow','vibrateRow','warningLabel'],
@@ -64,7 +64,7 @@ function inspect(value, entries, location) {
     for (const [key, child] of Object.entries(value)) inspect(child, entries, location + '.' + key);
 }
 walk(root);
-assert.equal(prefabs.length, 81);
+assert.equal(prefabs.length, 82);
 for (const file of process.argv.length > 2 ? process.argv.slice(2).map(file => path.resolve(file)) : prefabs) {
     const entries = JSON.parse(fs.readFileSync(file, 'utf8'));
     inspect(entries, entries, path.basename(file));
