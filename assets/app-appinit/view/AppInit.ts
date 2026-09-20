@@ -1,6 +1,7 @@
+import { DEV } from 'cc/env';
 import { LoadingFlight } from './LoadingFlight';
 import { FirstLaunch } from './FirstLaunch';
-import { assetManager, sp, Node, UIOpacity, _decorator, Prefab, ProgressBar, Label } from 'cc';
+import { assetManager, sp, Node, UIOpacity, _decorator, Prefab, JsonAsset } from 'cc';
 import BaseAppInit from '../../../extensions/app/assets/base/BaseAppInit';
 // 在启动包阶段引用骨骼模块，让引擎在基础设施初始化期间注册 Spine WASM。
 // 避免首次从关卡编辑器进入游戏时才加载骨骼分包，错过初始化委托。
@@ -66,26 +67,49 @@ export class AppInit extends BaseAppInit {
         if (opacity) opacity.opacity = 255;
     }
 
-    /** 加载本次首屏预制体及依赖；按资源回调推进 65%～95%，失败后重试。 */
+    /** 首页与游戏资源均准备完成后才放行，失败项独立重试。 */
     private loadHome(): void {
-        const page = FirstLaunch.page;
-        const bundle = assetManager.getBundle(page === 'PageGame' ? 'page-game' : 'page-home');
-        if (!bundle) {
-            this.scheduleOnce(() => this.loadNextStartupBundle(), 1);
-            return;
-        }
-        bundle.load(page, Prefab, (completed, total) => {
-            if (this.isValid && total > 0) this.setProgress(0.65 + 0.3 * completed / total);
-        }, (error) => {
-            if (!this.isValid) return;
-            if (error) {
-                console.warn('[AppInit] 首屏资源加载失败，1 秒后重试', error);
-                this.scheduleOnce(() => this.loadHome(), 1);
+        const tasks = [
+            { bundle: 'page-home', path: 'PageHome', type: Prefab },
+            { bundle: 'page-game', path: 'PageGame', type: Prefab },
+            ...['StarFlightView', 'GroundImpactView', 'NewbieGuideView', 'SettingsPanel',
+                ...(DEV ? ['DevelopmentRewardPanel'] : [])].map(name => ({
+                    bundle: 'page-game-res', path: 'prefabs/' + name, type: Prefab,
+                })),
+            { bundle: 'page-game-res', path: 'levels/original-levels', type: JsonAsset },
+        ];
+        const progress = tasks.map(() => 0);
+        const finished = tasks.map(() => false);
+        let released = false;
+        const load = (index: number): void => {
+            if (!this.isValid || finished[index]) return;
+            const task = tasks[index];
+            const bundle = assetManager.getBundle(task.bundle);
+            if (!bundle) {
+                this.scheduleOnce(() => load(index), 1);
                 return;
             }
-            this.setProgress(0.95);
-            this.nextInit();
-        });
+            bundle.load(task.path, task.type, (done, total) => {
+                if (!this.isValid || total <= 0) return;
+                progress[index] = Math.max(progress[index], Math.min(0.99, done / total));
+                this.setProgress(0.65 + 0.3 * progress.reduce((a, b) => a + b, 0) / tasks.length);
+            }, (error) => {
+                if (!this.isValid || finished[index]) return;
+                if (error) {
+                    console.warn('[AppInit] 资源加载失败，1秒后重试', task.path, error);
+                    this.scheduleOnce(() => load(index), 1);
+                    return;
+                }
+                finished[index] = true;
+                progress[index] = 1;
+                this.setProgress(0.65 + 0.3 * progress.reduce((a, b) => a + b, 0) / tasks.length);
+                if (!released && finished.every(Boolean)) {
+                    released = true;
+                    this.nextInit();
+                }
+            });
+        };
+        tasks.forEach((_, index) => load(index));
     }
 
     /** 框架管理器初始化占前 25%；排除最后一项业务初始化，避免提前满格。

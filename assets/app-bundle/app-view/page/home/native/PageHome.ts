@@ -1,8 +1,8 @@
 import { UiClickSound } from '../../../../../app-builtin/app-controller/expansion/UiClickSound';
 import { GameLanguage } from '../../../../../app-builtin/app-model/expansion/GameLanguage';
 import { TikTokStartup } from '../../../../../app-builtin/app-controller/expansion/TikTokStartup';
-import { _decorator, Prefab, JsonAsset, Node, Label, EditBox } from 'cc';
-import { DEV, PREVIEW } from 'cc/env';
+import { _decorator, JsonAsset, Node, Label, EditBox } from 'cc';
+import { PREVIEW } from 'cc/env';
 import { GameTheme } from '../../../../../app-builtin/app-model/expansion/GameTheme';
 import BaseView from 'db://app/base/BaseView';
 import { app } from '../../../../../app/app';
@@ -29,7 +29,7 @@ export class PageHome extends BaseView {
     private readonly languageChanged = (): void => this.refreshLanguage();
 
 
-    /** 首页出现后提前加载游戏及入场必需资源，不显示页面、不启动关卡。 */
+    /** 首页出现时刷新入口状态；游戏资源已在启动阶段完成加载。 */
     onShow(): void {
         UiClickSound.bind(this.node);
         if (this.levelJumpRoot) this.levelJumpRoot.active = PREVIEW;
@@ -40,13 +40,7 @@ export class PageHome extends BaseView {
         GameTheme.refresh();
         this.refreshLanguage();
         GameLanguage.subscribe(this.languageChanged);
-        app.manager.ui.load('PageGame');
-        const prefabs = ['StarFlightView', 'GroundImpactView', 'NewbieGuideView', 'SettingsPanel'];
-        if (DEV) prefabs.push('DevelopmentRewardPanel');
-        for (const name of prefabs) {
-            app.manager.loader.load({ bundle: 'page-game-res', path: 'prefabs/' + name, type: Prefab });
-        }
-        app.manager.loader.load({ bundle: 'page-game-res', path: 'levels/original-levels', type: JsonAsset });
+
     }
 
     /** 刷新首页译文；切换语言后可直接调用，不重新加载资源。 */
