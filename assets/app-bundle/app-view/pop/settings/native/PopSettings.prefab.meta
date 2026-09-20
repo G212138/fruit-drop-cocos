@@ -2,13 +2,13 @@
   "ver": "1.1.50",
   "importer": "prefab",
   "imported": true,
-  "uuid": "2b56ed1f-af04-48e1-a58e-1452913b7e4e",
+  "uuid": "2c7d2183-0485-4a97-9d94-5069780b1f57",
   "files": [
     ".json"
   ],
   "subMetas": {},
   "userData": {
-    "syncNodeName": "TerrainPanel",
+    "syncNodeName": "PopSettings",
     "hasIcon": false
   }
 }

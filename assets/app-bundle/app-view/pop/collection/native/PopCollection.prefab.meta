@@ -2,13 +2,13 @@
   "ver": "1.1.50",
   "importer": "prefab",
   "imported": true,
-  "uuid": "2c7d2183-0485-4a97-9d94-5069780b1f57",
+  "uuid": "fc5aabec-6886-4000-83c5-663907c92d6b",
   "files": [
     ".json"
   ],
   "subMetas": {},
   "userData": {
-    "syncNodeName": "SettingsPanel",
+    "syncNodeName": "PopCollection",
     "hasIcon": false
   }
 }

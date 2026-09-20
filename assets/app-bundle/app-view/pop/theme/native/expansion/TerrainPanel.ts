@@ -2,7 +2,7 @@ import { _decorator, Component, Sprite, SpriteFrame, Label, Button, isValid } fr
 import { GameTerrain } from '../../../../../../app-builtin/app-model/expansion/GameTerrain';
 import { terrainCatalog } from '../../../../../../app-builtin/app-model/expansion/TerrainProgress';
 import { GameLanguage } from '../../../../../../app-builtin/app-model/expansion/GameLanguage';
-import { TerrainArt } from '../../../game/native/expansion/board/TerrainArt';
+import { TerrainArt } from '../../../../page/game/native/expansion/board/TerrainArt';
 const { ccclass, property } = _decorator;
 /** 独立地块预览面板；节点和布局全部由首页预制体维护。 */
 @ccclass('TerrainPanel')
@@ -60,7 +60,7 @@ export class TerrainPanel extends Component {
         this.load();
     }
     /** 关闭预览不修改当前使用项。 */
-    close(): void { this.node.active = false; }
+    close(): void { this.node.emit('panel-close'); }
     /** 加载当前页并阻止过期回调应用。 */
     private load(): void {
         const ticket = ++this.request;

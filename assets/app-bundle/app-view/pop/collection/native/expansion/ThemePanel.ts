@@ -96,7 +96,7 @@ export class ThemePanel extends Component {
     /** 关闭只丢弃预览，下次打开重新读取使用项。 */
     close(): void {
         Tween.stopAllByTarget(this.content);
-        this.node.active = false;
+        this.node.emit('panel-close');
     }
     /** 销毁时停止内容动画。 */
     onDestroy(): void { Tween.stopAllByTarget(this.content); }

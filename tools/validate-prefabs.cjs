@@ -44,6 +44,10 @@ function inspect(value, entries, location) {
     if (value.node && value.__type__ && !value.__type__.startsWith('cc.') && !value.__type__.startsWith('sp.')) {
         assert.ok(scriptTypes.has(value.__type__), '缺失组件脚本：' + location + ' ' + value.__type__);
         const required = {
+            PopTheme: ['panel'], PopCollection: ['panel'], PopSettings: ['panel'],
+            TerrainPanel: ['preview','heading','title','count','status','confirmButton','confirmLabel'],
+            ThemePanel: ['content','icons','frames','title','heading','status','tabs','confirmButton','confirmLabel','countLabel','equippedChecks'],
+            SettingsPanel: ['content','opacity','musicRow','soundRow','vibrateRow','warningLabel'],
             GameBoard: ['spawner', 'removalEffectsRoot', 'lockWallRoot', 'levelHintRoot', 'leftBoundary', 'rightLine'],
             FruitSpawner: ['fruitRoot', 'hiddenFruitPrefab', 'iceFruitPrefab', 'blackHolePrefab'],
             PageGame: ['bottomProgressRoot', 'propToolbarRoot', 'boardRoot', 'hudRoot', 'gameBoardNode', 'gameHudNode', 'backgroundNode'],
