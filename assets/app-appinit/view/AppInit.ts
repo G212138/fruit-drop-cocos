@@ -1,3 +1,4 @@
+import { LoadingFlight } from './LoadingFlight';
 import { FirstLaunch } from './FirstLaunch';
 import { assetManager, sp, Node, UIOpacity, _decorator, Prefab, ProgressBar, Label } from 'cc';
 import BaseAppInit from '../../../extensions/app/assets/base/BaseAppInit';
@@ -12,13 +13,9 @@ export class AppInit extends BaseAppInit {
     @property(Node)
     private logo: Node;
 
-    /** 启动预制体中的绿色进度条；位置和尺寸由编辑器组件控制。 */
-    @property(ProgressBar)
-    private loadingBar: ProgressBar = null!;
-
-    /** 百分比标签，不依赖尚未加载的业务语言模块。 */
-    @property(Label)
-    private progressLabel: Label = null!;
+    /** 编辑器绑定的纸飞机加载表现。 */
+    @property(LoadingFlight)
+    private flight: LoadingFlight = null!;
 
     /** 已展示的阶段进度，范围 0～1；重试或资源总数增长时不倒退。 */
     private displayedProgress = 0;
@@ -104,8 +101,7 @@ export class AppInit extends BaseAppInit {
      */
     private setProgress(progress: number): void {
         this.displayedProgress = Math.max(this.displayedProgress, Math.min(1, Math.max(0, progress)));
-        if (this.loadingBar) this.loadingBar.progress = this.displayedProgress;
-        if (this.progressLabel) this.progressLabel.string = `${Math.floor(this.displayedProgress * 100)}%`;
+        if (this.flight) this.flight.setProgress(this.displayedProgress);
 
     }
 
