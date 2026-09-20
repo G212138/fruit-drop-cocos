@@ -4,23 +4,18 @@ const ts = require('C:/ProgramData/cocos/editors/Creator/3.8.8/resources/app.asa
 /** 只替换二维向量和刚体枚举，保留真实解卡决策。 */
 const cc = { ERigidBody2DType: { Static: 0, Kinematic: 1, Dynamic: 2 }, Vec2: class { constructor(x = 0, y = 0) { this.x = x; this.y = y; } } };
 cc.isValid = node => !!node && !node.destroyed;
-/** 测试中的宿主能力表，不向真实设备请求权限。 */
-let host = null;
 /** @param name 物理目录下真实 TypeScript 模块名。 */
 function load(name) {
     const exports = {};
     const source = fs.readFileSync('assets/app-bundle/app-view/page/game/native/expansion/physics/' + name + '.ts', 'utf8');
     const code = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS } }).outputText;
     new Function('require', 'exports', code)(name => {
-        if (name.endsWith('/TikTokRuntime')) return { getTikTokGame: () => host };
-        if (name === './ShakeGesture') return load('ShakeGesture');
         if (name === './PhysicsRules') return load('PhysicsRules');
         assert.equal(name, 'cc'); return cc;
     }, exports);
     return exports;
 }
 const { FruitShake } = load('FruitShake');
-const { ShakeGesture } = load('ShakeGesture');
 /** 构造带冲量记录的已释放、停滞水果，不模拟物理引擎结果。 */
 function fruit(mass = 1, speed = 0) {
     const impulses = [];
@@ -87,36 +82,6 @@ shake.reset(); assert.equal(shake.apply(fruits, 0, board), 5);
 shake.stop();
 assert.equal(waiting.body.gravityScale, 1, '摇晃不改重力');
 assert.equal(waiting.shakingSuspended, false);
-const gesture = new ShakeGesture();
-assert.equal(gesture.accept({ x: 0, y: 0, z: 1 }, 0), false);
-assert.equal(gesture.accept({ x: 0.1, y: 0, z: 1 }, 100), false);
-assert.equal(gesture.accept({ x: 2, y: 0, z: 1 }, 200), false);
-assert.equal(gesture.accept({ x: -2, y: 0, z: 1 }, 300), true);
-gesture.reset();
-assert.equal(gesture.accept({ x: 2, y: 0, z: 1 }, 400), false);
-assert.equal(gesture.accept({ x: -2, y: 0, z: 1 }, 2000), false);
-assert.equal(gesture.accept({ x: NaN, y: 0, z: 1 }, 2100), false);
-const lifecycle = new Map(), sensor = new Set(), switches = [];
-cc.sys = { isMobile: true };
-cc.Game = { EVENT_HIDE: 'hide', EVENT_SHOW: 'show' };
-cc.game = { on(name, callback, target) { lifecycle.set(name, () => callback.call(target)); }, off(name) { lifecycle.delete(name); }, isPaused: () => false };
-cc.Input = { EventType: { DEVICEMOTION: 'motion' } };
-cc.input = { on(name, callback) { sensor.add(callback); }, off(name, callback) { sensor.delete(callback); }, setAccelerometerEnabled(enabled) { switches.push(enabled); } };
-const { PhoneShakeInput } = load('PhoneShakeInput');
-const phone = new PhoneShakeInput();
-host = {};
-phone.start(() => true, () => {});
-assert.equal(sensor.size, 0, 'TikTok 未暴露接口时保留按钮，不调用加速度功能');
-phone.stop();
-host = null;
-phone.start(() => true, () => {});
-assert.equal(sensor.size, 1);
-lifecycle.get('hide')(); assert.equal(sensor.size, 0);
-lifecycle.get('show')(); assert.equal(sensor.size, 1);
-phone.start(() => true, () => {}); assert.equal(sensor.size, 1);
-phone.stop(); assert.equal(sensor.size, 0); assert.equal(lifecycle.size, 0);
-assert.equal(switches.at(-1), false);
-console.log('通过：运动学容器同步、动态水果速度保留、固定部分归位、中途点击释放、冷却及手机监听生命周期。');
 shake.reset();
 assert.ok(shake.apply(fruits, 100, board)>0);
 let feedback=1;
@@ -127,43 +92,3 @@ shake.tick(fruits,1,()=>feedback++);
 assert.equal(feedback,4,'中断后不能继续播反馈');
 console.log('通过：四次摇晃反馈与停止后的回调取消。');
 
-// 验证海外宿主缺失接口时，仍可尝试全局tt，且失败后切换陀螺仪。
-let gyroCallback, removed, stopped = 0, triggered = 0;
-let now = 10000;
-const realNow = Date.now;
-Date.now = () => now;
-host = {};
-globalThis.tt = {
-    onAccelerometerChange() {}, offAccelerometerChange() {}, stopAccelerometer() {},
-    startAccelerometer(options) { options.fail('unsupported'); },
-    onGyroscopeChange(callback) { gyroCallback = callback; },
-    offGyroscopeChange(callback) { removed = callback; },
-    stopGyroscope() { stopped++; },
-    startGyroscope(options) { assert.equal(options.interval, 100); }
-};
-let allowed = true;
-phone.start(() => allowed, () => triggered++);
-gyroCallback({ x: 3, y: 0, z: 0 }); now += 100;
-gyroCallback({ x: -3, y: 0, z: 0 });
-assert.equal(triggered, 1, '反向旋转触发现有摇晃入口');
-now += 100; gyroCallback({ x: 3, y: 0, z: 0 });
-now += 100; gyroCallback({ x: -3, y: 0, z: 0 });
-assert.equal(triggered, 1, '冷却期间不重复触发');
-now += 2000; allowed = false;
-gyroCallback({ x: 3, y: 0, z: 0 }); now += 100;
-gyroCallback({ x: -3, y: 0, z: 0 });
-assert.equal(triggered, 1, '暂停期间不触发');
-const stale = gyroCallback;
-lifecycle.get('hide')();
-assert.equal(removed, stale, '仅移除自己的监听');
-assert.equal(stopped, 1);
-allowed = true; now += 2000;
-stale({ x: 3, y: 0, z: 0 }); now += 100; stale({ x: -3, y: 0, z: 0 });
-assert.equal(triggered, 1, '后台后旧回调失效');
-lifecycle.get('show')();
-assert.notEqual(gyroCallback, stale);
-phone.stop();
-assert.equal(stopped, 2);
-delete globalThis.tt;
-Date.now = realNow;
-console.log('通过：tt接口探测、失败切换陀螺仪、反向摇晃、冷却、暂停与前后台清理。');

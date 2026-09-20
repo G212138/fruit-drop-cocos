@@ -1,7 +1,6 @@
 import { UiClickSound } from '../../../../../app-builtin/app-controller/expansion/UiClickSound';
 import { GameTheme } from '../../../../../app-builtin/app-model/expansion/GameTheme';
 import { game } from 'cc';
-import { PhoneShakeInput } from './expansion/physics/PhoneShakeInput';
 import { PopResult } from '../../../pop/result/native/PopResult';
 import { NewbieGuideView } from './expansion/effects/NewbieGuideView';
 import { PropToolbar } from './expansion/props/PropToolbar';
@@ -33,9 +32,7 @@ const { ccclass, property } = _decorator;
 /** 游戏页面负责装配预制体、连接状态和切换结算界面。 */
 @ccclass('PageGame')
 export class PageGame extends BaseView.BindController(GameController) {
-    /** 当前显示周期的手机摇晃监听，不随缓存页面继续运行。 */
-    private readonly phoneShake = new PhoneShakeInput();
-    /** 传感器和按钮合并为下一帧的一次解卡请求。 */
+    /** 按钮排队为下一帧的一次解卡请求。 */
     private shakeRequested = false;
 
     /** 按钮事件入口；物理操作推迟至帧更新，不直接改变水果坐标。 */
@@ -182,7 +179,6 @@ export class PageGame extends BaseView.BindController(GameController) {
         this.controller.targetOff(this);
         this.controller.on(GameController.Event.Changed, this.refreshState, this);
         this.bindFixedViews();
-        this.phoneShake.start(() => this.canShake(), () => this.requestShake());
         this.loadLevel(generation);
         this.loadCollectionFeedback(generation);
         this.loadSettings(generation);
@@ -421,7 +417,6 @@ export class PageGame extends BaseView.BindController(GameController) {
     /** 固定棋盘和HUD只清局解绑，动态弹窗和特效才销毁。 */
     private releaseChildren(): void {
         if (this.pairHintRoot) this.pairHintRoot.active = false;
-        this.phoneShake.stop();
         this.shakeRequested = false;
         if (this.resultRoot && isValid(this.resultRoot, true)) this.resultRoot.getComponent(PopResult)?.closeResult();
         if (this.newbieGuide && isValid(this.newbieGuide.node)) this.newbieGuide.node.destroy();
@@ -465,7 +460,6 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 页面销毁后取消异步结果及控制器监听。 */
     onDestroy(): void {
-        this.phoneShake.stop();
         this.generation++;
         this.controller.targetOff(this);
     }
