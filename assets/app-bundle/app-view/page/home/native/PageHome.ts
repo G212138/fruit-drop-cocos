@@ -3,6 +3,7 @@ import { GameLanguage } from '../../../../../app-builtin/app-model/expansion/Gam
 import { TikTokStartup } from '../../../../../app-builtin/app-controller/expansion/TikTokStartup';
 import { _decorator, Prefab, JsonAsset, Node, Label, EditBox } from 'cc';
 import { DEV, PREVIEW } from 'cc/env';
+import { TerrainPanel } from './expansion/TerrainPanel';
 import { ThemePanel } from './expansion/ThemePanel';
 import { GameTheme } from '../../../../../app-builtin/app-model/expansion/GameTheme';
 import { GameSettings } from '../../../../../app-builtin/app-model/expansion/GameSettings';
@@ -25,6 +26,8 @@ export class PageHome extends BaseView {
     @property(Label) levelLabel: Label = null!;
     /** 首页内嵌图鉴与设置面板，打开时无需加载。 */
     @property(ThemePanel) themePanel: ThemePanel = null!;
+    /** 独立地块主题选择面板。 */
+    @property(TerrainPanel) terrainPanel: TerrainPanel = null!;
     /** 原版三项开关面板。 */
     @property(SettingsPanel) settingsPanel: SettingsPanel = null!;
     /** 尚未开放入口的轻量提示，由首页预制体决定位置。 */
@@ -51,6 +54,7 @@ export class PageHome extends BaseView {
         this.refreshLanguage();
         GameLanguage.subscribe(this.languageChanged);
         this.themePanel.close();
+        this.terrainPanel.close();
         this.settingsPanel.node.active = false;
         if (this.featureNotice) this.featureNotice.node.active = false;
         this.settingsPanel.node.on('setting-request', this.changeSetting, this);
@@ -82,12 +86,13 @@ export class PageHome extends BaseView {
         GameLanguage.unsubscribe(this.languageChanged);
         this.settingsPanel.node.targetOff(this);
         this.themePanel.close();
+        this.terrainPanel.close();
         this.settingsPanel.node.active = false;
     }
-    /** 打开原版主题图鉴，使用正式进度。 */
-    openTheme(): void { this.themePanel.open(app.controller.game.progress.level); }
-    /** 图鉴入口复用当前主题图鉴，保持已有解锁进度。 */
-    openCollection(): void { this.openTheme(); }
+    /** 打开独立地块主题面板。 */
+    openTheme(): void { this.themePanel.close(); this.terrainPanel.open(); }
+    /** 图鉴只选择掉落物，保留已有解锁进度。 */
+    openCollection(): void { this.terrainPanel.close(); this.themePanel.open(app.controller.game.progress.level); }
     /** 尚未接入的首页功能显示真实状态，不打开空页面。 */
     showComingSoon(): void {
         app.manager.ui.showToast(GameLanguage.text('comingSoon'));

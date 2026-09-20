@@ -14,10 +14,10 @@ export class GameThemeView extends Component {
     /** 页面入场及复用时刷新主题。 */
     onEnable(): void {
         GameTheme.refresh();
-        this.targets.forEach((sprite, index) => { sprite.spriteFrame = this.frames[(GameTheme.active - 1) * 5 + index]; });
+        this.targets.forEach((sprite, index) => { sprite.spriteFrame = this.frames[index]; });
         const terrain = this.targets[1]?.node;
         if (terrain?.name === 'TerrainVisual') {
-            const grass = GameTheme.active === 1;
+            const grass = true;
             // 草地图裁去底部110源像素，按853源高对应830设计高度换算，顶部与物理位置不动。
             const height = grass ? 830 * 743 / 853 : 830;
             const shift = (830 - height) / 2;

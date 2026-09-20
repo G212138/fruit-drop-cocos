@@ -14,6 +14,8 @@ export class ThemePanel extends Component {
     @property([SpriteFrame]) frames: SpriteFrame[] = [];
     /** 当前预览分类名称。 */
     @property(Label) title: Label = null!;
+    /** 图鉴标题，与地块主题面板区分。 */
+    @property(Label) heading: Label = null!;
     /** 使用、预览或锁定状态。 */
     @property(Label) status: Label = null!;
     /** 每个分类的普通、选中外观。 */
@@ -72,6 +74,7 @@ export class ThemePanel extends Component {
     }
     /** 刷新图标、预览状态和确认门槛。 */
     private render(): void {
+        if (this.heading) this.heading.string = GameLanguage.text('collection');
         this.title.string = GameLanguage.text(this.browsing === 1 ? 'fruits' : 'sweets');
         const equipped = GameTheme.current.resolve(this.level);
         const inUse = equipped === this.browsing;
@@ -98,3 +101,4 @@ export class ThemePanel extends Component {
     /** 销毁时停止内容动画。 */
     onDestroy(): void { Tween.stopAllByTarget(this.content); }
 }
+
