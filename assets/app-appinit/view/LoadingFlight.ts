@@ -16,7 +16,9 @@ export class LoadingFlight extends Component {
     setProgress(value: number): void {
         this.progress = Math.max(this.progress, Math.min(1, Math.max(0, value)));
         this.trail.forEach((label, index) => {
-            label.color = index / this.trail.length < this.progress ? new Color(255, 215, 102) : new Color(246, 250, 255);
+            const done = index / this.trail.length < this.progress;
+            label.color = done ? new Color(255, 190, 53) : new Color(248, 252, 255);
+            label.outlineColor = done ? new Color(181, 119, 33, 190) : new Color(69, 136, 170, 190);
         });
         this.percent.string = `${Math.floor(this.progress * 100)}%`;
         this.place();

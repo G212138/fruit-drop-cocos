@@ -3141,7 +3141,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "42461fc9-a469-47d7-9bb0-3e1721d26df8@f9941",
+      "__uuid__": "6df80b46-67e2-43d4-915d-0b84b737c44c@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -3154,7 +3154,7 @@
     },
     "_fillStart": 0,
     "_fillRange": 0,
-    "_isTrimmedMode": false,
+    "_isTrimmedMode": true,
     "_useGrayscale": false,
     "_atlas": null,
     "_id": ""
@@ -3215,7 +3215,7 @@
     "_pressedSprite": null,
     "_disabledSprite": null,
     "_duration": 0.1,
-    "_zoomScale": 0.94,
+    "_zoomScale": 0.96,
     "_target": null,
     "_id": ""
   },
@@ -3449,9 +3449,9 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 87,
-      "g": 47,
-      "b": 22,
+      "r": 98,
+      "g": 69,
+      "b": 27,
       "a": 255
     },
     "_string": "PLAY",
@@ -3467,7 +3467,7 @@
     "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
-    "_isBold": false,
+    "_isBold": true,
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
@@ -3922,7 +3922,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "b9809161-f045-471c-9d70-646f4dbd8d1b@f9941",
+      "__uuid__": "3b3e8a85-bb84-4fe0-8be4-2b750ddc8894@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -3935,7 +3935,7 @@
     },
     "_fillStart": 0,
     "_fillRange": 0,
-    "_isTrimmedMode": false,
+    "_isTrimmedMode": true,
     "_useGrayscale": false,
     "_atlas": null,
     "_id": ""
@@ -3996,7 +3996,7 @@
     "_pressedSprite": null,
     "_disabledSprite": null,
     "_duration": 0.1,
-    "_zoomScale": 0.94,
+    "_zoomScale": 0.96,
     "_target": null,
     "_id": ""
   },
@@ -4436,9 +4436,9 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 87,
-      "g": 47,
-      "b": 22,
+      "r": 47,
+      "g": 87,
+      "b": 113,
       "a": 255
     },
     "_string": "THEMES",
@@ -4454,7 +4454,7 @@
     "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
-    "_isBold": false,
+    "_isBold": true,
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
@@ -4609,7 +4609,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "b9809161-f045-471c-9d70-646f4dbd8d1b@f9941",
+      "__uuid__": "6df80b46-67e2-43d4-915d-0b84b737c44c@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -4622,7 +4622,7 @@
     },
     "_fillStart": 0,
     "_fillRange": 0,
-    "_isTrimmedMode": false,
+    "_isTrimmedMode": true,
     "_useGrayscale": false,
     "_atlas": null,
     "_id": ""
@@ -5087,9 +5087,9 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 87,
-      "g": 47,
-      "b": 22,
+      "r": 47,
+      "g": 87,
+      "b": 113,
       "a": 255
     },
     "_string": "COLLECTION",
@@ -5105,7 +5105,7 @@
     "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
-    "_isBold": false,
+    "_isBold": true,
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
@@ -5260,7 +5260,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "b9809161-f045-471c-9d70-646f4dbd8d1b@f9941",
+      "__uuid__": "6df80b46-67e2-43d4-915d-0b84b737c44c@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -5273,7 +5273,7 @@
     },
     "_fillStart": 0,
     "_fillRange": 0,
-    "_isTrimmedMode": false,
+    "_isTrimmedMode": true,
     "_useGrayscale": false,
     "_atlas": null,
     "_id": ""
@@ -5725,15 +5725,15 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 87,
-      "g": 47,
-      "b": 22,
+      "r": 47,
+      "g": 87,
+      "b": 113,
       "a": 255
     },
     "_string": "Sidebar Gift",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 14,
+    "_actualFontSize": 13,
     "_fontSize": 27,
     "_fontFamily": "Arial",
     "_lineHeight": 27,
@@ -5743,7 +5743,7 @@
     "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
-    "_isBold": false,
+    "_isBold": true,
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
@@ -5907,7 +5907,7 @@
     "_pressedSprite": null,
     "_disabledSprite": null,
     "_duration": 0.1,
-    "_zoomScale": 0.95,
+    "_zoomScale": 0.96,
     "_target": null,
     "_id": ""
   },
@@ -5948,7 +5948,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "42461fc9-a469-47d7-9bb0-3e1721d26df8@f9941",
+      "__uuid__": "6df80b46-67e2-43d4-915d-0b84b737c44c@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -5961,7 +5961,7 @@
     },
     "_fillStart": 0,
     "_fillRange": 0,
-    "_isTrimmedMode": false,
+    "_isTrimmedMode": true,
     "_useGrayscale": false,
     "_atlas": null,
     "_id": ""
@@ -6319,15 +6319,15 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 87,
-      "g": 47,
-      "b": 22,
+      "r": 47,
+      "g": 87,
+      "b": 113,
       "a": 255
     },
     "_string": "Add to Home",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 13,
+    "_actualFontSize": 12,
     "_fontSize": 27,
     "_fontFamily": "Arial",
     "_lineHeight": 27,
@@ -6337,7 +6337,7 @@
     "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
-    "_isBold": false,
+    "_isBold": true,
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
@@ -6501,7 +6501,7 @@
     "_pressedSprite": null,
     "_disabledSprite": null,
     "_duration": 0.1,
-    "_zoomScale": 0.95,
+    "_zoomScale": 0.96,
     "_target": null,
     "_id": ""
   },
@@ -6542,7 +6542,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "42461fc9-a469-47d7-9bb0-3e1721d26df8@f9941",
+      "__uuid__": "6df80b46-67e2-43d4-915d-0b84b737c44c@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -6555,7 +6555,7 @@
     },
     "_fillStart": 0,
     "_fillRange": 0,
-    "_isTrimmedMode": false,
+    "_isTrimmedMode": true,
     "_useGrayscale": false,
     "_atlas": null,
     "_id": ""
@@ -6824,9 +6824,9 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
+      "r": 47,
+      "g": 87,
+      "b": 113,
       "a": 255
     },
     "_string": "Level Editor",
