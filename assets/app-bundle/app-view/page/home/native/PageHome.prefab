@@ -2715,8 +2715,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 620,
-      "height": 376
+      "width": 570,
+      "height": 345
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -2752,7 +2752,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "41dedcb2-a085-46e4-a022-a159be0adafa@f9941",
+      "__uuid__": "d2ff5cdc-0902-4734-95ba-08b5a9ca1f53@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -2822,8 +2822,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 620,
-      "height": 376
+      "width": 570,
+      "height": 345
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -2859,7 +2859,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "41dedcb2-a085-46e4-a022-a159be0adafa@f9941",
+      "__uuid__": "d2ff5cdc-0902-4734-95ba-08b5a9ca1f53@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -5653,8 +5653,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 0,
-      "y": -34,
+      "x": 1,
+      "y": -25,
       "z": 0
     },
     "_lrot": {
@@ -5694,8 +5694,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 110,
-      "height": 32
+      "width": 77,
+      "height": 27
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -5733,8 +5733,8 @@
     "_string": "Sidebar Gift",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 20,
-    "_fontSize": 21,
+    "_actualFontSize": 14,
+    "_fontSize": 27,
     "_fontFamily": "Arial",
     "_lineHeight": 27,
     "_overflow": 2,
@@ -6247,8 +6247,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 0,
-      "y": -34,
+      "x": 1,
+      "y": -25,
       "z": 0
     },
     "_lrot": {
@@ -6288,8 +6288,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 110,
-      "height": 32
+      "width": 77,
+      "height": 27
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -6327,8 +6327,8 @@
     "_string": "Add to Home",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 18,
-    "_fontSize": 21,
+    "_actualFontSize": 13,
+    "_fontSize": 27,
     "_fontFamily": "Arial",
     "_lineHeight": 27,
     "_overflow": 2,
