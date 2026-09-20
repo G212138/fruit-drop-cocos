@@ -11,7 +11,7 @@ import { PropInventory } from './expansion/props/PropInventory';
 import { PropKind } from './expansion/props/PropRules';
 import { FruitViewportLayout } from './expansion/board/FruitViewportLayout';
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
-import { DEV } from 'cc/env';
+import { DEV, PREVIEW } from 'cc/env';
 import { RewardGate } from '../../../../../app-builtin/app-model/expansion/RewardGate';
 import { getTikTokGame } from '../../../../../app-builtin/app-model/expansion/platform/TikTokRuntime';
 import { TikTokRewardProvider } from '../../../../../app-builtin/app-model/expansion/platform/TikTokRewardProvider';
@@ -228,7 +228,7 @@ export class PageGame extends BaseView.BindController(GameController) {
                 if (!asset || !this.board) {
                     throw new Error('关卡或棋盘组件缺失');
                 }
-                if (!EditorSession.trial && this.levelNumber > this.controller.progress.level) throw new Error('该关卡尚未解锁');
+                if (!PREVIEW && !EditorSession.trial && this.levelNumber > this.controller.progress.level) throw new Error('该关卡尚未解锁');
                 const level = EditorSession.trial
                     ? parseLevel({ ...EditorSession.trial, level: 1 }, 1)
                     : loadCampaignLevel(asset.json.levels, this.levelNumber);

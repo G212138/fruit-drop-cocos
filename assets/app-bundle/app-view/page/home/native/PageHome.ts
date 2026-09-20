@@ -1,8 +1,8 @@
 import { UiClickSound } from '../../../../../app-builtin/app-controller/expansion/UiClickSound';
 import { GameLanguage } from '../../../../../app-builtin/app-model/expansion/GameLanguage';
 import { TikTokStartup } from '../../../../../app-builtin/app-controller/expansion/TikTokStartup';
-import { _decorator, Prefab, JsonAsset, Node, Label } from 'cc';
-import { DEV } from 'cc/env';
+import { _decorator, Prefab, JsonAsset, Node, Label, EditBox } from 'cc';
+import { DEV, PREVIEW } from 'cc/env';
 import { ThemePanel } from './expansion/ThemePanel';
 import { GameTheme } from '../../../../../app-builtin/app-model/expansion/GameTheme';
 import { GameSettings } from '../../../../../app-builtin/app-model/expansion/GameSettings';
@@ -30,6 +30,11 @@ export class PageHome extends BaseView {
     /** 尚未开放入口的轻量提示，由首页预制体决定位置。 */
     @property(Label) featureNotice: Label = null!;
 
+    /** 网页预览关卡输入框，由首页预制体绑定。 */
+    @property(EditBox) levelInput: EditBox = null!;
+    /** 预览跳关入口；正式发布隐藏。 */
+    @property(Node) levelJumpRoot: Node = null!;
+
     /** 保持稳定引用，隐藏首页时解除语言监听。 */
     private readonly languageChanged = (): void => this.refreshLanguage();
 
@@ -37,6 +42,7 @@ export class PageHome extends BaseView {
     /** 首页出现后提前加载游戏及入场必需资源，不显示页面、不启动关卡。 */
     onShow(): void {
         UiClickSound.bind(this.node);
+        if (this.levelJumpRoot) this.levelJumpRoot.active = PREVIEW;
         app.controller.settings.begin();
         TikTokStartup.enter();
         // XForge 隐藏模式 2：缓存页面，防止卸载分包破坏共享图片；退出仍执行 onHide 清理。
@@ -99,6 +105,24 @@ export class PageHome extends BaseView {
     /** 打开独立关卡编辑器，不改变玩家通关进度。 */
     openEditor(): void {
         app.manager.ui.show({ name: 'PageEditor' });
+    }
+
+    /** 校验输入并跳转到已有关卡；仅供网页预览使用，不直接改写通关存档。 */
+    jumpToLevel(): void {
+        if (!PREVIEW || !this.levelInput) return;
+        const text = this.levelInput.string.trim();
+        const level = Number(text);
+        if (!/^[0-9]+$/.test(text) || !Number.isSafeInteger(level) || level < 1) {
+            app.manager.ui.showToast("请输入有效的正整数关卡");
+            return;
+        }
+        app.manager.loader.load({ bundle: "page-game-res", path: "levels/original-levels", type: JsonAsset, onComplete: (asset: JsonAsset) => {
+            if (!asset || level > asset.json.levels.length) {
+                app.manager.ui.showToast("关卡不存在");
+                return;
+            }
+            app.manager.ui.show({ name: "PageGame", data: { level } });
+        } });
     }
 
     /** 从已保存关卡继续，由预制体按钮事件调用。 */
