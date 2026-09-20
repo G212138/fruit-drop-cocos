@@ -19,8 +19,6 @@ export class PageHome extends BaseView {
     @property(Label) editorLabel: Label = null!;
     /** 首页当前待挑战关卡。 */
     @property(Label) levelLabel: Label = null!;
-    /** 尚未开放入口的轻量提示，由首页预制体决定位置。 */
-    @property(Label) featureNotice: Label = null!;
 
     /** 网页预览关卡输入框，由首页预制体绑定。 */
     @property(EditBox) levelInput: EditBox = null!;
@@ -42,7 +40,6 @@ export class PageHome extends BaseView {
         GameTheme.refresh();
         this.refreshLanguage();
         GameLanguage.subscribe(this.languageChanged);
-        if (this.featureNotice) this.featureNotice.node.active = false;
         app.manager.ui.load('PageGame');
         const prefabs = ['StarFlightView', 'GroundImpactView', 'NewbieGuideView', 'SettingsPanel'];
         if (DEV) prefabs.push('DevelopmentRewardPanel');
