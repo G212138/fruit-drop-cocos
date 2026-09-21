@@ -1,5 +1,5 @@
-/** 首批发行语言；system 为跟随设备，存档使用稳定代码。 */
-export const languageOptions = ['system', 'en', 'ja', 'id', 'th', 'vi', 'ms', 'fil', 'zh'] as const;
+/** 首批发行的八种语言，存档使用稳定代码。 */
+export const languageOptions = ['en', 'ja', 'id', 'th', 'vi', 'ms', 'fil', 'zh'] as const;
 /** 玩家可保存的语言选择。 */
 export type LanguageChoice = typeof languageOptions[number];
 /** 语言选择器使用各语言自称，方便切错语言后恢复。 */

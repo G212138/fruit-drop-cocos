@@ -17,12 +17,16 @@ for (const [input,expected] of [['ja-JP','ja'],['id_ID','id'],['in-ID','id'],['t
 const store = new Map();
 const sys = {language:'ja',languageCode:'ja-JP',localStorage:{getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,v)}};
 function service(){return compile('GameLanguage',n=>n==='cc'?{sys}:n.endsWith('/PlatformStorage')?{PlatformStorage:sys.localStorage}:catalog).GameLanguage;}
-let language = service(); assert.equal(language.choice,'system'); assert.equal(language.current,'ja');
+let language = service(); assert.equal(language.choice,'ja'); assert.equal(language.current,'ja');
 let updates=0; const update=()=>updates++; language.subscribe(update);
 assert.equal(language.select('vi'),true); assert.equal(language.current,'vi'); assert.equal(updates,1);
 language.unsubscribe(update); language.select('th'); assert.equal(updates,1);
 language=service(); assert.equal(language.choice,'th'); assert.equal(language.current,'th');
-language.select('system');sys.languageCode='tl-PH';assert.equal(language.current,'fil');
+assert.equal(language.select('system'),false);
+store.set('tumble-match.language.v1','system');sys.languageCode='tl-PH';language=service();
+assert.equal(language.choice,'fil');assert.equal(store.get('tumble-match.language.v1'),'fil');
+sys.languageCode='ja-JP';assert.equal(language.current,'fil');
+assert.equal(catalog.languageOptions.length,8);assert.ok(!catalog.languageOptions.includes('system'));
 sys.localStorage.setItem=()=>{throw new Error('storage unavailable');};
 assert.equal(language.select('ms'),false); assert.equal(language.current,'ms');
 assert.equal(language.select('unsupported'),false); assert.equal(language.current,'ms');

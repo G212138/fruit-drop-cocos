@@ -54,7 +54,7 @@ function inspect(value, entries, location) {
             PopPlatformReward: ['panel'], HomeRevisitEntry: ['shortcutButton','profileButton','shortcutLabel','profileLabel'], TikTokRevisitView: ['shortcutDialog','profileDialog','shortcutDescription','profileDescription','shortcutReward','profileReward','shortcutAction','profileAction','shortcutNotice','profileNotice'], PopTheme: ['panel'], PopCollection: ['panel'], PopSettings: ['panel'],
             TerrainPanel: ['preview','heading','title','count','status','confirmButton','confirmLabel'],
             ThemePanel: ['content','icons','frames','title','heading','status','tabs','confirmButton','confirmLabel','countLabel','equippedChecks'],
-            SettingsPanel: ['content','opacity','musicRow','soundRow','vibrateRow','warningLabel','bodyLayout','languageRow','gameActions','languageOptions','backgroundSize','titlePlate','closeButton'],
+            SettingsPanel: ['content','opacity','musicRow','soundRow','vibrateRow','bodyLayout','languageRow','gameActions','languageOptions','backgroundSize','titlePlate','closeButton'],
             GameBoard: ['spawner', 'removalEffectsRoot', 'lockWallRoot', 'levelHintRoot', 'leftBoundary', 'rightLine'],
             FruitSpawner: ['fruitRoot', 'hiddenFruitPrefab', 'iceFruitPrefab', 'blackHolePrefab'],
             PageGame: ['bottomProgressRoot', 'propToolbarRoot', 'boardRoot', 'hudRoot', 'gameBoardNode', 'gameHudNode', 'backgroundNode'],

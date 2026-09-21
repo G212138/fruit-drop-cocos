@@ -34,11 +34,9 @@ export class LanguagePicker extends Component {
         this.optionsRoot.active = false;
         this.warningLabel.string = saved ? '' : GameLanguage.text('saveError');
     }
-    /** 刷新当前偏好；系统选项同时显示实际解析出的语言。 */
+    /** 刷新当前语言名称及选中状态。 */
     private refresh(): void {
-        this.currentLabel.string = GameLanguage.choice === 'system'
-            ? GameLanguage.text('system') + ' · ' + languageNames[GameLanguage.current]
-            : languageNames[GameLanguage.current];
+        this.currentLabel.string = languageNames[GameLanguage.current];
         const content = this.optionsRoot.getChildByName('ScrollView')?.getChildByName('View')?.getChildByName('Content')
             || this.optionsRoot.getChildByName('View')?.getChildByName('Content')
             || this.optionsRoot.getChildByName('Content')
@@ -50,6 +48,8 @@ export class LanguagePicker extends Component {
             const selectedBackground = option.getChildByName('SelectedBackground');
             if (checkmark) checkmark.active = selected;
             if (selectedBackground) selectedBackground.active = selected;
+            const normalBackground = option.getChildByName('RowPlate');
+            if (normalBackground) normalBackground.active = !selected;
         }
     }
 }

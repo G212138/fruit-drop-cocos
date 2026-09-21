@@ -80,7 +80,7 @@ export class SettingsPanel extends Component {
         this.musicRow.getComponent(SettingsToggleView)!.render(snapshot.music);
         this.soundRow.getComponent(SettingsToggleView)!.render(snapshot.sound);
         this.vibrateRow.getComponent(SettingsToggleView)!.render(snapshot.vibrate);
-        this.warningLabel.string = warning;
+        if (this.warningLabel) this.warningLabel.string = warning;
     }
 
     /** 音乐行请求只改变音乐开关，不影响音效与震动。 */
