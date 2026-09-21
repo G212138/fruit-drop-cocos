@@ -18,12 +18,14 @@ export class ThemeSprite extends Component {
     @property lockPlug = false;
     /** 当前主题独立挡板图片的持有引用。 */
     private held: SpriteFrame | null = null;
+    /** 已应用的挡板路径，页面隐藏后继续持有。 */
+    private appliedFile = '';
     /** 防止页面关闭后应用过期结果。 */
     private request = 0;
     /** 实例激活或重新进入页面时应用当前有效主题。 */
     onEnable(): void {
 
-        this.target.spriteFrame = this.fruitFrame;
+        if (!this.lockPlug) this.target.spriteFrame = this.fruitFrame;
         if (this.lockPlug) {
             this.target.sizeMode = Sprite.SizeMode.CUSTOM;
             this.target.trim = false;
@@ -42,21 +44,32 @@ export class ThemeSprite extends Component {
     /** 加载正面立体挡板；完整保留倒角、接触阴影及90×80一倍画布。 */
     private loadBlock(): void {
         const ticket = ++this.request;
-        TerrainArt.load('blocks/' + GameTerrain.entry.id, frame => {
+        const file = 'blocks/' + GameTerrain.entry.id;
+        if (this.held && isValid(this.held) && this.appliedFile === file) {
+            this.target.spriteFrame = this.held;
+            this.target.enabled = true;
+            return;
+        }
+        this.target.enabled = false;
+        TerrainArt.load(file, frame => {
             if (!isValid(this) || ticket !== this.request || !this.enabledInHierarchy) {
                 frame?.decRef();
                 return;
             }
-            if (!frame) return;
-            this.target.spriteFrame = frame;
+            this.target.spriteFrame = frame || this.fruitFrame;
+            this.target.enabled = true;
+            this.appliedFile = frame ? file : '';
             this.held?.decRef();
             this.held = frame;
         });
     }
-    /** 释放动态挡板帧和纹理持有，布袋仍沿用独立的原有前后遮挡素材。 */
+    /** 缓存隐藏时只取消请求，挡板图片继续持有。 */
     onDisable(): void {
         ++this.request;
-        if (this.target) this.target.spriteFrame = this.fruitFrame;
+    }
+    /** 页面真正销毁时释放挡板图片。 */
+    onDestroy(): void {
+        ++this.request;
         this.held?.decRef();
         this.held = null;
     }

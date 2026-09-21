@@ -11,26 +11,39 @@ export class TerrainView extends Component {
     @property(SpriteFrame) fallback: SpriteFrame = null!;
     /** 本组件持有的动态资源。 */
     private held: SpriteFrame | null = null;
+    /** 已应用资源路径，缓存页面再次显示时直接复用。 */
+    private appliedFile = '';
     /** 异步请求序号，防止离开页面后旧请求覆盖当前外观。 */
     private request = 0;
     /** 页面激活时加载已确认的地块。 */
     onEnable(): void {
         const ticket = ++this.request;
-        this.target.spriteFrame = this.fallback;
-        TerrainArt.load(GameTerrain.entry.file, frame => {
+        const file = GameTerrain.entry.file;
+        if (this.held && isValid(this.held) && this.appliedFile === file) {
+            this.target.spriteFrame = this.held;
+            this.target.enabled = true;
+            return;
+        }
+        this.target.enabled = false;
+        TerrainArt.load(file, frame => {
             if (!isValid(this) || ticket !== this.request || !this.enabledInHierarchy) {
                 frame?.decRef();
                 return;
             }
             this.target.spriteFrame = frame || this.fallback;
+            this.target.enabled = true;
+            this.appliedFile = frame ? file : '';
             this.held?.decRef();
             this.held = frame;
         });
     }
-    /** 隐藏时解除动态图片引用，取消未完成请求的应用。 */
+    /** 缓存页面隐藏时仅取消请求，保留已应用地块，避免再次入场闪回默认图。 */
     onDisable(): void {
         ++this.request;
-        if (this.target) this.target.spriteFrame = this.fallback;
+    }
+    /** 页面真正销毁时才释放当前地块引用。 */
+    onDestroy(): void {
+        ++this.request;
         this.held?.decRef();
         this.held = null;
     }
