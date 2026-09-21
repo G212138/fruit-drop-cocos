@@ -22,6 +22,8 @@ const english = {
     watchAd: 'WATCH AD', noThanks: 'NO THANKS', giveAnotherTry: 'Give it another try!', tryAgain: 'TRY AGAIN',
     paused: 'PAUSED', privacyPolicy: 'Privacy Policy', termsOfUse: 'Terms of Use',
     pairHint: 'Match 2 identical items to clear them',
+    hintVertical: 'Items move downward', hintHorizontal: 'Items move to the right',
+    hintHidden: 'Match to reveal hidden items', hintIce: 'Match to break the ice', hintBlackHole: 'Multiple items are inside the black hole',
     confirmTheme: 'CONFIRM USE', themePreview: 'PREVIEW', themeInUse: 'IN USE', themeCount: '{count} / {total} UNLOCKED', themeConfirmHint: 'Applies after confirmation', themeSaveError: 'Could not save. Please try again.',
 };
 /** 译文键，以英文表为结构基准。 */
@@ -62,8 +64,18 @@ const themeLabels: Record<string, string[]> = {
  ms: ['GUNAKAN','PRATONTON','DIGUNAKAN','{count} / {total} DIBUKA','Digunakan selepas pengesahan','Gagal menyimpan. Cuba lagi.'],
  fil: ['GAMITIN','PREVIEW','GINAGAMIT','{count} / {total} NA-UNLOCK','Ilalapat pagkatapos kumpirmahin','Hindi na-save. Subukan muli.'],
 };
+/** 开局机制提示译文；图片仅保留图案和底框。 */
+const hintLabels: Record<string, string[]> = {
+    zh: ['从上往下移动','从左往右移动','通过消除揭开隐藏物品','通过消除解锁冰冻物品','黑洞内有多个物品'],
+    ja: ['アイテムは下へ移動','アイテムは右へ移動','マッチして隠れたアイテムを表示','マッチして氷を壊そう','ブラックホールには複数のアイテム'],
+    id: ['Benda bergerak ke bawah','Benda bergerak ke kanan','Cocokkan untuk membuka benda tersembunyi','Cocokkan untuk memecahkan es','Ada beberapa benda di dalam lubang hitam'],
+    th: ['สิ่งของเคลื่อนลงด้านล่าง','สิ่งของเคลื่อนไปทางขวา','จับคู่เพื่อเผยสิ่งของที่ซ่อนอยู่','จับคู่เพื่อทำลายน้ำแข็ง','มีสิ่งของหลายชิ้นในหลุมดำ'],
+    vi: ['Vật phẩm di chuyển xuống','Vật phẩm di chuyển sang phải','Ghép để lộ vật phẩm ẩn','Ghép để phá băng','Có nhiều vật phẩm trong hố đen'],
+    ms: ['Objek bergerak ke bawah','Objek bergerak ke kanan','Padankan untuk dedahkan objek tersembunyi','Padankan untuk pecahkan ais','Ada beberapa objek dalam lohong hitam'],
+    fil: ['Pababa ang galaw ng mga item','Pakanan ang galaw ng mga item','Magtambal para ilantad ang mga nakatagong item','Magtambal para basagin ang yelo','May maraming item sa loob ng black hole'],
+};
 for (const code of Object.keys(rows)) {
-    const values = rows[code].concat(shakeLabels[code], extendedLabels[code], themeLabels[code]);
+    const values = rows[code].concat(shakeLabels[code], extendedLabels[code], hintLabels[code], themeLabels[code]);
     const keys = Object.keys(english) as LanguageKey[];
     if (values.length !== keys.length) throw new Error('语言词条数量不一致：' + code);
     const translated = {} as Record<LanguageKey, string>;
