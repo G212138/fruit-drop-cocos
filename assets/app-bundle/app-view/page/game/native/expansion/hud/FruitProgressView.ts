@@ -10,9 +10,9 @@ export class FruitProgressView extends Component {
     @property(Label) percentage: Label = null!;
     /** 进度图挂载点，也是星星的抵达位置。 */
     @property(Node) progressRoot: Node = null!;
-    /** 灰色未完成层，从当前比例向上填充。 */
+    /** 灰色未完成扇区，覆盖顺时针进度以外的部分。 */
     @property(Sprite) dark: Sprite = null!;
-    /** 原色已完成层，从底部填充至当前比例。 */
+    /** 原色已完成扇区，从顶部顺时针填充。 */
     @property(Sprite) bright: Sprite = null!;
     /** 原版31至60号进度图片，按关卡顺序绑定。 */
     @property([SpriteFrame]) frames: SpriteFrame[] = [];
@@ -69,13 +69,13 @@ export class FruitProgressView extends Component {
             Math.round(base.b + (255 - base.b) * amount), base.a);
         if (this.glowTime >= attack + release) this.glowTime = -1;
     }
-    /** Creator3禁止负fillStart，使用等效的起点加范围恢复原版上下分界。 */
+    /** 顶部对应0.25圈，负范围表示顺时针；灰色与原色扇区互补。 */
     private restoreFill(): void {
         this.dark.node.active = true;
-        this.dark.fillStart = this.ratio;
-        this.dark.fillRange = 1 - this.ratio;
-        this.bright.fillStart = 0;
-        this.bright.fillRange = this.ratio;
+        this.dark.fillStart = (1.25 - this.ratio) % 1;
+        this.dark.fillRange = -(1 - this.ratio);
+        this.bright.fillStart = 0.25;
+        this.bright.fillRange = -this.ratio;
     }
 
     /** 清局取消闪烁通知，恢复当前数值对应的填充状态。 */
