@@ -20,7 +20,7 @@ function fixture(){
     page.node={};page.ended=true;
     page.board={canRevive:true,revive(){calls.push('board');return true;}};
     page.controller={revive(){calls.push('state');app.store.game.phase='playing';return true;}};
-    page.hud={showNotice(){calls.push('notice');}};
+    page.hud={};
     page.showResult=message=>calls.push(message);
     return {page,calls};
 }
@@ -32,7 +32,7 @@ async function run(){
         assert.equal(calls.length,1);assert.equal(calls.includes('board'),false);
     }
     let {page,calls}=fixture();page.rewardGate={request:async()=> 'rewarded'};
-    await page.requestRevive();assert.deepEqual(calls,['state','board','notice']);assert.equal(page.ended,false);
+    await page.requestRevive();assert.deepEqual(calls,['state','board']);assert.equal(page.ended,false);
     ({page,calls}=fixture());let finish;page.rewardGate={request:()=>new Promise(resolve=>finish=resolve)};
     const pending=page.requestRevive();page.generation++;finish('rewarded');await pending;
     assert.deepEqual(calls,[]);assert.equal(app.store.game.phase,'lost','旧页广告不能复活新页面');

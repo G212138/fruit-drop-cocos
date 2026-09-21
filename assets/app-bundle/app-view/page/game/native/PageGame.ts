@@ -151,8 +151,6 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 本次请求的原版关卡编号，从一开始。 */
     private levelNumber = 1;
-    /** 当前加载失败的用户可读说明；空字符串表示没有错误。 */
-    private loadError = '';
 
     /**
      * 每次显示重新装配本局，并使旧异步加载回调失效。
@@ -166,7 +164,6 @@ export class PageGame extends BaseView.BindController(GameController) {
         GameTheme.refresh();
         const generation = ++this.generation;
         this.levelNumber = EditorSession.trial ? 1 : data?.level ?? this.controller.progress.level;
-        this.loadError = '';
         this.ended = false;
         this.ready = false;
         this.releaseChildren();
@@ -287,9 +284,8 @@ export class PageGame extends BaseView.BindController(GameController) {
     /** 将状态映射到显示，并确保结算只打开一次。 */
     private refreshState(): void {
         const state = app.store.game;
-        if (this.loadError) this.hud?.showError(this.levelNumber, this.loadError);
-        else this.hud?.render(this.levelNumber, this.ready ? state.remaining : 0,
-            this.ready ? state.total : 0, this.controller.progress.warning);
+        this.hud?.render(this.levelNumber, this.ready ? state.remaining : 0,
+            this.ready ? state.total : 0);
         const finished = state.phase === 'won' || state.phase === 'lost';
         if (!this.ready || this.ended || !finished) return;
         this.ended = true;
@@ -325,7 +321,6 @@ export class PageGame extends BaseView.BindController(GameController) {
             this.controller.lose();
             return;
         }
-        this.hud?.showNotice('继续本关');
     }
 
     /**
@@ -335,7 +330,6 @@ export class PageGame extends BaseView.BindController(GameController) {
     private reportLoadError(message: string): void {
         this.board?.stop();
         this.ready = false;
-        this.loadError = message;
         this.refreshState();
         console.warn('[PageGame] ' + message);
     }
@@ -404,9 +398,7 @@ export class PageGame extends BaseView.BindController(GameController) {
         if (!this.isCurrent(generation) || this.ended) return;
         if (result === 'rewarded') {
             this.board?.expandSlot(expectedSlot);
-        } else if (result === 'cancelled') this.hud?.showNotice('已取消，底部空间未改变');
-        else if (result === 'failed') this.hud?.showNotice('广告暂时无法完成，请稍后重试');
-        else if (result === 'unavailable') this.hud?.showNotice('广告暂不可用，请稍后重试');
+        }
     }
 
     /** 未开放关卡提供明确的重玩入口，不修改已保存进度。 */

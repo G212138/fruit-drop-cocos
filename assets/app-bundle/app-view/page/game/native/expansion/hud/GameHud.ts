@@ -49,31 +49,19 @@ export class GameHud extends Component {
     /** 原版关卡序号标签。 */
     @property(Label)
     title: Label = null!;
-    /** 操作提示或资源/存档错误说明。 */
-    @property(Label)
-    hint: Label = null!;
 
     /**
      * 显示当前关卡与真实进度。
      * @param level 原始关卡编号。
      * @param remaining 剩余水果，单位个。
      * @param total 本关总数，单位个；零表示正在加载。
-     * @param warning 存档不可用时的提示，空字符串表示正常。
      */
-    render(level: number, remaining: number, total: number, warning = ''): void {
+    render(level: number, remaining: number, total: number): void {
         this.displayedLevel = level;
         this.languageChanged();
         this.progressView.render(level, remaining, total);
-        this.hint.string = warning;
     }
 
-    /** @param level 请求关卡编号。 @param message 阻止开局的具体原因。 */
-    showError(level: number, message: string): void {
-        this.displayedLevel = level;
-        this.languageChanged();
-        this.progressView.render(level, 0, 0);
-        this.hint.string = message;
-    }
 
     /** 预制体首页按钮仅发布意图，由页面负责切换。 */
     home(): void {
@@ -85,10 +73,6 @@ export class GameHud extends Component {
         this.node.emit('open-settings');
     }
 
-    /** @param message 当前操作的真实结果说明，不将取消或失败显示为奖励成功。 */
-    showNotice(message: string): void {
-        this.hint.string = message;
-    }
 
     /** 预制体重玩按钮发布明确操作，不静默替换未支持关卡。 */
     replay(): void {
