@@ -23,7 +23,7 @@ export class AppInit extends BaseAppInit {
     private displayedProgress = 0;
 
     /** 首页依赖顺序：资源目录、结算脚本、游戏及设置脚本；只注册分包，不实例化页面。 */
-    private readonly startupBundles = ['shared-items', 'shared-terrains', 'shared-ui', 'page-game-res', 'page-home-res', 'pop-result-res', 'pop-result', 'page-game', 'page-home'];
+    private readonly startupBundles = ['shared-items', 'shared-terrains', 'shared-ui', 'page-game-res', 'page-home-res', 'pop-result-res', 'pop-result', 'page-game', 'page-home', 'pop-settings-res', 'pop-settings'];
 
     /** 待注册的启动依赖包索引；全部完成后才放行默认首页。 */
     private startupBundleIndex = 0;
@@ -75,7 +75,8 @@ export class AppInit extends BaseAppInit {
         const tasks: Array<{ bundle: string; path: string; type: typeof Asset }> = [
             { bundle: 'page-home', path: 'PageHome', type: Prefab },
             { bundle: 'page-game', path: 'PageGame', type: Prefab },
-            ...['StarFlightView', 'GroundImpactView', 'NewbieGuideView', 'SettingsPanel',
+            { bundle: 'pop-settings', path: 'PopSettings', type: Prefab },
+            ...['StarFlightView', 'GroundImpactView', 'NewbieGuideView',
                 ...(DEV ? ['DevelopmentRewardPanel'] : [])].map(name => ({
                     bundle: 'page-game-res', path: 'prefabs/' + name, type: Prefab,
                 })),

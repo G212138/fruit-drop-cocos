@@ -69,7 +69,7 @@ export class PageHome extends BaseView {
         app.manager.ui.showToast(GameLanguage.text('comingSoon'));
     }
     /** 打开首页设置。 */
-    openSettings(): void { app.manager.ui.show({ name: 'PopSettings' }); }
+    openSettings(): void { app.manager.ui.show({ name: 'PopSettings', data: { mode: 'home' } }); }
     /** 打开独立关卡编辑器，不改变玩家通关进度。 */
     openEditor(): void {
         app.manager.ui.show({ name: 'PageEditor' });

@@ -41,6 +41,8 @@ retries.shift()(); assert.equal(pending[0].name, first.name);
 while (pending.length) pending.shift().done(null);
 assert.equal(completed, 0, '分包注册完仍需等待首页依赖');
 assert.ok(resources.some(r=>r.name==='PageGame'));
+assert.ok(resources.some(r=>r.bundle==='pop-settings'&&r.name==='PopSettings'));
+assert.ok(!resources.some(r=>r.name==='prefabs/SettingsPanel'));
 assert.ok(resources.some(r=>r.name==='levels/original-levels'));
 const terrain=resources.find(r=>r.name==='terrains/test-ice-art/spriteFrame');
 const block=resources.find(r=>r.name==='terrains/blocks/test-ice/spriteFrame');

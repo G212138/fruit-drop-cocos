@@ -1,6 +1,6 @@
 import { _decorator } from 'cc';
 import BaseView from 'db://app/base/BaseView';
-import { SettingsPanel } from '../../../page/game/native/expansion/settings/SettingsPanel';
+import { SettingsPanel } from './expansion/SettingsPanel';
 import { app } from '../../../../../app/app';
 import { GameSettings } from '../../../../../app-builtin/app-model/expansion/GameSettings';
 import type { PreferencesSnapshot } from '../../../../../app-builtin/app-model/expansion/GamePreferences';
@@ -12,7 +12,9 @@ export class PopSettings extends BaseView {
     /** 编辑器绑定的设置内容。 */
     @property(SettingsPanel) panel: SettingsPanel = null!;
     /** 显示当前音效与语言设置，不自行修改游戏运行状态。 */
-    onShow(): void {
+    onShow(data?: { mode?: 'home' | 'game' }): void {
+        this.hideEvent = 2;
+        this.panel.setMode(data?.mode === 'game' ? 'game' : 'home');
         UiClickSound.bind(this.node);
         this.node.targetOff(this);
         this.node.on('setting-request', this.changeSetting, this);

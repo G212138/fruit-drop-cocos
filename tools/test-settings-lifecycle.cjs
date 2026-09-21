@@ -10,7 +10,7 @@ const pending = new Map();
 const cc = {_decorator:{ccclass:()=>value=>value,property:()=>()=>{}},Component:class{},
     isValid:value=>!!value?.valid,Tween:{stopAllByTarget:target=>pending.delete(target)},
     tween:target=>{const chain={to:()=>chain,call:fn=>{pending.set(target,fn);return chain;},start:()=>{}};return chain;}};
-const output=ts.transpileModule(fs.readFileSync('assets/app-bundle/app-view/page/game/native/expansion/settings/SettingsPanel.ts','utf8'),{
+const output=ts.transpileModule(fs.readFileSync('assets/app-bundle/app-view/pop/settings/native/expansion/SettingsPanel.ts','utf8'),{
     compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.CommonJS,experimentalDecorators:true}}).outputText;
 const result={};new Function('require','exports',output)(name=>name==='cc'?cc:{},result);
 const panel=new result.SettingsPanel();
@@ -26,3 +26,13 @@ assert.equal(panel.musicRow.listeners.length,0);
 for(const item of [panel.musicRow,panel.soundRow,panel.vibrateRow])item.valid=false;
 assert.doesNotThrow(()=>panel.onDestroy(),'父组件销毁不能再访问已释放的子事件系统');
 console.log('通过：面板重复启停、关闭去重、监听解除及先销毁子节点的清理顺序。');
+
+// 同一面板在首页与游戏之间复用时，重置子弹窗并按可见内容调整高度。
+panel.backgroundSize={setContentSize(){}};panel.titlePlate={setPosition(){}};panel.closeButton={setPosition(){}};
+panel.languageRow={active:true};panel.gameActions={active:false};panel.languageOptions={active:true};
+let bodyHeight=0,contentSize;
+panel.bodyLayout={node:{getComponent(){return {height:bodyHeight}}},updateLayout(){bodyHeight=panel.gameActions.active?560:464}};
+panel.content={getComponent(){return {setContentSize(w,h){contentSize=[w,h]}}},getComponentsInChildren(){return []}};
+panel.setMode('game');assert.equal(panel.languageRow.active,false);assert.equal(panel.gameActions.active,true);assert.equal(panel.languageOptions.active,false);assert.deepEqual(contentSize,[600,672]);
+panel.languageOptions.active=true;panel.setMode('home');assert.equal(panel.languageRow.active,true);assert.equal(panel.gameActions.active,false);assert.equal(panel.languageOptions.active,false);assert.deepEqual(contentSize,[600,576]);
+console.log('通过：首页/游戏复用时的功能区、语言子面板及高度切换。');

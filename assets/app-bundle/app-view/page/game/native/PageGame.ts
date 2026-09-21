@@ -23,9 +23,6 @@ import { GameController } from '../../../../../app-builtin/app-controller/GameCo
 import { GameBoard } from './expansion/board/GameBoard';
 import { BoardEvents } from './expansion/board/BoardEvents';
 import { GameHud } from './expansion/hud/GameHud';
-import { SettingsPanel } from './expansion/settings/SettingsPanel';
-import { GameSettings } from '../../../../../app-builtin/app-model/expansion/GameSettings';
-import { PreferencesSnapshot } from '../../../../../app-builtin/app-model/expansion/GamePreferences';
 import { countFruits, parseLevel, loadCampaignLevel } from './expansion/level/LevelDefinition';
 const { ccclass, property } = _decorator;
 
@@ -134,8 +131,8 @@ export class PageGame extends BaseView.BindController(GameController) {
     }
     /** 页面内固定HUD组件，所有标签由PageGame序列化绑定。 */
     private hud: GameHud | null = null;
-    /** 本显示周期独立设置面板，关闭后保留至页面退出。 */
-    private settings: SettingsPanel | null = null;
+    /** 共享设置弹窗正在加载或显示，防止重复打开。 */
+    private settingsOpening = false;
     /** 独立音频副作用协调器，不改变本局游戏状态。 */
     private readonly settingsController = app.controller.settings;
     /** 当前页广告门禁，重开和退出时令旧请求失效。 */
@@ -178,7 +175,6 @@ export class PageGame extends BaseView.BindController(GameController) {
         this.bindFixedViews();
         this.loadLevel(generation);
         this.loadCollectionFeedback(generation);
-        this.loadSettings(generation);
         this.bindProps();
         if (DEV && !getTikTokGame()) this.loadDevelopmentReward(generation);
     }
@@ -342,34 +338,22 @@ export class PageGame extends BaseView.BindController(GameController) {
         app.manager.ui.show({ name: EditorSession.trial ? 'PageEditor' : 'PageHome' });
     }
 
-    /** @param generation 当前显示代次，过期加载不能挂回已经退出的页面。 */
-    private loadSettings(generation: number): void {
-        this.loadRes('prefabs/SettingsPanel', Prefab, prefab => {
-            if (!this.isCurrent(generation)) return;
-            if (!prefab) {
-                this.reportLoadError('设置预制体加载失败');
-                return;
-            }
-            const node = instantiate(prefab);
-            node.active = false;
-            node.parent = this.hudRoot;
-            this.settings = node.getComponent(SettingsPanel);
-            node.on('setting-request', this.changeSetting, this);
-            node.on('settings-action', this.settingsAction, this);
-        });
-    }
-
-    /** 打开原版设置面板；其遮罩阻止点击穿透，但不暂停物理和计时。 */
+    /** 首页与游戏共用缓存的设置弹窗，只阻挡点击，不暂停物理或计时。 */
     private openSettings(): void {
-        if (!this.settings || !this.ready || this.ended) return;
-        this.settings.node.setSiblingIndex(this.hudRoot.children.length - 1);
-        this.settings.open(GameSettings.current.snapshot, GameSettings.current.warning);
-    }
-
-    /** @param key 独立设置行请求变更的设置项。 */
-    private changeSetting(key: keyof PreferencesSnapshot): void {
-        const warning = this.settingsController.toggle(key);
-        this.settings?.render(GameSettings.current.snapshot, warning);
+        if (this.settingsOpening || !this.ready || this.ended) return;
+        this.settingsOpening = true;
+        const generation = this.generation;
+        app.manager.ui.show({
+            name: 'PopSettings', data: { mode: 'game' },
+            onShow: () => {
+                if (!this.isCurrent(generation)) app.manager.ui.hide({ name: 'PopSettings' });
+            },
+            onHide: (action: 'continue' | 'home' | 'restart') => {
+                this.settingsOpening = false;
+                if (this.isCurrent(generation) && !this.ended) this.settingsAction(action);
+            },
+            onError: () => { this.settingsOpening = false; },
+        });
     }
 
     /** @param action 面板淡出后的导航意图；重开使用当前正式关或当前试玩配置。 */
@@ -427,11 +411,10 @@ export class PageGame extends BaseView.BindController(GameController) {
         }
         this.developmentReward = null;
         this.settingsController.end();
-        if (this.settings && isValid(this.settings.node)) {
-            this.settings.node.targetOff(this);
-            this.settings.node.destroy();
+        if (this.settingsOpening) {
+            this.settingsOpening = false;
+            app.manager.ui.hide({ name: 'PopSettings' });
         }
-        this.settings = null;
         if (this.board && isValid(this.board.node)) {
             this.board.clear();
             this.board.node.targetOff(this);
