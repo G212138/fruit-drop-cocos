@@ -14,12 +14,12 @@ class Base {
 const cc = {
     assetManager: {
         loadBundle(name, done) { pending.push({name, done}); },
-        getBundle() { return { load(name, type, progress, done) {
-            resources.push({name,progress,done});
+        getBundle(bundle) { return { load(name, type, progress, done) {
+            resources.push({bundle,name,type,progress,done});
         } }; }
     },
     sp: {Skeleton: class {}}, Node: class {}, UIOpacity: class {}, Prefab: class {},
-    JsonAsset: class {},
+    JsonAsset: class {}, SpriteFrame: class {}, Asset: class {},
     _decorator: {ccclass: () => target => target, property: () => () => {}}
 };
 const source = fs.readFileSync(path.resolve(__dirname, '../assets/app-appinit/view/AppInit.ts'), 'utf8');
@@ -28,7 +28,7 @@ const output = ts.transpileModule(source, {compilerOptions: {
 }}).outputText;
 const mod = {exports: {}};
 new Function('require', 'module', 'exports', 'TTMinis', 'console', output)(
-    name => name === 'cc/env' ? {DEV:true} : name === 'cc' ? cc : name === './FirstLaunch' ? {FirstLaunch: {page: 'PageHome', complete() {}}} : {default: Base}, mod, mod.exports,
+    name => name.endsWith('/GameTerrain') ? {GameTerrain: {entry: {id:'test-ice',file:'test-ice-art'}}} : name === 'cc/env' ? {DEV:true} : name === 'cc' ? cc : name === './FirstLaunch' ? {FirstLaunch: {page: 'PageHome', complete() {}}} : {default: Base}, mod, mod.exports,
     {game: {setLoadingProgress({progress}) {reports.push(progress);}}}, {warn() {}}
 );
 const init = new mod.exports.AppInit();
@@ -42,11 +42,19 @@ while (pending.length) pending.shift().done(null);
 assert.equal(completed, 0, '分包注册完仍需等待首页依赖');
 assert.ok(resources.some(r=>r.name==='PageGame'));
 assert.ok(resources.some(r=>r.name==='levels/original-levels'));
+const terrain=resources.find(r=>r.name==='terrains/test-ice-art/spriteFrame');
+const block=resources.find(r=>r.name==='terrains/blocks/test-ice/spriteFrame');
+assert.ok(terrain && block, '必须加载存档选中地块和对应挡板');
+assert.equal(terrain.bundle,'shared-terrains'); assert.equal(block.type,cc.SpriteFrame);
 const game=resources.find(r=>r.name==='PageGame');
-for(const task of resources.filter(r=>r!==game))task.done(null);
+for(const task of resources.filter(r=>r!==game && r!==terrain && r!==block))task.done(null);
 assert.equal(completed,0,'游戏未加载完成不得进入首页');
 game.progress(8,10);const before=value;game.progress(8,20);assert.equal(value,before);
 game.done(new Error('offline'));assert.equal(completed,0);
+retries.shift()();resources.at(-1).done(null);
+assert.equal(completed,0,'游戏加载完成仍须等待地块');
+terrain.done(null); assert.equal(completed,0,'仍须等待挡板');
+block.done(new Error('offline'));assert.equal(completed,0);
 retries.shift()();resources.at(-1).done(null);
 assert.equal(completed,1);assert.ok(Math.abs(value-.95)<1e-9);
 assert.equal(destroyed,false);

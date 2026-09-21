@@ -1,7 +1,8 @@
 import { DEV } from 'cc/env';
 import { LoadingFlight } from './LoadingFlight';
 import { FirstLaunch } from './FirstLaunch';
-import { assetManager, sp, Node, UIOpacity, _decorator, Prefab, JsonAsset } from 'cc';
+import { GameTerrain } from '../../app-builtin/app-model/expansion/GameTerrain';
+import { assetManager, sp, Node, UIOpacity, _decorator, Prefab, JsonAsset, SpriteFrame, Asset } from 'cc';
 import BaseAppInit from '../../../extensions/app/assets/base/BaseAppInit';
 // 在启动包阶段引用骨骼模块，让引擎在基础设施初始化期间注册 Spine WASM。
 // 避免首次从关卡编辑器进入游戏时才加载骨骼分包，错过初始化委托。
@@ -69,7 +70,9 @@ export class AppInit extends BaseAppInit {
 
     /** 首页与游戏资源均准备完成后才放行，失败项独立重试。 */
     private loadHome(): void {
-        const tasks = [
+        // 使用存档选中的地块，地块与挡板都完成后才结束启动加载。
+        const terrain = GameTerrain.entry;
+        const tasks: Array<{ bundle: string; path: string; type: typeof Asset }> = [
             { bundle: 'page-home', path: 'PageHome', type: Prefab },
             { bundle: 'page-game', path: 'PageGame', type: Prefab },
             ...['StarFlightView', 'GroundImpactView', 'NewbieGuideView', 'SettingsPanel',
@@ -77,6 +80,8 @@ export class AppInit extends BaseAppInit {
                     bundle: 'page-game-res', path: 'prefabs/' + name, type: Prefab,
                 })),
             { bundle: 'page-game-res', path: 'levels/original-levels', type: JsonAsset },
+            { bundle: 'shared-terrains', path: 'terrains/' + terrain.file + '/spriteFrame', type: SpriteFrame },
+            { bundle: 'shared-terrains', path: 'terrains/blocks/' + terrain.id + '/spriteFrame', type: SpriteFrame },
         ];
         const progress = tasks.map(() => 0);
         const finished = tasks.map(() => false);
