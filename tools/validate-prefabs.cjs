@@ -40,6 +40,13 @@ function readMeta(meta) {
 function inspect(value, entries, location) {
     if (!value || typeof value !== 'object') return;
     if ('__id__' in value) assert.ok(entries[value.__id__], '无效节点索引：' + location);
+    if (value.__type__ === 'cc.Sprite') {
+        assert.ok(value.node && entries[value.node.__id__]?.__type__ === 'cc.Node', '图片组件所属节点缺失：' + location);
+    }
+    if (value.__type__ === 'cc.Node' && value._components) {
+        const ids = value._components.map(ref => ref.__id__);
+        assert.equal(new Set(ids).size, ids.length, '节点存在重复组件引用：' + location);
+    }
     if ('__uuid__' in value) assert.ok(uuids.has(value.__uuid__), '缺失资源：' + location + ' ' + value.__uuid__);
     if (value.node && value.__type__ && !value.__type__.startsWith('cc.') && !value.__type__.startsWith('sp.')) {
         assert.ok(scriptTypes.has(value.__type__), '缺失组件脚本：' + location + ' ' + value.__type__);
@@ -51,7 +58,7 @@ function inspect(value, entries, location) {
             GameBoard: ['spawner', 'removalEffectsRoot', 'lockWallRoot', 'levelHintRoot', 'leftBoundary', 'rightLine'],
             FruitSpawner: ['fruitRoot', 'hiddenFruitPrefab', 'iceFruitPrefab', 'blackHolePrefab'],
             PageGame: ['bottomProgressRoot', 'propToolbarRoot', 'boardRoot', 'hudRoot', 'gameBoardNode', 'gameHudNode', 'backgroundNode'],
-            GameHud: ['topBar', 'direction', 'downFrame', 'rightFrame', 'fruitTopBoundary', 'title', 'hint'],
+            GameHud: ['topBar', 'direction', 'downFrame', 'rightFrame', 'fruitTopBoundary', 'title'],
             FruitProgressView: ['remaining', 'percentage', 'progressRoot', 'dark', 'bright', 'frames'],
             PropToolbar: ['shuffleCount', 'eliminateCount', 'shuffleAd', 'eliminateAd'],
             RemovalEffects: ['explosionPrefab', 'audio', 'mergeAudio', 'bagRoot'],

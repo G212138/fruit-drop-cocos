@@ -1,4 +1,4 @@
-import { _decorator, Component, Sprite, SpriteFrame, Node, UITransform } from 'cc';
+import { _decorator, Component, Sprite, SpriteFrame, Node, UITransform, isValid } from 'cc';
 import { GameTheme } from '../../../../../../../app-builtin/app-model/expansion/GameTheme';
 const { ccclass, property } = _decorator;
 
@@ -14,9 +14,14 @@ export class GameThemeView extends Component {
     /** 页面入场及复用时刷新主题。 */
     onEnable(): void {
         GameTheme.refresh();
-        this.targets.forEach((sprite, index) => { sprite.spriteFrame = this.frames[index]; });
+        this.targets.forEach((sprite, index) => {
+            // 编辑器删除节点后可能保留组件引用，跳过已销毁目标。
+            if (!isValid(sprite, true) || !isValid(sprite.node, true)) return;
+            const frame = this.frames[index];
+            if (frame) sprite.spriteFrame = frame;
+        });
         const terrain = this.targets[1]?.node;
-        if (terrain?.name === 'TerrainVisual') {
+        if (isValid(terrain, true) && terrain.name === 'TerrainVisual') {
             const grass = true;
             // 草地图裁去底部110源像素，按853源高对应830设计高度换算，顶部与物理位置不动。
             const height = grass ? 830 * 743 / 853 : 830;
@@ -24,9 +29,11 @@ export class GameThemeView extends Component {
             terrain.getComponent(UITransform)!.setContentSize(750, height);
             terrain.setPosition(0, shift, 0);
             for (const edge of this.terrainEdges) {
+                if (!isValid(edge, true)) continue;
                 edge.active = true;
                 const image = edge.children[0];
-                image.getComponent(UITransform)!.setContentSize(750, height);
+                if (!isValid(image, true)) continue;
+                image.getComponent(UITransform)?.setContentSize(750, height);
                 image.setPosition(image.position.x, shift, 0);
             }
         }
