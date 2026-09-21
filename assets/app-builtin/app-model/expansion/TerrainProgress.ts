@@ -76,10 +76,13 @@ export class TerrainProgress {
     selected: string = terrainCatalog[0].id;
     /** 各地块完整观看次数，最大为两次。 */
     private views: Record<string, number> = {};
+    /** 未完成观看记录所属的设备本地日期。 */
+    private day = '';
     /** 存储失败状态。 */
     warning = '';
-    /** @param storage 平台持久化边界。 */
-    constructor(private readonly storage: ProgressStorage) {
+    /** @param storage 平台持久化边界。 @param now 本地日期时钟，测试可注入。 */
+    constructor(private readonly storage: ProgressStorage, private readonly now: () => Date = () => new Date()) {
+        this.day = this.today();
         try {
             const raw = storage.getItem(this.key);
             if (!raw) return;
@@ -90,11 +93,34 @@ export class TerrainProgress {
                 const count = value.views?.[entry.id];
                 if (Number.isInteger(count) && count >= 0 && count <= 2) this.views[entry.id] = count;
             }
-            if (this.isUnlocked(value.selected)) this.selected = value.selected;
+            if (terrainCatalog.some(entry => entry.id === value.selected)
+                && (value.selected === terrainCatalog[0].id || this.views[value.selected] === 2)) this.selected = value.selected;
+            this.day = typeof value.day === 'string' ? value.day : '';
+            this.refreshDay();
         } catch { this.warning = 'read'; }
     }
     /** @param id 稳定地块编号。 */
-    watched(id: string): number { return this.views[id] || 0; }
+    watched(id: string): number {
+        this.refreshDay();
+        return this.views[id] || 0;
+    }
+    /** 日期变化时只清除未满两次的记录，已解锁地块永久保留；返回是否跨天。 */
+    refreshDay(): boolean {
+        const today = this.today();
+        if (this.day === today) return false;
+        const unlocked: Record<string, number> = {};
+        for (const id of Object.keys(this.views)) if (this.views[id] === 2) unlocked[id] = 2;
+        this.day = today;
+        // 即使写入失败，本次会话也不能使用过期次数；下次读取旧日期仍会再次清理。
+        this.views = unlocked;
+        this.save(this.selected, unlocked);
+        return true;
+    }
+    /** 使用设备本地年月日，不以UTC日期或滚动24小时计算。 */
+    private today(): string {
+        const date = this.now();
+        return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+    }
     /** @param id 只有默认项或完整观看两次的地块可使用。 */
     isUnlocked(id: string): boolean {
         return terrainCatalog.some(item => item.id === id) && (id === terrainCatalog[0].id || this.watched(id) >= 2);
@@ -107,12 +133,13 @@ export class TerrainProgress {
     }
     /** @param id 已解锁地块；保存失败不改变选择。 */
     select(id: string): boolean {
+        this.refreshDay();
         return this.isUnlocked(id) && this.save(id, this.views);
     }
     /** @param selected 已确认选项。 @param views 已校验的完整观看次数。 */
     private save(selected: string, views: Record<string, number>): boolean {
         try {
-            this.storage.setItem(this.key, JSON.stringify({ version: 2, selected, views }));
+            this.storage.setItem(this.key, JSON.stringify({ version: 2, selected, views, day: this.day }));
             this.selected = selected;
             this.views = views;
             this.warning = '';

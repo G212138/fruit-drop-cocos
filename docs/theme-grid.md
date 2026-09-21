@@ -4,10 +4,13 @@ PopTheme 使用三列垂直滚动网格，按 terrainCatalog 展示全部11个�
 
 默认仅晴日草坡解锁。其他地块分别完整观看两次激励广告，显示0/2、1/2；完成两次后显示“使用”，点击后切换为“使用中”。广告关闭、失败、不可用、失效回调和并发点击不增加次数。保存失败不更新内存权益，不能绕过锁定直接选择。
 
-广告位：ad7686756249044322312，用途 terrain-unlock。使用全局 TikTokRewardProvider 与 RewardGate，浏览器不伪造完成。真实投放与设备回调需要在 TikTok 真机确认。
+广告位：ad7686756249044322312，用途 terrain-unlock。使用全局 TikTokRewardProvider 与 RewardGate，浏览器DEV环境复用现有 DevelopmentRewardPanel 测试框，需手动选择完整观看、取消或失败；正式构建不会启用模拟。真实投放与设备回调需要在 TikTok 真机确认。
 
-存档沿用 fruit-drop.terrain.v1 键，内部结构升级为 version:2，保存 selected 和各地块 views。旧version:1没有付费/广告权益，按新规则默认回到草坡；有效新版记录保留进度。切换掉落物图鉴不受影响。
+存档沿用 fruit-drop.terrain.v1 键，内部结构升级为 version:2，保存 selected、各地块 views 和设备本地日期 day。旧version:1没有付费/广告权益，按新规则默认回到草坡；当天未完成进度保留，跨本地自然日清除不足2次的进度；已解锁永久保留。旧版无日期记录保留已解锁权益，清除未完成次数。弹窗展示时每秒检查跨日，广告跨午夜完成计入新一天；存储失败也不会复活旧的未完成次数。切换掉落物图鉴不受影响。
 
 设置与主题共用图片已移动到 assets/res-bundle/shared-ui/images/dialog-{panel,header,row,close}.png，保持原UUID，没有复制第二套。预览直接引用 shared-terrains 的现有素材。主题私有脚本仍在 pop/theme/native/expansion；弹窗随XForge缓存。
 
-验证：地块两次解锁/存档迁移/失败回滚/并发/关闭失效/八语种回归、TikTok广告位路由和真实完成标识模拟、启动预加载、Pop绑定与资源引用检查。浏览器检查三列预览、上下滚动、无平台广告时不增加进度。
+验证：地块两次解锁/存档迁移/失败回滚/并发/关闭失效/八语种回归、TikTok广告位路由和真实完成标识模拟、启动预加载、Pop绑定与资源引用检查。浏览器检查三列预览、上下滚动及广告开发测试框。
+
+广告结果与存储错误统一使用 app.manager.ui.showToast，已移除面板底部 Status 节点。
+11个预览均使用编辑器内独立圆角遮罩，与预览底框保持相同轮廓，避免地块直角和底部边缘露出。

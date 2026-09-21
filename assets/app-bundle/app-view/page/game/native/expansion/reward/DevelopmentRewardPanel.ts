@@ -17,7 +17,7 @@ export class DevelopmentRewardPanel extends Component implements RewardProvider 
     show(request: RewardRequest): Promise<RewardResponse> {
         this.finish('cancelled');
         this.request = request;
-        this.description.string = '广告开发模拟\n用途：' + (request.placement === 'expand-slot' ? '扩展底部空间' : request.placement === 'revive' ? '复活并继续本关' : request.placement === 'prop' ? '获得1次所选道具' : request.placement) + '\n本次操作不产生广告收入';
+        this.description.string = '广告开发模拟\n用途：' + (request.placement === 'terrain-unlock' ? '地块解锁（累计2次）' : request.placement === 'expand-slot' ? '扩展底部空间' : request.placement === 'revive' ? '复活并继续本关' : request.placement === 'prop' ? '获得1次所选道具' : request.placement) + '\n本次操作不产生广告收入';
         this.node.setSiblingIndex(this.node.parent!.children.length - 1);
         this.node.active = true;
         return new Promise(resolve => { this.resolve = resolve; });
