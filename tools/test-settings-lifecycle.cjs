@@ -28,11 +28,22 @@ assert.doesNotThrow(()=>panel.onDestroy(),'父组件销毁不能再访问已释�
 console.log('通过：面板重复启停、关闭去重、监听解除及先销毁子节点的清理顺序。');
 
 // 同一面板在首页与游戏之间复用时，重置子弹窗并按可见内容调整高度。
-panel.backgroundSize={setContentSize(){}};panel.titlePlate={setPosition(){}};panel.closeButton={setPosition(){}};
+function positioned(x,y,z){return {position:{x,y,z},setPosition(x,y,z){this.position={x,y,z}}};}
+panel.backgroundSize={setContentSize(){}};panel.titlePlate=positioned(8,292,1);panel.closeButton=positioned(265,288,2);
 panel.languageRow={active:true};panel.gameActions={active:false};panel.languageOptions={active:true};
 let bodyHeight=0,contentSize;
 panel.bodyLayout={node:{getComponent(){return {height:bodyHeight}}},updateLayout(){bodyHeight=panel.gameActions.active?560:464}};
-panel.content={getComponent(){return {setContentSize(w,h){contentSize=[w,h]}}},getComponentsInChildren(){return []}};
+const transform={height:576,setContentSize(w,h){this.height=h;contentSize=[w,h]}};
+panel.content={getComponent(){return transform},getComponentsInChildren(){return []}};
 panel.setMode('game');assert.equal(panel.languageRow.active,false);assert.equal(panel.gameActions.active,true);assert.equal(panel.languageOptions.active,false);assert.deepEqual(contentSize,[600,672]);
 panel.languageOptions.active=true;panel.setMode('home');assert.equal(panel.languageRow.active,true);assert.equal(panel.gameActions.active,false);assert.equal(panel.languageOptions.active,false);assert.deepEqual(contentSize,[600,576]);
 console.log('通过：首页/游戏复用时的功能区、语言子面板及高度切换。');
+
+assert.deepEqual(panel.titlePlate.position,{x:8,y:292,z:1});
+assert.deepEqual(panel.closeButton.position,{x:265,y:288,z:2});
+for(let i=0;i<5;i++){
+ panel.setMode('game');assert.deepEqual(panel.titlePlate.position,{x:8,y:340,z:1});assert.deepEqual(panel.closeButton.position,{x:265,y:336,z:2});
+ panel.setMode('game');assert.deepEqual(panel.titlePlate.position,{x:8,y:340,z:1});
+ panel.setMode('home');assert.deepEqual(panel.titlePlate.position,{x:8,y:292,z:1});assert.deepEqual(panel.closeButton.position,{x:265,y:288,z:2});
+}
+console.log('通过：保留手调标题和关闭按钮位置，反复切换模式不累积偏移。');

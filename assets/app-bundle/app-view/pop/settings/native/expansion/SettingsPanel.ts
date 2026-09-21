@@ -42,15 +42,21 @@ export class SettingsPanel extends Component {
 
     /** 根据入口切换功能区并重排；112设计像素为标题与底部留白。 */
     setMode(mode: 'home' | 'game'): void {
+        const contentSize = this.content.getComponent(UITransform)!;
+        const previousHeight = contentSize.height;
         this.languageOptions.active = false;
         this.languageRow.active = mode === 'home';
         this.gameActions.active = mode === 'game';
         this.bodyLayout.updateLayout();
         const height = this.bodyLayout.node.getComponent(UITransform)!.height + 112;
-        this.content.getComponent(UITransform)!.setContentSize(600, height);
+        contentSize.setContentSize(600, height);
         this.backgroundSize.setContentSize(600, height);
-        this.titlePlate.setPosition(0, height / 2 - 18, 0);
-        this.closeButton.setPosition(248, height / 2 - 36, 0);
+        // 仅补偿顶边高度变化，保留编辑器调整的横向位置和距顶边间距。
+        const topOffset = (height - previousHeight) / 2;
+        for (const node of [this.titlePlate, this.closeButton]) {
+            const position = node.position;
+            node.setPosition(position.x, position.y + topOffset, position.z);
+        }
     }
 
     /** 关闭动画期间拒绝重复操作，防止重复重开或返回。 */
