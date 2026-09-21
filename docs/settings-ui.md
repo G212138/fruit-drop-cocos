@@ -47,3 +47,5 @@
 功能行 row.png 最终按用户提供的原设计截图重绘：奶油白哑光圆角矩形、轻微上边高光、浅米色下缘阴影；移除金边与胶囊造型。最终510×104，图标、文字及开关保持独立节点。
 提示词：Extract only the blank ivory rounded rectangle row card from approved reference, warm matte ivory, thin soft white upper highlight, subtle beige ambient occlusion, shallow relief, radius18% of height, no gold border, no text/icons/toggle, transparent RGBA. 采用内置 image_gen，裁切后替换 row.png，保留 UUID。
 继续按钮复用 row.png，保留510×104尺寸、图标与点击事件，暖金色 tint 为 #FFD464。无引用的旧 primary.png 已删除。
+
+设置与主题弹窗共用的 panel/header/row/close 已迁入 shared-ui/images/dialog-*.png，保持原UUID与引用，避免两份资源。
