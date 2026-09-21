@@ -49,10 +49,10 @@
         "height": 102,
         "rawWidth": 510,
         "rawHeight": 104,
-        "borderTop": 0,
-        "borderBottom": 0,
-        "borderLeft": 58,
-        "borderRight": 58,
+        "borderTop": 30,
+        "borderBottom": 30,
+        "borderLeft": 30,
+        "borderRight": 30,
         "packable": true,
         "pixelsToUnit": 100,
         "pivotX": 0.5,
@@ -127,7 +127,7 @@
   },
   "userData": {
     "type": "sprite-frame",
-    "fixAlphaTransparencyArtifacts": false,
+    "fixAlphaTransparencyArtifacts": true,
     "hasAlpha": true,
     "redirect": "b920285a-8b4d-4d14-9da3-df1d98a8ba44@6c48a"
   }
