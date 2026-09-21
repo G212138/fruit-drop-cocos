@@ -41,7 +41,7 @@ for(const code of ['en','zh','ja','id','th','vi','ms','fil']){language.current=c
 const notices=[];
 const {TerrainPanel}=compile(ui+'TerrainPanel.ts',p=>p==='cc'?cc:p==='cc/env'?{DEV:false}:p.endsWith('TikTokRuntime')?{getTikTokGame:()=>({})}:p.endsWith('/app')?{app:{manager:{ui:{showToast:text=>notices.push(text)}}}}:p.endsWith('GameTerrain')?{GameTerrain:{current:model}}:p.endsWith('TerrainProgress')?{terrainCatalog}:p.endsWith('GameLanguage')?{GameLanguage:language}:p.endsWith('RewardGate')?reward:p.endsWith('TikTokRewardProvider')?{TikTokRewardProvider:{shared:provider}}:words);
 function node(){const parts={};return {active:true,getComponent(){return this},getChildByName(k){return parts[k]||(parts[k]=node())}};}
-const p=new TerrainPanel();p.node={active:true,activeInHierarchy:true};p.heading={};p.scroll={stopAutoScroll(){},scrollToTop(){}};p.cards=terrainCatalog.map(()=>node());
+const p=new TerrainPanel();p.node={active:true,activeInHierarchy:true};p.heading={};p.scroll={stopAutoScroll(){},scrollToTop(){}};p.cards=terrainCatalog.map(()=>node());p.cardTitles=p.cards.map(n=>n.getChildByName('Title'));p.selections=p.cards.map(n=>n.getChildByName('Selected'));p.actions=p.cards.map(n=>n.getChildByName('Action'));p.captions=p.actions.map(n=>n.getChildByName('Caption'));p.adIcons=p.actions.map(n=>n.getChildByName('Ad'));
 (async()=>{
  p.open();let request=p.choose(null,'cream');await p.choose(null,'ice');assert.equal(ads,1);pending.shift()('cancelled');await request;assert.equal(model.watched('cream'),0);assert.ok(notices.length>0);
  request=p.choose(null,'cream');pending.shift()('failed');await request;assert.equal(model.watched('cream'),0);

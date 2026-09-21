@@ -52,8 +52,8 @@ function inspect(value, entries, location) {
         assert.ok(scriptTypes.has(value.__type__), '缺失组件脚本：' + location + ' ' + value.__type__);
         const required = {
             PopPlatformReward: ['panel'], HomeRevisitEntry: ['shortcutButton','profileButton','shortcutLabel','profileLabel'], TikTokRevisitView: ['shortcutDialog','profileDialog','shortcutDescription','profileDescription','shortcutReward','profileReward','shortcutAction','profileAction','shortcutNotice','profileNotice'], PopTheme: ['panel'], PopCollection: ['panel'], PopSettings: ['panel'],
-            TerrainPanel: ['cards','heading','scroll'],
-            ThemePanel: ['content','icons','frames','title','heading','status','tabs','confirmButton','confirmLabel','countLabel','equippedChecks'],
+            TerrainPanel: ['cards','cardTitles','selections','actions','captions','adIcons','heading','scroll'],
+            ThemePanel: ['content','icons','frames','names','locks','cards','cardFrames','title','heading','categoryIcon','dots','dotFrames','pager','confirmButton','confirmLabel','countLabel','progress'],
             SettingsPanel: ['content','opacity','musicRow','soundRow','vibrateRow','bodyLayout','languageRow','gameActions','languageOptions','backgroundSize','titlePlate','closeButton'],
             GameBoard: ['spawner', 'removalEffectsRoot', 'lockWallRoot', 'levelHintRoot', 'leftBoundary', 'rightLine'],
             FruitSpawner: ['fruitRoot', 'hiddenFruitPrefab', 'iceFruitPrefab', 'blackHolePrefab'],

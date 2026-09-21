@@ -1,104 +1,143 @@
 import { _decorator, Component, Node, Sprite, SpriteFrame, Label, Color, Tween, tween, Vec3, Button } from 'cc';
+import { app } from '../../../../../../app/app';
 import { ThemeProgress } from '../../../../../../app-builtin/app-model/expansion/ThemeProgress';
 import { GameTheme } from '../../../../../../app-builtin/app-model/expansion/GameTheme';
 import { GameLanguage } from '../../../../../../app-builtin/app-model/expansion/GameLanguage';
+import { CollectionPager } from './CollectionPager';
+import { collectionName, collectionText } from './CollectionText';
 const { ccclass, property } = _decorator;
-/** 主题预览和确认使用；只更新编辑器创建的节点。 */
+/** 双页收藏册；滑动仅浏览，完整解锁后明确确认才更换游戏品类。 */
 @ccclass('ThemePanel')
 export class ThemePanel extends Component {
-    /** 弹窗内容，尺寸由预制体维护。 */
+    /** 编辑器维护的弹窗内容。 */
     @property(Node) content: Node = null!;
-    /** 当前分类的30个物品图标。 */
+    /** 两组各30个图标，顺序与原素材一致。 */
     @property([Sprite]) icons: Sprite[] = [];
-    /** 水果、甜品各30张图片。 */
+    /** 共60张现有高清物品图。 */
     @property([SpriteFrame]) frames: SpriteFrame[] = [];
-    /** 当前预览分类名称。 */
+    /** 每张卡片的本地化名称。 */
+    @property([Label]) names: Label[] = [];
+    /** 未解锁时展示的立体小锁。 */
+    @property([Node]) locks: Node[] = [];
+    /** 全部卡片背景，随解锁状态切换。 */
+    @property([Sprite]) cards: Sprite[] = [];
+    /** 普通、锁定两张卡片图片。 */
+    @property([SpriteFrame]) cardFrames: SpriteFrame[] = [];
+    /** 当前分类名。 */
     @property(Label) title: Label = null!;
-    /** 图鉴标题，与地块主题面板区分。 */
+    /** 图鉴标题。 */
     @property(Label) heading: Label = null!;
-    /** 使用、预览或锁定状态。 */
-    @property(Label) status: Label = null!;
-    /** 每个分类的普通、选中外观。 */
-    @property([Node]) tabs: Node[] = [];
-    /** 确认后才修改主题。 */
+    /** 当前分类代表物品。 */
+    @property(Sprite) categoryIcon: Sprite = null!;
+    /** 两个分页圆点。 */
+    @property([Sprite]) dots: Sprite[] = [];
+    /** 选中蓝点与未选中米色点。 */
+    @property([SpriteFrame]) dotFrames: SpriteFrame[] = [];
+    /** 横向分页控制。 */
+    @property(CollectionPager) pager: CollectionPager = null!;
+    /** 全部解锁后点击使用这组。 */
     @property(Button) confirmButton: Button = null!;
-    /** 确认按钮状态文字。 */
+    /** 使用按钮的本地化状态。 */
     @property(Label) confirmLabel: Label = null!;
-    /** 解锁数量。 */
+    /** 已收集数量。 */
     @property(Label) countLabel: Label = null!;
-    /** 当前使用主题的标记。 */
-    @property([Node]) equippedChecks: Node[] = [];
+    /** 当前组的黄金进度条，使用水平填充。 */
+    @property(Sprite) progress: Sprite = null!;
     /** 当前正式待挑战关卡。 */
     private level = 1;
-    /** 只浏览尚未应用的选择。 */
+    /** 当前只浏览的分类。 */
     private browsing: 1 | 2 = 1;
-    /** 稳定译文订阅引用。 */
+    /** 稳定语言回调。 */
     private readonly languageChanged = (): void => this.render();
-    /** 启用时订阅语言变化。 */
-    onEnable(): void { GameLanguage.subscribe(this.languageChanged); }
-    /** 禁用时解除订阅。 */
-    onDisable(): void { GameLanguage.unsubscribe(this.languageChanged); }
-    /** @param level 正式待挑战关卡；打开时恢复正在使用的分类。 */
+    /** 订阅语言与分页变化。 */
+    onEnable(): void {
+        GameLanguage.subscribe(this.languageChanged);
+        this.pager.node.on('collection-page', this.pageChanged, this);
+    }
+    /** 关闭时释放订阅，停止弹窗动画。 */
+    onDisable(): void {
+        GameLanguage.unsubscribe(this.languageChanged);
+        this.pager.node.off('collection-page', this.pageChanged, this);
+        Tween.stopAllByTarget(this.content);
+    }
+    /** @param level 正式待挑战关卡，试玩不增加解锁数量。 */
     open(level: number): void {
         this.level = level;
         this.browsing = GameTheme.current.resolve(level);
         this.node.active = true;
+        this.pager.show(this.browsing - 1, false);
         Tween.stopAllByTarget(this.content);
-        this.content.setScale(0.94, 0.94, 1);
-        tween(this.content).to(0.25, { scale: new Vec3(1, 1, 1) }, { easing: 'backOut' }).start();
+        this.content.setScale(.96, .96, 1);
+        tween(this.content).to(.2, { scale: new Vec3(1, 1, 1) }, { easing: 'quadOut' }).start();
         this.render();
     }
-    /** 预览水果，不写入存档。 */
-    chooseFruit(): void { this.choose(1); }
-    /** 预览甜品，不写入存档。 */
-    chooseDessert(): void { this.choose(2); }
-    /** @param theme 要预览的分类编号。 */
-    private choose(theme: 1 | 2): void {
-        this.browsing = theme;
-        this.render();
+    /** 分页圆点为滑动提供辅助入口，不自动应用选择。 */
+    chooseFruit(): void {
+        this.pager.show(0);
     }
-    /** 确认后保存并应用；失败时保留原使用主题。 */
+    /** 浏览甜点，仍需确认使用。 */
+    chooseDessert(): void {
+        this.pager.show(1);
+    }
+    /** @param index 滑动完成的零起始页码。 */
+    private pageChanged(index: number): void {
+        this.browsing = index === 0 ? 1 : 2;
+        this.renderHeader();
+    }
+    /** 完整解锁才能切换；保存失败使用框架提示且回退原选择。 */
     confirmUse(): void {
         const model = GameTheme.current;
-        if (this.browsing === model.resolve(this.level) || (this.browsing === 2 && this.level <= ThemeProgress.itemCount)) return;
+        if (this.browsing === model.resolve(this.level) || this.unlockedCount(this.browsing) !== ThemeProgress.itemCount) return;
         const previous = model.selected;
-        const saved = model.select(this.browsing, this.level);
-        if (!saved || model.warning) {
+        if (!model.select(this.browsing, this.level) || model.warning) {
             model.selected = previous;
-            this.render();
-            this.status.string = GameLanguage.text('themeSaveError');
-            return;
+            app.manager.ui.showToast(GameLanguage.text('themeSaveError'));
+        } else {
+            GameTheme.active = model.resolve(this.level);
         }
-        GameTheme.active = model.resolve(this.level);
-        this.render();
+        this.renderHeader();
     }
-    /** 刷新图标、预览状态和确认门槛。 */
-    private render(): void {
-        if (this.heading) this.heading.string = GameLanguage.text('collection');
-        this.title.string = GameLanguage.text(this.browsing === 1 ? 'fruits' : 'sweets');
-        const equipped = GameTheme.current.resolve(this.level);
-        const inUse = equipped === this.browsing;
-        const locked = this.browsing === 2 && this.level <= ThemeProgress.itemCount;
-        this.status.string = GameLanguage.text(inUse ? 'themeInUse' : locked ? 'themeLocked' : 'themePreview');
-        if (this.confirmButton) this.confirmButton.interactable = !inUse && !locked;
-        if (this.confirmLabel) this.confirmLabel.string = GameLanguage.text(inUse ? 'themeInUse' : locked ? 'themeLocked' : 'confirmTheme');
-        this.equippedChecks.forEach((node, index) => { node.active = index + 1 === equipped; });
+    /** @param theme 统计某一组的实际已解锁数量。 */
+    private unlockedCount(theme: 1 | 2): number {
         let count = 0;
-        for (let index = 0; index < ThemeProgress.itemCount; index++) if (GameTheme.current.unlocked(this.browsing, index, this.level)) count++;
-        if (this.countLabel) this.countLabel.string = GameLanguage.text('themeCount', {count, total: ThemeProgress.itemCount});
-        this.tabs.forEach((node, index) => { node.active = index === (this.browsing === 1 ? 1 : 0) || index === (this.browsing === 2 ? 3 : 2); });
-        this.icons.forEach((icon, index) => {
-            icon.spriteFrame = this.frames[(this.browsing - 1) * ThemeProgress.itemCount + index];
-            icon.color = GameTheme.current.unlocked(this.browsing, index, this.level)
-                ? new Color(255, 255, 255, 255) : new Color(0, 0, 0, 90);
-        });
+        for (let i = 0; i < ThemeProgress.itemCount; i++) {
+            if (GameTheme.current.unlocked(theme, i, this.level)) count++;
+        }
+        return count;
     }
-    /** 关闭只丢弃预览，下次打开重新读取使用项。 */
+    /** 保持卡片设计尺寸，填充现有两组物品，不在运行时创建节点。 */
+    private render(): void {
+        this.heading.string = GameLanguage.text('collection');
+        this.icons.forEach((icon, index) => {
+            const group = index < ThemeProgress.itemCount ? 1 : 2;
+            const unlocked = GameTheme.current.unlocked(group, index % ThemeProgress.itemCount, this.level);
+            icon.spriteFrame = this.frames[index];
+            icon.grayscale = !unlocked;
+            icon.color = unlocked ? Color.WHITE : new Color(144, 165, 185, 140);
+            this.names[index].string = unlocked ? collectionName(GameLanguage.current, index) : collectionText(GameLanguage.current, 0);
+            this.names[index].color = unlocked ? new Color(25, 56, 88) : new Color(96, 116, 134);
+            this.locks[index].active = !unlocked;
+            this.cards[index].spriteFrame = this.cardFrames[unlocked ? 0 : 1];
+        });
+        this.renderHeader();
+    }
+    /** 更新当前组名称、收集数、分页点和使用按钮。 */
+    private renderHeader(): void {
+        this.title.string = GameLanguage.text(this.browsing === 1 ? 'fruits' : 'sweets');
+        this.categoryIcon.spriteFrame = this.frames[this.browsing === 1 ? 1 : 46];
+        this.dots.forEach((dot, index) => { dot.spriteFrame = this.dotFrames[index === this.browsing - 1 ? 0 : 1]; });
+        const count = this.unlockedCount(this.browsing);
+        this.countLabel.string = collectionText(GameLanguage.current, 1, count);
+        this.progress.fillRange = count / ThemeProgress.itemCount;
+        const inUse = GameTheme.current.resolve(this.level) === this.browsing;
+        const locked = count < ThemeProgress.itemCount;
+        this.confirmButton.interactable = !inUse && !locked;
+        this.confirmButton.getComponent(Sprite)!.grayscale = locked;
+        this.confirmLabel.string = inUse ? GameLanguage.text('themeInUse') : collectionText(GameLanguage.current, locked ? 3 : 2);
+    }
+    /** 浏览不会写存档，关闭后下次按已应用的品类打开。 */
     close(): void {
         Tween.stopAllByTarget(this.content);
         this.node.emit('panel-close');
     }
-    /** 销毁时停止内容动画。 */
-    onDestroy(): void { Tween.stopAllByTarget(this.content); }
 }
-

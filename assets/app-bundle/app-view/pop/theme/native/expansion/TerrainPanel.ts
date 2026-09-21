@@ -15,6 +15,16 @@ const { ccclass, property } = _decorator;
 export class TerrainPanel extends Component {
     /** 按地块目录顺序绑定的全部卡片。 */
     @property([Node]) cards: Node[] = [];
+    /** 按卡片顺序绑定的名称，绘制时集中合批。 */
+    @property([Label]) cardTitles: Label[] = [];
+    /** 同序选中底框。 */
+    @property([Node]) selections: Node[] = [];
+    /** 同序独立操作按钮。 */
+    @property([Node]) actions: Node[] = [];
+    /** 同序按钮文案，与背景分层合批。 */
+    @property([Label]) captions: Label[] = [];
+    /** 同序广告标识。 */
+    @property([Node]) adIcons: Node[] = [];
     /** 本地化标题。 */
     @property(Label) heading: Label = null!;
     /** 全部地块使用垂直滚动。 */
@@ -110,13 +120,13 @@ export class TerrainPanel extends Component {
         this.cards.forEach((card, index) => {
             const id = terrainCatalog[index].id;
             const unlocked = model.isUnlocked(id), used = model.selected === id;
-            card.getChildByName('Title')!.getComponent(Label)!.string = terrainName(index);
-            card.getChildByName('Selected')!.active = used;
-            const action = card.getChildByName('Action')!;
+            this.cardTitles[index].string = terrainName(index);
+            this.selections[index].active = used;
+            const action = this.actions[index];
             action.getComponent(Button)!.interactable = !this.busyId && !used;
             action.getComponent(Sprite)!.color = used ? new Color(204,210,210) : unlocked ? new Color(221,239,221) : new Color(255,212,100);
-            action.getChildByName('Ad')!.active = !unlocked;
-            action.getChildByName('Caption')!.getComponent(Label)!.string = this.busyId === id ? terrainText('busy')
+            this.adIcons[index].active = !unlocked;
+            this.captions[index].string = this.busyId === id ? terrainText('busy')
                 : used ? terrainText('used') : unlocked ? terrainText('use') : terrainText('unlock', model.watched(id));
         });
     }
