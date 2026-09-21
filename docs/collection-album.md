@@ -21,3 +21,5 @@ CollectionVisibility 在滚动后只启用可见区域的Sprite/Label，整页�
 预览实测：优化后图鉴约40 Draw Call、主题约70（此前用户截图分别219、119）；尚未验证正式构建数据。新增8张UI切图共约119KB，无额外物品图集或缩略图。
 
 翻页补充：忽略ScrollView合成取消；横向移动造成原目标外松手时按最终距离提交，短拖回弹。已验证左右按钮、双向滑动、纵向滚动，新增test-collection-navigation.cjs覆盖取消及按钮边界。
+
+进度条重制：内置imagegen分别生成透明奶油内凹底槽和柔和金黄立体填充，无文字、装饰或外光晕；保留柔光高光和圆形端头。切图保存为同目录album-meter-track.png（407×36）与album-meter-fill.png（258×20），显示为532×36和512×20。两张图只横向九宫格伸缩，ProgressBar控制填充宽度，零进度隐藏填充。旧album-progress-track.png已删除，原album-progress-fill.png仍供金色按钮使用。全量、29/30和零进度逻辑测试通过，完整进度已在浏览器实测。

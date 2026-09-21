@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, SpriteFrame, Label, Color, Tween, tween, Vec3, Button } from 'cc';
+import { _decorator, Component, Node, Sprite, ProgressBar, SpriteFrame, Label, Color, Tween, tween, Vec3, Button } from 'cc';
 import { app } from '../../../../../../app/app';
 import { ThemeProgress } from '../../../../../../app-builtin/app-model/expansion/ThemeProgress';
 import { GameTheme } from '../../../../../../app-builtin/app-model/expansion/GameTheme';
@@ -42,7 +42,7 @@ export class ThemePanel extends Component {
     /** 已收集数量。 */
     @property(Label) countLabel: Label = null!;
     /** 当前组的黄金进度条，使用水平填充。 */
-    @property(Sprite) progress: Sprite = null!;
+    @property(ProgressBar) progress: ProgressBar = null!;
     /** 当前正式待挑战关卡。 */
     private level = 1;
     /** 当前只浏览的分类。 */
@@ -128,7 +128,8 @@ export class ThemePanel extends Component {
         this.dots.forEach((dot, index) => { dot.spriteFrame = this.dotFrames[index === this.browsing - 1 ? 0 : 1]; });
         const count = this.unlockedCount(this.browsing);
         this.countLabel.string = collectionText(GameLanguage.current, 1, count);
-        this.progress.fillRange = count / ThemeProgress.itemCount;
+        this.progress.progress = count / ThemeProgress.itemCount;
+        this.progress.barSprite!.node.active = count > 0;
         const inUse = GameTheme.current.resolve(this.level) === this.browsing;
         const locked = count < ThemeProgress.itemCount;
         this.confirmButton.interactable = !inUse && !locked;

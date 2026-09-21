@@ -8,3 +8,5 @@ function frame(data,name){const n=data.find(x=>x.__type__==='cc.Node'&&x._name==
 for(const name of ['Content','Title','Close'])assert.equal(frame(a,name),frame(b,name),'图鉴与主题外框必须共用：'+name);
 assert(!fs.existsSync(base+'collection/resources/textures/album-items.png'));assert(!fs.existsSync(base+'theme/resources/terrain-cards.png'));
 console.log('通过：图鉴3×4、100px原图、名称24号两行、三种共享外框资源，以及无重复物品图集/地块缩略图。');
+
+const meter=a[panel.progress.__id__];assert.equal(meter.__type__,"cc.ProgressBar");assert.equal(meter._totalLength,512);const fill=a[meter._barSprite.__id__];assert.equal(fill._type,1,"填充使用九宫格保留圆角");assert.equal(transform(a[fill.node.__id__])._contentSize.height,20);
