@@ -1,4 +1,6 @@
 import { _decorator, Color, Component, Label, Node, Sprite, SpriteFrame, isValid } from 'cc';
+import { ThemeProgress } from '../../../../../../../app-builtin/app-model/expansion/ThemeProgress';
+import { EditorSession } from '../../../../../../../app-builtin/app-model/expansion/level/EditorSession';
 const { ccclass, property } = _decorator;
 
 /** 原版剩余数量与双层进度图，脚本挂在游戏界面的普通节点上。 */
@@ -14,7 +16,7 @@ export class FruitProgressView extends Component {
     @property(Sprite) dark: Sprite = null!;
     /** 原色已完成扇区，从顶部顺时针填充。 */
     @property(Sprite) bright: Sprite = null!;
-    /** 原版31至60号进度图片，按关卡顺序绑定。 */
+    /** 可解锁物品图片，顺序与主题解锁规则一致。 */
     @property([SpriteFrame]) frames: SpriteFrame[] = [];
     /** 最近的真实进度，范围0至1，用于闪烁结束时恢复。 */
     private ratio = 0;
@@ -33,10 +35,11 @@ export class FruitProgressView extends Component {
         this.ratio = percent / 100;
         this.remaining.string = total > 0 ? String(remaining) : '—';
         this.percentage.string = percent + '%';
-        const frame = this.frames[Math.max(0, level - 1) % this.frames.length];
+        const index = ThemeProgress.unlockIndex(level);
+        const frame = index >= 0 ? this.frames[index] : null;
         if (frame) this.dark.spriteFrame = this.bright.spriteFrame = frame;
-        // 原版HideExtraUILevelThreshold默认60；31至60关复用现有30张图，避免缺图。
-        this.progressRoot.active = level <= 60;
+        // 整张卡片由同一根节点控制，试玩或没有解锁奖励时隐藏底框、图标与百分比。
+        this.progressRoot.active = !EditorSession.trial && !!frame;
         this.restoreFill();
     }
 
