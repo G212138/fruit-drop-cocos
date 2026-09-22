@@ -4,7 +4,7 @@ import { TikTokLifecycle } from './TikTokLifecycle';
 import { getTikTokGame, supportsTikTok, TikTokGameApi } from '../../app-model/expansion/platform/TikTokRuntime';
 import { TikTokConfig } from '../../app-model/expansion/platform/TikTokConfig';
 
-/** 前台同页30秒无操作展示插屏，不发放奖励。 */
+/** 非游戏进行期间，前台同页30秒无操作展示插屏，不发放奖励。 */
 export class IdleInterstitial {
     /** 全进程只注册一次。 */
     private static installed = false;
@@ -31,9 +31,13 @@ export class IdleInterstitial {
         // 广告会暂停引擎，使用独立250毫秒定时检查。
         setInterval(() => this.tick(), 250);
     }
-    /** 后台与广告等待期间不累计闲置时间。 */
+    /** 游戏进行中、后台与广告等待期间不累计闲置时间。 */
     private static tick(): void {
-        if (this.busy || TikTokLifecycle.blocked || game.isPaused()) { this.reset(); return; }
+        const playing = app.manager.ui.isShow('PageGame') && app.store.game.phase === 'playing';
+        if (playing || this.busy || TikTokLifecycle.blocked || game.isPaused()) {
+            this.reset();
+            return;
+        }
         if (Date.now() - this.lastActivity < 30000) return;
         this.reset();
         this.show();
