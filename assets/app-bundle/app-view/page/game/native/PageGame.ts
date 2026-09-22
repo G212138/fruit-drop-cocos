@@ -230,6 +230,9 @@ export class PageGame extends BaseView.BindController(GameController) {
         });
     }
 
+    /** 结算已请求显示或正在显示，避免清理尚未打开的弹窗。 */
+    private resultRequested = false;
+
     /** @param generation 本局代次；棋盘进入后下一帧加载独立结算，不阻塞开局。 */
     private prepareResult(generation: number): void {
         this.scheduleOnce(() => {
@@ -299,6 +302,7 @@ export class PageGame extends BaseView.BindController(GameController) {
     /** @param notice 广告取消或失败时交给框架提示的说明，省略则显示胜负结果。 */
     private showResult(notice?: string): void {
         const generation = this.generation;
+        this.resultRequested = true;
         app.manager.ui.show({
             name: 'PopResult',
             data: {
@@ -310,6 +314,9 @@ export class PageGame extends BaseView.BindController(GameController) {
                 onRevive: this.board?.canRevive ? () => {
                     if (this.isCurrent(generation)) void this.requestRevive();
                 } : undefined,
+            },
+            onHide: () => {
+                if (this.isCurrent(generation)) this.resultRequested = false;
             },
             onError: () => this.isCurrent(generation) && this.ended ? true : undefined,
         });
@@ -409,7 +416,10 @@ export class PageGame extends BaseView.BindController(GameController) {
     private releaseChildren(): void {
         if (this.pairHintRoot) this.pairHintRoot.active = false;
         this.shakeRequested = false;
-        app.manager.ui.hide({ name: 'PopResult' });
+        if (this.resultRequested) {
+            this.resultRequested = false;
+            app.manager.ui.hide({ name: 'PopResult' });
+        }
         if (this.newbieGuide && isValid(this.newbieGuide.node)) this.newbieGuide.node.destroy();
         this.newbieGuide = null;
         this.collectionFeedback.clear();

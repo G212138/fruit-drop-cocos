@@ -54,6 +54,8 @@ async function run(){
     actual.generation++;assert.equal(result.data.isCurrent(),false);assert.equal(result.onError(),undefined);
     actual.board=null;actual.collectionFeedback={clear(){}};actual.settingsController={end(){}};
     actual.releaseChildren();assert.deepEqual(hidden,['PopResult']);
+    actual.releaseChildren();assert.deepEqual(hidden,['PopResult'],'不重复关闭不存在的弹窗');
+    actual.showResult();shown.pop().onHide();actual.releaseChildren();assert.deepEqual(hidden,['PopResult'],'结算主动关闭后不再请求隐藏');
     console.log('通过：开局后延迟加载、旧代次取消、实际剩余数、失效显示/重试拦截及退出隐藏。');
     console.log('通过：真实页面取消/失败不发奖、成功顺序、跨页结果失效与资格门禁。');
 }
