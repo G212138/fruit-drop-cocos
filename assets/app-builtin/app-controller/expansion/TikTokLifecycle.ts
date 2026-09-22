@@ -13,6 +13,18 @@ export class TikTokLifecycle {
     private static hidden = false;
     /** 原生广告是否占用全屏。 */
     private static adVisible = false;
+    /** 独立记录插屏，避免覆盖激励广告暂停状态。 */
+    private static interstitialVisible = false;
+    /** 后台或任意广告占用时禁止闲置展示。 */
+    static get blocked(): boolean {
+        return this.hidden || this.adVisible || this.interstitialVisible;
+    }
+    /** 同步插屏暂停状态和激励广告互斥。 */
+    static setInterstitialVisible(visible: boolean): void {
+        this.interstitialVisible = visible;
+        TikTokRewardProvider.shared.interstitialBusy = visible;
+        this.applyPause();
+    }
     /** 后台通知的稳定引用。 */
     private static readonly hide = (): void => {
         this.hidden = true;
@@ -26,7 +38,7 @@ export class TikTokLifecycle {
 
     /** 汇总后台和广告占用，只有两者都结束后才恢复本适配器暂停的游戏。 */
     private static applyPause(): void {
-        if (this.hidden || this.adVisible) {
+        if (this.blocked) {
             if (!game.isPaused()) {
                 this.pausedHere = true;
                 game.pause();

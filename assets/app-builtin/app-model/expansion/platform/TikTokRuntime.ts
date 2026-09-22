@@ -33,6 +33,14 @@ export interface TikTokGameApi {
     canIUse?(schema: string): boolean;
     /** 根据后台广告位创建激励实例。 */
     createRewardedVideoAd?(options: { adUnitId: string }): TikTokRewardedAd;
+    /** 每次创建一个无奖励插屏实例。 */
+    createInterstitialAd?(options: { adUnitId: string }): {
+        show(): Promise<void>;
+        onClose(callback: () => void): void;
+        offClose(callback: () => void): void;
+        onError(callback: () => void): void;
+        offError(callback: () => void): void;
+    };
     /** 获取临时登录码，必须由自有后端换取身份。 */
     login?(options: TikTokCallbacks<{ code: string }>): void;
     /** 引导添加桌面；成功回调不等于获得任务奖励。 */

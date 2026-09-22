@@ -1,0 +1,69 @@
+import { game, input, Input } from 'cc';
+import { app } from '../../../app/app';
+import { TikTokLifecycle } from './TikTokLifecycle';
+import { getTikTokGame, supportsTikTok, TikTokGameApi } from '../../app-model/expansion/platform/TikTokRuntime';
+import { TikTokConfig } from '../../app-model/expansion/platform/TikTokConfig';
+
+/** 前台同页30秒无操作展示插屏，不发放奖励。 */
+export class IdleInterstitial {
+    /** 全进程只注册一次。 */
+    private static installed = false;
+    /** 上次操作或切页的毫秒时间。 */
+    private static lastActivity = 0;
+    /** 插屏请求锁。 */
+    private static busy = false;
+    /** 稳定操作监听引用。 */
+    private static readonly reset = (): void => { this.lastActivity = Date.now(); };
+    /** 首页就绪后安装；不支持插屏的环境不启动。 */
+    static install(): void {
+        const api = getTikTokGame();
+        if (this.installed || !supportsTikTok(api, 'createInterstitialAd')) return;
+        this.installed = true;
+        this.reset();
+        for (const event of [Input.EventType.TOUCH_START, Input.EventType.TOUCH_MOVE, Input.EventType.TOUCH_END,
+            Input.EventType.MOUSE_DOWN, Input.EventType.MOUSE_MOVE, Input.EventType.MOUSE_WHEEL, Input.EventType.KEY_DOWN] as const) {
+            input.on(event, this.reset);
+        }
+        app.manager.ui.on('onShow', this.reset);
+        app.manager.ui.on('onHide', this.reset);
+        api?.onShow?.(this.reset);
+        api?.onHide?.(this.reset);
+        // 广告会暂停引擎，使用独立250毫秒定时检查。
+        setInterval(() => this.tick(), 250);
+    }
+    /** 后台与广告等待期间不累计闲置时间。 */
+    private static tick(): void {
+        if (this.busy || TikTokLifecycle.blocked || game.isPaused()) { this.reset(); return; }
+        if (Date.now() - this.lastActivity < 30000) return;
+        this.reset();
+        this.show();
+    }
+    /** 创建一次性广告，异常或关闭都恢复游戏，不处理奖励。 */
+    private static show(): void {
+        const api = getTikTokGame();
+        if (!supportsTikTok(api, 'createInterstitialAd')) return;
+        this.busy = true;
+        TikTokLifecycle.setInterstitialVisible(true);
+        let ad: ReturnType<NonNullable<TikTokGameApi['createInterstitialAd']>> | null = null;
+        let settled = false;
+        /** 180秒失联保护，防止SDK不回调导致游戏永久暂停。 */
+        const timeout = setTimeout(() => finish(), 180000);
+        /** 关闭、失败、超时仅清理一次。 */
+        const finish = (): void => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timeout);
+            try { ad?.offClose(finish); } catch { /* 继续恢复。 */ }
+            try { ad?.offError(finish); } catch { /* 继续恢复。 */ }
+            this.busy = false;
+            this.reset();
+            TikTokLifecycle.setInterstitialVisible(false);
+        };
+        try {
+            ad = api!.createInterstitialAd!({ adUnitId: TikTokConfig.idleInterstitialAd });
+            ad.onClose(finish);
+            ad.onError(finish);
+            Promise.resolve(ad.show()).catch(finish);
+        } catch { finish(); }
+    }
+}

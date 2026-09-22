@@ -5,6 +5,8 @@ export const TikTokConfig = {
     /** 自有后端登录 HTTPS 地址；未配置时保持游客状态。 */
     loginEndpoint: '',
     /** 用户明确指定的广告位；空值代表未开通，不借用其他用途广告位。 */
+    idleInterstitialAd: 'ad7687943681425901586',
+    /** 各业务激励广告位。 */
     rewardedAds: {
         /** 消除道具激励广告。 */
         eliminate: 'ad7683069395916933127',

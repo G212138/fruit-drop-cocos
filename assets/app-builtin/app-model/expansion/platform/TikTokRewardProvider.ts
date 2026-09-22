@@ -8,6 +8,8 @@ export class TikTokRewardProvider implements RewardProvider {
     static readonly shared = new TikTokRewardProvider();
     /** 正在播放的广告锁，页面重开也不允许再叠加广告。 */
     private busy = false;
+    /** 插屏占用时禁止另开激励广告。 */
+    interstitialBusy = false;
     /** 全屏广告状态通知，用于暂停和恢复游戏；不参与发奖判断。 */
     private activity: ((visible: boolean) => void) | null = null;
 
@@ -28,7 +30,7 @@ export class TikTokRewardProvider implements RewardProvider {
     show(request: RewardRequest): Promise<RewardResponse> {
         const api = this.runtime();
         const adUnitId = TikTokConfig.rewardedAds[request.placement];
-        if (this.busy || !adUnitId || !supportsTikTok(api, 'createRewardedVideoAd')) {
+        if (this.busy || this.interstitialBusy || !adUnitId || !supportsTikTok(api, 'createRewardedVideoAd')) {
             return Promise.resolve({ ...request, status: 'unavailable', source: 'platform' });
         }
         this.busy = true;
