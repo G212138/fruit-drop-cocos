@@ -36,6 +36,10 @@ export class ResultPresentation extends Component {
     @property(Node) revealStage: Node = null!;
     @property(Node) revealGlint: Node = null!;
     @property([Node]) revealSparks: Node[] = [];
+    /** 失败成绩弧线、数字和一次性扫光，均由编辑器绑定。 */
+    @property([Node]) failureArcs: Node[] = [];
+    @property(Node) failureNumber: Node = null!;
+    @property([Node]) failureScoreGlints: Node[] = [];
     /** 原版失败落点音。 */
     @property(AudioSource) failureAudio: AudioSource = null!;
     /** 原版复活提示音。 */
@@ -66,6 +70,8 @@ export class ResultPresentation extends Component {
             this.rain = (this.rainRoot?.children || []).map((_, i) => this.newRain(i, true));
         }
         this.buttonsSettled = false;
+        for (const node of this.failureArcs) this.remember(node);
+        if (this.failureNumber) this.remember(this.failureNumber);
         if (this.revealItem) {
             this.remember(this.revealItem.node);
             const glint = this.revealGlint?.getComponent(Sprite);
@@ -125,11 +131,12 @@ export class ResultPresentation extends Component {
             const cycle = (t - 0.6) % 2.4;
             artScale = 1 + (cycle < 0.18 ? Math.sin(cycle / 0.18 * Math.PI) * 0.12 : cycle > 0.25 && cycle < 0.43 ? Math.sin((cycle - 0.25) / 0.18 * Math.PI) * 0.08 : 0);
         }
-        this.pose(this.illustrations[mode], artScale, (1 - artP) * -28, mode === 2 ? (1 - artP) * -32 : 0);
+        this.pose(this.illustrations[mode], artScale, (1 - artP) * -28, 0);
         if (!this.buttonsSettled) {
             this.buttonRoots[mode]?.children.forEach((button, i) => this.pose(button, 0.92 + 0.08 * this.pop((t - 0.25 - i * 0.035) / 0.26)));
             this.buttonsSettled = t >= 0.9;
         }
+        this.drawFailureScore(t, mode);
         this.drawUnlock(t, mode);
         this.drawPrimaryButtons(t, mode);
         this.drawHalos(t, mode);
@@ -158,6 +165,29 @@ export class ResultPresentation extends Component {
                 this.alpha(glint, 255);
             }
         }
+    }
+    /** @param t 播放秒数。@param mode 失败成绩弧线展开、数字弹入、光带仅扫一次。 */
+    private drawFailureScore(t: number, mode: number): void {
+        this.failureScoreGlints.forEach(glint => { glint.active = false; });
+        if (mode !== 2) return;
+        const u = this.clamp((t - 0.2) / 0.5);
+        this.failureArcs.forEach((arc, i) => {
+            const origin = this.origins.get(arc);
+            if (origin) arc.setPosition(origin.position.x + (i ? 1 : -1) * 28 * (1 - u), origin.position.y, origin.position.z);
+            this.alpha(arc, u * 255);
+        });
+        this.pose(this.failureNumber, 0.7 + 0.3 * this.pop((t - 0.35) / 0.45));
+        this.failureScoreGlints.forEach(glint => {
+            const phase = (t - 0.9) / 1.1;
+            glint.active = phase >= 0 && phase < 1;
+            if (!glint.active) return;
+            const sprite = glint.getComponent(Sprite), uv = sprite?.spriteFrame?.uv;
+            const mat = sprite?.getMaterialInstance?.(0);
+            if (uv && mat) {
+                mat.setProperty('sweepX', new Vec4(uv[0], uv[1], uv[2] - uv[0], uv[3] - uv[1]));
+                mat.setProperty('sweepY', new Vec4(uv[4] - uv[0], uv[5] - uv[1], -0.25 + 1.7 * phase, 0.2));
+            }
+        });
     }
     /** @param t 播放秒数。@param mode 成功新品专属；1秒揭晓后转为悬浮循环。 */
     private drawUnlock(t: number, mode: number): void {
@@ -340,6 +370,7 @@ export class ResultPresentation extends Component {
     /** 关闭或切页时恢复布局并清空所有特效，不留下后台循环和迟到回调。 */
     stop(): void {
         this.mode = -1;
+        this.failureScoreGlints.forEach(node => { node.active = false; });
         if (this.revealItem) this.revealItem.color = Color.WHITE;
         if (this.revealGlint) this.revealGlint.active = false;
         if (this.revealWave) this.revealWave.active = false;

@@ -15,6 +15,10 @@ export class ResultOverlay extends Component {
     @property(Label) summary: Label = null!;
     /** 复活页真实剩余物品数量，数字单独着色。 */
     @property(RichText) remaining: RichText = null!;
+    /** 失败页大号剩余数量及其前后本地化文字。 */
+    @property(Label) failureCount: Label = null!;
+    @property(Label) failurePrefix: Label = null!;
+    @property(Label) failureSuffix: Label = null!;
     /** 没有新解锁时展示的非食物成功徽章。 */
     @property(Node) successArt: Node = null!;
     /** 本次累计关卡编号。 */
@@ -49,6 +53,11 @@ export class ResultOverlay extends Component {
         this.levels.forEach(label => { label.string = resultText(language, 'level', { level: this.level }); });
         if (this.summary) this.summary.string = resultText(language, this.unlocked ? 'unlock' : 'complete');
         if (this.remaining) this.remaining.string = resultText(language, this.category === 2 ? 'remainingDessert' : 'remaining', { count: '<color=#FFAD57><b>' + this.count + '</b></color>' });
+        const sentence = resultText(language, this.category === 2 ? 'remainingDessert' : 'remaining', { count: '|COUNT|' });
+        const [prefix, suffix] = sentence.split('|COUNT|');
+        if (this.failureCount) this.failureCount.string = String(this.count);
+        if (this.failurePrefix) this.failurePrefix.string = prefix.trim();
+        if (this.failureSuffix) this.failureSuffix.string = suffix.trim();
         if (this.successArt) this.successArt.active = !this.unlocked;
     };
 }

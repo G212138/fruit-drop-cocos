@@ -64,3 +64,6 @@ v.revealRays=[new N(),new N()];v.revealWave=new N();v.revealStage=new N();v.reve
 v.play(0);assert.equal(v.revealItem.color.r,45);v.update(.6);assert(v.revealWave.active);v.update(.7);assert(v.revealGlint.active);assert.equal(v.revealItem.color.r,255);v.update(2);assert(!v.revealWave.active);v.stop();assert(!v.revealGlint.active);assert(!v.revealWave.active);assert.equal(v.revealItem.node.position.y,25);
 assert.equal(p.revealRays.length,1);assert.equal(p.revealSparks.length,0);assert(p.revealGlint&&p.revealItem);
 console.log('通过：新品剪影揭晓、光波、物品扫光及关闭恢复。');
+
+v.failureArcs=[new N(),new N()];v.failureNumber=new N();v.failureScoreGlints=[new N(),new N()];v.play(2);v.update(1.1);assert(v.failureScoreGlints.every(n=>n.active));v.update(3);assert(v.failureScoreGlints.every(n=>!n.active));v.update(4);assert(v.failureScoreGlints.every(n=>!n.active));v.stop();assert.equal(v.failureNumber.scale.x,1);assert.equal(p.failureArcs.length,2);
+console.log('通过：失败成绩数字、弧线绑定及一次性扫光关闭重置。');

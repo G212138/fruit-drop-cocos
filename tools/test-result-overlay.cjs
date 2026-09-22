@@ -28,3 +28,7 @@ for(const lang of ['zh','en','ja','id','th','vi','ms','fil']) {
  if(lang==='zh'){assert(fruit.endsWith('个水果'));assert(dessert.endsWith('个甜品'));}
 }
 console.log('通过：八语种按本局水果或甜品切换剩余数量文案。');
+
+overlay.failureCount={string:''};overlay.failurePrefix={string:''};overlay.failureSuffix={string:''};
+language.current='zh';overlay.render(2,40,false,1);assert.equal(overlay.failureCount.string,'40');assert.equal(overlay.failurePrefix.string,'还剩');assert.equal(overlay.failureSuffix.string,'个水果');
+overlay.render(2,7,false,2);assert.equal(overlay.failureCount.string,'7');assert.equal(overlay.failureSuffix.string,'个甜品');
