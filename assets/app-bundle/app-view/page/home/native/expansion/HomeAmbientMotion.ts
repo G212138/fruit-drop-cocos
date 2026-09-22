@@ -10,6 +10,8 @@ export class HomeAmbientMotion extends Component {
     @property(Sprite) jumper: Sprite = null!;
     /** 按钮外层回弹容器，不覆盖按钮内部点击反馈。 */
     @property(Node) landingButton: Node = null!;
+    /** Logo路线左右交替，按钮路线保持原来的三级跳。 */
+    @property({ type: Boolean }) logoRoute = false;
     /** 当前物品循环时间，秒。 */
     private elapsed = 0;
     /** 页面显隐及异步请求版本。 */
@@ -56,7 +58,7 @@ export class HomeAmbientMotion extends Component {
             this.jumper.spriteFrame = frame;
             this.jumper.sizeMode = Sprite.SizeMode.CUSTOM;
             const size = frame.originalSize;
-            const scale = 68 / Math.max(size.width, size.height);
+            const scale = (this.logoRoute ? 58 : 68) / Math.max(size.width, size.height);
             this.jumper.node.getComponent(UITransform)!.setContentSize(size.width * scale, size.height * scale);
             this.jumper.node.active = true;
             this.draw();
@@ -75,7 +77,7 @@ export class HomeAmbientMotion extends Component {
         if (this.loading) return;
         const previous = this.elapsed;
         this.elapsed += Math.max(0, dt);
-        for (const landing of [1.2, 1.95, 2.6]) {
+        for (const landing of (this.logoRoute ? [1.65] : [1.2, 1.8, 2.25, 2.6])) {
             if (previous < landing && this.elapsed >= landing) this.impact = landing;
         }
         this.draw();
@@ -86,12 +88,14 @@ export class HomeAmbientMotion extends Component {
     }
     /** 根据当前按钮和画布尺寸绘制左入、三次落点、右出的轨迹。 */
     private draw(): void {
+        if (this.logoRoute) { this.drawLogo(); return; }
         const t = this.elapsed, button = this.landingButton;
         const size = button.getComponent(UITransform)!;
         const canvasWidth = button.parent?.getComponent(UITransform)?.width || 750;
         const x0 = button.position.x - size.width * 0.36;
-        const x1 = button.position.x + size.width * 0.16;
-        const x2 = button.position.x + size.width * 0.41;
+        const x1 = button.position.x - size.width * 0.01;
+        const x2 = button.position.x + size.width * 0.25;
+        const x3 = button.position.x + size.width * 0.44;
         const y = button.position.y + size.height / 2 + this.jumper.node.getComponent(UITransform)!.height / 2 - 6;
         let x: number, height: number;
         if (t < 1.2) {
@@ -100,17 +104,21 @@ export class HomeAmbientMotion extends Component {
             // 横向速度逐渐收敛，靠近按钮左端时接近竖直下落。
             x = start + (x0 - start) * (1 - Math.pow(1 - u, 3));
             height = 730 * (1 - u * u);
-        } else if (t < 1.95) {
-            const u = (t - 1.2) / 0.75;
+        } else if (t < 1.8) {
+            const u = (t - 1.2) / 0.6;
             x = x0 + (x1 - x0) * u;
             height = 4 * 225 * u * (1 - u);
-        } else if (t < 2.6) {
-            const u = (t - 1.95) / 0.65;
+        } else if (t < 2.25) {
+            const u = (t - 1.8) / 0.45;
             x = x1 + (x2 - x1) * u;
             height = 4 * 78 * u * (1 - u);
+        } else if (t < 2.6) {
+            const u = (t - 2.25) / 0.35;
+            x = x2 + (x3 - x2) * u;
+            height = 4 * 36 * u * (1 - u);
         } else {
             const u = Math.min(1, (t - 2.6) / 1.15);
-            x = x2 + (canvasWidth / 2 + 70 - x2) * u;
+            x = x3 + (canvasWidth / 2 + 70 - x3) * u;
             height = 4 * 32 * u * (1 - u) - 90 * u * u;
         }
         this.jumper.node.setPosition(x, y + height, 0);
@@ -119,6 +127,32 @@ export class HomeAmbientMotion extends Component {
         const age = t - this.impact;
         const pulse = age >= 0 && age < 0.32 ? Math.sin(age / 0.32 * Math.PI * 2) * (1 - age / 0.32) : 0;
         button.setScale(this.baseScale.x * (1 + pulse * 0.035), this.baseScale.y * (1 - pulse * 0.055), this.baseScale.z);
+    }
+    /** Logo顶部左右交替入场落点，落地后朝对侧上方弹出；坐标为父节点设计像素。 */
+    private drawLogo(): void {
+        const t = this.elapsed, logo = this.landingButton;
+        const size = logo.getComponent(UITransform)!;
+        const width = logo.parent?.getComponent(UITransform)?.width || 750;
+        const direction = this.index % 2 === 0 ? 1 : -1;
+        const edge = width / 2 + 65;
+        const landingX = logo.position.x - direction * size.width * 0.12;
+        const y = logo.position.y + size.height / 2 + this.jumper.node.getComponent(UITransform)!.height / 2 - 16;
+        let x: number, height: number;
+        if (t < 1.65) {
+            const u = Math.max(0, (t - 0.45) / 1.2);
+            x = -direction * edge + (landingX + direction * edge) * u;
+            height = 230 * (1 - u * u);
+        } else {
+            const u = Math.min(1, (t - 1.65) / 1.55);
+            x = landingX + (direction * edge - landingX) * u;
+            height = 245 * (2 * u - u * u);
+        }
+        this.jumper.node.active = t >= 0.45 && t < 3.2;
+        this.jumper.node.setPosition(x, y + height, 0);
+        this.jumper.node.angle = -direction * t * 75;
+        const age = t - this.impact;
+        const pulse = age >= 0 && age < 0.28 ? Math.sin(age / 0.28 * Math.PI) : 0;
+        logo.setScale(this.baseScale.x * (1 + pulse * 0.015), this.baseScale.y * (1 - pulse * 0.025), this.baseScale.z);
     }
     /** 停止循环，取消迟到请求并恢复按钮。 */
     stop(): void {

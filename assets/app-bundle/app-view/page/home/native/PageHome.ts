@@ -59,7 +59,7 @@ export class PageHome extends BaseView {
         // XForge 隐藏模式 2：缓存页面，防止卸载分包破坏共享图片；退出仍执行 onHide 清理。
         this.hideEvent = 2;
         GameTheme.refresh();
-        this.node.getComponentInChildren(HomeAmbientMotion)?.play();
+        this.node.getComponentsInChildren(HomeAmbientMotion).forEach(motion => motion.play());
         this.refreshLanguage();
         GameLanguage.subscribe(this.languageChanged);
 
@@ -78,7 +78,7 @@ export class PageHome extends BaseView {
 
     /** 退出首页时解除设置监听并关闭内嵌面板。 */
     onHide(): void {
-        this.node.getComponentInChildren(HomeAmbientMotion)?.stop();
+        this.node.getComponentsInChildren(HomeAmbientMotion).forEach(motion => motion.stop());
         this.sweepTime = -1;
         if (this.playSweep) this.playSweep.active = false;
         // 页面缓存期间保留按钮监听，保证开始游戏等切页点击仍能在业务回调后播放；下次显示先解绑，避免重复。
