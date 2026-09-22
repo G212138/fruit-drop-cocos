@@ -12,7 +12,7 @@ export class CollectionFeedback {
      * @param prefab 编辑器制作的双星预制体。
      * @param parent 页面适配后的HUD挂载点。
      * @param source 已有袋口节点。
-     * @param target 已有进度标签节点。
+     * @param target 已有水果进度图标节点。
      * @param level 原版关卡编号，大于30不播放星星。
      * @param arrived 星星抵达后交给HUD播放短反馈。
      */

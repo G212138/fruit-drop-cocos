@@ -36,7 +36,7 @@ export class GameHud extends Component {
     }
     /** 星星飞向右侧进度图中心。 */
     get progressTarget(): Node {
-        return this.progressView.progressRoot;
+        return this.progressView.bright.node;
     }
     /** @param completed 进度图全亮反馈结束后的业务通知。 */
     flashProgress(completed: () => void): void {

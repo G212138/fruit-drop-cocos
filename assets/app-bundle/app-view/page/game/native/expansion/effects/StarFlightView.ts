@@ -29,7 +29,7 @@ export class StarFlightView extends Component {
                 if (!isValid(target, true)) { this.finish(arrived); return; }
                 const end = parent.convertToNodeSpaceAR(target.worldPosition);
                 tween(this.node)
-                    .to(0.3, { position: end, scale: new Vec3(0, 0, 1) })
+                    .to(0.3, { position: end, scale: new Vec3(0.25, 0.25, 1) })
                     .call(() => this.finish(arrived)).start();
             }).start();
     }

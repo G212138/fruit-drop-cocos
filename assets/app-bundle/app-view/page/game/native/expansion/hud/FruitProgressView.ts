@@ -10,7 +10,7 @@ export class FruitProgressView extends Component {
     @property(Label) remaining: Label = null!;
     /** 右侧白色描边百分比。 */
     @property(Label) percentage: Label = null!;
-    /** 进度图挂载点，也是星星的抵达位置。 */
+    /** 进度卡片挂载点，用于整组显示与隐藏。 */
     @property(Node) progressRoot: Node = null!;
     /** 灰色未完成扇区，覆盖顺时针进度以外的部分。 */
     @property(Sprite) dark: Sprite = null!;
