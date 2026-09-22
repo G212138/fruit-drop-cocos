@@ -135,10 +135,10 @@ export class GameBoard extends Component {
         if (count) this.playShakeFeedback();
         return count > 0;
     }
-    /** 每次往返开始同步播放草地音效和长震，遵循各自设置开关。 */
+    /** 摇晃启动时触发一次400毫秒长震，遵循震动开关。 */
     private playShakeFeedback(): void {
-        GameHaptics.longImpact(true);
-        this.removalEffects?.playShakeSound();
+        GameHaptics.longImpact();
+
     }
 
     /** 当前棋盘是否接受道具操作。 */
@@ -290,7 +290,7 @@ export class GameBoard extends Component {
     lateUpdate(dt: number): void {
         if (!this.playing) return;
         this.shakeTime += dt;
-        this.shake.tick(this.spawner.getLive(), dt, () => this.playShakeFeedback());
+        this.shake.tick(this.spawner.getLive(), dt);
         if (this.entry.busy) {
             if (this.entry.tick(dt)) this.levelHint?.finishEntrance();
             this.spawner.updateBlackHoles(0);
