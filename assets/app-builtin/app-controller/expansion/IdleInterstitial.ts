@@ -1,4 +1,4 @@
-import { game, input, Input } from 'cc';
+import { game, input, Input, Node, isValid } from 'cc';
 import { app } from '../../../app/app';
 import { TikTokLifecycle } from './TikTokLifecycle';
 import { getTikTokGame, supportsTikTok, TikTokGameApi } from '../../app-model/expansion/platform/TikTokRuntime';
@@ -12,6 +12,20 @@ export class IdleInterstitial {
     private static lastActivity = 0;
     /** 插屏请求锁。 */
     private static busy = false;
+    /** 当前监听的UI根节点，切换场景时重新绑定。 */
+    private static touchRoot: Node | null = null;
+    /** 捕获触摸，避免弹窗阻止传播后全局监听漏报操作。 */
+    private static bindTouchRoot(): void {
+        const root = app.manager.ui.canvas?.node ?? null;
+        if (root === this.touchRoot) return;
+        for (const event of [Node.EventType.TOUCH_START, Node.EventType.TOUCH_MOVE,
+            Node.EventType.TOUCH_END, Node.EventType.TOUCH_CANCEL]) {
+            if (isValid(this.touchRoot)) this.touchRoot!.off(event, this.reset, this, true);
+            root?.on(event, this.reset, this, true);
+        }
+        this.touchRoot = root;
+        this.reset();
+    }
     /** 稳定操作监听引用。 */
     private static readonly reset = (): void => { this.lastActivity = Date.now(); };
     /** 首页就绪后安装；不支持插屏的环境不启动。 */
@@ -19,6 +33,7 @@ export class IdleInterstitial {
         const api = getTikTokGame();
         if (this.installed || !supportsTikTok(api, 'createInterstitialAd')) return;
         this.installed = true;
+        this.bindTouchRoot();
         this.reset();
         for (const event of [Input.EventType.TOUCH_START, Input.EventType.TOUCH_MOVE, Input.EventType.TOUCH_END,
             Input.EventType.MOUSE_DOWN, Input.EventType.MOUSE_MOVE, Input.EventType.MOUSE_WHEEL, Input.EventType.KEY_DOWN] as const) {
@@ -33,6 +48,7 @@ export class IdleInterstitial {
     }
     /** 游戏进行中、后台与广告等待期间不累计闲置时间。 */
     private static tick(): void {
+        this.bindTouchRoot();
         const playing = app.manager.ui.isShow('PageGame') && app.store.game.phase === 'playing';
         if (playing || this.busy || TikTokLifecycle.blocked || game.isPaused()) {
             this.reset();
