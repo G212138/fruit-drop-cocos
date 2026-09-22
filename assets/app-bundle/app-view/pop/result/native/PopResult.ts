@@ -1,3 +1,7 @@
+import { ResultOverlay } from './expansion/ResultOverlay';
+import { ResultShare } from './expansion/ResultShare';
+import { resultText } from './expansion/ResultStrings';
+import { GameLanguage } from '../../../../../app-builtin/app-model/expansion/GameLanguage';
 import { ThemeProgress } from '../../../../../app-builtin/app-model/expansion/ThemeProgress';
 import { ResultPresentation } from './expansion/ResultPresentation';
 import { UiClickSound } from '../../../../../app-builtin/app-controller/expansion/UiClickSound';
@@ -11,29 +15,26 @@ const { ccclass, property } = _decorator;
 /** 结算界面只展示结果，不在此处判定胜利或发放广告奖励。 */
 @ccclass('PopResult')
 export class PopResult extends BaseView {
-    /** 为真时作为PageGame固定子节点，不使用弹窗管理器显示或关闭。 */
-    @property embedded = false;
+    /** 无底框结算的多语言文案及主视觉绑定。 */
+    @property(ResultOverlay) overlay: ResultOverlay = null!;
+    /** 分享回调版本，防止关闭后弹出旧提示。 */
+    private shareVersion = 0;
+    /** 当前分享界面是否正在打开。 */
+    private sharing = false;
     /** 结算装饰动画和状态音效，编辑器绑定。 */
     @property(ResultPresentation) presentation: ResultPresentation = null!;
     /** 可选解锁信息；通关时展示本关对应的新物品。 */
     @property showUnlock = true;
 
-    /** 直接打开已有结算节点；参数与独立弹窗相同。 */
-    showEmbedded(data: { won: boolean; level: number; onRevive?: () => void; notice?: string }): void {
-        this.onHide();
-        this.node.active = true;
-        this.node.setSiblingIndex(this.node.parent!.children.length - 1);
-        this.onShow(data);
-    }
-
-    /** 清除旧回调并隐藏已有节点，重开后可再次使用。 */
+    /** 通过框架关闭独立结算，保持隐藏清理和事件顺序。 */
     closeResult(): void {
-        if (this.embedded) {
-            this.onHide();
-            this.node.active = false;
-        } else this.hide();
+        this.hide();
     }
 
+    /** @param next 框架显示许可。 @param data 本局有效性守卫；跨页加载完成时不再显示。 */
+    protected beforeShow(next: (error?: string) => void, data?: { isCurrent?: () => boolean }): void {
+        next(data?.isCurrent && !data.isCurrent() ? 'Result owner expired' : undefined);
+    }
 
     /** 更新解锁光圈动画，不调整页面布局。@param deltaTime 本帧秒数；光圈每秒顺时针90度旋转。 */
     lateUpdate(deltaTime: number): void {
@@ -99,12 +100,15 @@ export class PopResult extends BaseView {
     private won = false;
 
     /** @param data 页面已确认的胜负结果和原关卡编号。 */
-    onShow(data: { won: boolean; level: number; onRevive?: () => void; notice?: string }): void {
+    onShow(data: { won: boolean; level: number; onRevive?: () => void; notice?: string; remaining?: number; isCurrent?: () => boolean }): void {
+        this.hideEvent = 2;
         UiClickSound.bind(this.node);
         this.level = data.level;
         this.won = data.won;
         this.onRevive = data.onRevive ?? null;
-        this.titleLabel.string = data.notice || '';
+        this.titleLabel.string = '';
+        if (data.notice) app.manager.ui.showToast(data.notice);
+        this.unlockRoot.active = false;
         this.successRoot.active = data.won;
         if (!data.notice) this.promptDismissed = false;
         const showPrompt = !data.won && !!this.onRevive && !this.promptDismissed;
@@ -137,6 +141,7 @@ export class PopResult extends BaseView {
             }, 0.7);
         } else if (!showPrompt && this.failAnimation) this.failAnimation.setAnimation(0, '2', true);
         this.reviveButton.active = !data.won && !!this.onRevive;
+        this.overlay?.render(data.level, data.remaining ?? 0, data.won && this.unlockRoot.active);
         this.presentation?.play(data.won ? 0 : showPrompt ? 1 : 2);
     }
 
@@ -151,6 +156,8 @@ export class PopResult extends BaseView {
 
     /** 隐藏后不保留旧关卡回调。 */
     onHide(): void {
+        this.shareVersion++;
+        this.sharing = false;
         this.presentation?.stop();
         this.successAudio?.stop();
         this.unscheduleAllCallbacks();
@@ -158,6 +165,19 @@ export class PopResult extends BaseView {
         const nextOpacity = this.nextButton?.getComponent(UIOpacity);
         if (nextOpacity) Tween.stopAllByTarget(nextOpacity);
         this.onRevive = null;
+    }
+
+    /** 由用户点击打开好友分享，不发放奖励或修改本局状态。 */
+    share(): void {
+        if (this.sharing) return;
+        this.sharing = true;
+        const version = ++this.shareVersion;
+        const title = resultText(GameLanguage.current, this.won ? 'shareWinTitle' : 'shareLoseTitle', { level: this.level });
+        ResultShare.open(title, this.level, this.won, result => {
+            if (version !== this.shareVersion) return;
+            this.sharing = false;
+            if (result !== 'opened') app.manager.ui.showToast(resultText(GameLanguage.current, result === 'unavailable' ? 'shareUnavailable' : 'shareFailed'));
+        });
     }
 
     /** 免费重开当前关卡，不改变进度或触发模拟广告。 */

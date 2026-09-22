@@ -1,7 +1,8 @@
+import { GameLanguage } from '../../../../../app-builtin/app-model/expansion/GameLanguage';
+import { resultText } from '../../../pop/result/native/expansion/ResultStrings';
 import { UiClickSound } from '../../../../../app-builtin/app-controller/expansion/UiClickSound';
 import { GameTheme } from '../../../../../app-builtin/app-model/expansion/GameTheme';
 import { game } from 'cc';
-import { PopResult } from '../../../pop/result/native/PopResult';
 import { NewbieGuideView } from './expansion/effects/NewbieGuideView';
 import { PropToolbar } from './expansion/props/PropToolbar';
 import { CollectionFeedback } from './expansion/effects/CollectionFeedback';
@@ -42,8 +43,6 @@ export class PageGame extends BaseView.BindController(GameController) {
         return this.ready && !this.ended && !game.isPaused() && !this.settings?.node.activeInHierarchy
             && !!this.board?.canUseProp;
     }
-    /** 页面内固定结算层，与游戏同步加载，胜负时直接显示。 */
-    @property(Node) resultRoot: Node = null!;
     /** 首关首次放下物品后的配对说明，编辑器绑定。 */
     @property(Node) pairHintRoot: Node = null!;
 
@@ -224,10 +223,18 @@ export class PageGame extends BaseView.BindController(GameController) {
                 this.controller.begin(countFruits(level), level.number, !!EditorSession.trial);
                 this.board.begin(level);
                 this.hud?.setMode(level.mode);
+                this.prepareResult(generation);
             } catch (error) {
                 this.reportLoadError(String(error));
             }
         });
+    }
+
+    /** @param generation 本局代次；棋盘进入后下一帧加载独立结算，不阻塞开局。 */
+    private prepareResult(generation: number): void {
+        this.scheduleOnce(() => {
+            if (this.isCurrent(generation)) app.manager.ui.load('PopResult');
+        }, 0);
     }
 
     /** 棋盘已确认一对有效消除，交由控制器更新权威状态。 */
@@ -289,14 +296,22 @@ export class PageGame extends BaseView.BindController(GameController) {
         this.showResult();
     }
 
-    /** @param notice 广告取消或失败时在结算面板显示的说明，省略则显示胜负结果。 */
+    /** @param notice 广告取消或失败时交给框架提示的说明，省略则显示胜负结果。 */
     private showResult(notice?: string): void {
         const generation = this.generation;
-        this.resultRoot.getComponent(PopResult)!.showEmbedded({
-            won: app.store.game.phase === 'won', level: this.levelNumber, notice,
-            onRevive: this.board?.canRevive ? () => {
-                if (this.isCurrent(generation)) void this.requestRevive();
-            } : undefined,
+        app.manager.ui.show({
+            name: 'PopResult',
+            data: {
+                isCurrent: () => this.isCurrent(generation) && this.ended,
+                won: app.store.game.phase === 'won',
+                level: this.levelNumber,
+                notice,
+                remaining: app.store.game.remaining,
+                onRevive: this.board?.canRevive ? () => {
+                    if (this.isCurrent(generation)) void this.requestRevive();
+                } : undefined,
+            },
+            onError: () => this.isCurrent(generation) && this.ended ? true : undefined,
         });
     }
 
@@ -308,7 +323,7 @@ export class PageGame extends BaseView.BindController(GameController) {
         if (!this.isCurrent(generation) || app.store.game.phase !== 'lost' || !this.board?.canRevive) return;
         if (result !== 'rewarded') {
             if (result === 'busy') return;
-            this.showResult(result === 'cancelled' ? '已取消，本局未改变' : '广告暂不可用，请重试');
+            this.showResult(resultText(GameLanguage.current, result === 'cancelled' ? 'adCancelled' : 'adUnavailable'));
             return;
         }
         this.ended = false;
@@ -394,7 +409,7 @@ export class PageGame extends BaseView.BindController(GameController) {
     private releaseChildren(): void {
         if (this.pairHintRoot) this.pairHintRoot.active = false;
         this.shakeRequested = false;
-        if (this.resultRoot && isValid(this.resultRoot, true)) this.resultRoot.getComponent(PopResult)?.closeResult();
+        app.manager.ui.hide({ name: 'PopResult' });
         if (this.newbieGuide && isValid(this.newbieGuide.node)) this.newbieGuide.node.destroy();
         this.newbieGuide = null;
         this.collectionFeedback.clear();

@@ -22,6 +22,13 @@ export interface TikTokRewardedAd {
 
 /** 当前业务使用的官方 SDK 子集，未提供的能力必须降级。 */
 export interface TikTokGameApi {
+    /** 官方好友分享入口，仅打开联系人选择界面，不代表已发送消息。 */
+    shareAppMessage?(options: TikTokCallbacks<void> & {
+        /** 本地化分享标题。 */
+        title: string;
+        /** 不包含身份信息的关卡上下文。 */
+        query: string;
+    }): void;
     /** 检查当前客户端支持的 API。 */
     canIUse?(schema: string): boolean;
     /** 根据后台广告位创建激励实例。 */

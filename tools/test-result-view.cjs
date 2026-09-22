@@ -8,7 +8,7 @@ new Function('require','exports',ts.transpileModule(fs.readFileSync('assets/app-
 const exportsView={};
 const p='assets/app-bundle/app-view/pop/result/native/PopResult.ts';
 const code=ts.transpileModule(fs.readFileSync(p,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,experimentalDecorators:true}}).outputText;
-new Function('require','exports',code)(n=>n==='cc'?cc:n.includes('ThemeProgress')?themeExports:n.includes('UiClickSound')?{UiClickSound:{bind(){}}}:n.includes('ResultPresentation')?{ResultPresentation:class{}}:n.includes('BaseView')?{default:Base}:n.includes('GameSettings')?{GameSettings:{current:{snapshot:{sound:true}}}}:n.includes('EditorSession')?{EditorSession:session}:n.includes('ScreenLayout')?{ScreenLayout:class{apply(){}}}:{app:{manager:{ui:{show:x=>shown.push(x)}}}},exportsView);
+new Function('require','exports',code)(n=>n==='cc'?cc:n.includes('ThemeProgress')?themeExports:n.includes('UiClickSound')?{UiClickSound:{bind(){}}}:n.includes('ResultPresentation')?{ResultPresentation:class{}}:n.includes('BaseView')?{default:Base}:n.includes('GameSettings')?{GameSettings:{current:{snapshot:{sound:true}}}}:n.includes('EditorSession')?{EditorSession:session}:n.includes('ScreenLayout')?{ScreenLayout:class{apply(){}}}:{app:{manager:{ui:{show:x=>shown.push(x),showToast:x=>shown.push({toast:x})}}}},exportsView);
 const v=new exportsView.PopResult();
 for(const name of ['nextButton','reviveButton','trialButton','trialReturn','successRoot','failureRoot','unlockRoot','revivePrompt'])v[name]={active:false,getComponent:()=>({opacity:255})};
 v.titleLabel={};v.unlockIcon={};v.unlockName={node:{active:true}};v.unlockIcons=[{}];v.unlockNames=[{}];
@@ -21,44 +21,39 @@ const view=prefab.find(x=>x.successRoot&&x.failureRoot);
 for(const name of ['successRoot','failureRoot','unlockIcon','unlockName','trialReturn'])assert.ok(prefab[view[name].__id__],name);
 console.log('通过：胜负分支、延迟下一关、动画切换、复活去重、试玩返回及预制体绑定。');
 
-v.embedded=true;v.node={active:false,parent:{children:[{}]},setSiblingIndex(i){this.order=i;}};
-v.hide=()=>assert.fail('内嵌模式不得请求弹窗管理器关闭');
 session.trial=null;
-v.showEmbedded({won:false,level:1,onRevive:()=>revived++});
-assert.equal(v.node.active,true);v.closeResult();assert.equal(v.node.active,false);assert.equal(v.onRevive,null);
-v.showEmbedded({won:true,level:1});assert.equal(scheduled.length,1);v.closeResult();assert.equal(scheduled.length,0);
+let gateError;
+v.beforeShow(error=>gateError=error,{isCurrent:()=>false});assert.equal(gateError,'Result owner expired');
+v.beforeShow(error=>gateError=error,{isCurrent:()=>true});assert.equal(gateError,undefined);
+v.onShow({won:true,level:1});assert.equal(v.hideEvent,2);v.closeResult();assert.equal(scheduled.length,0);assert.equal(v.onRevive,null);
 const page=JSON.parse(fs.readFileSync('assets/app-bundle/app-view/page/game/native/PageGame.prefab'));
-const owner=page.find(x=>x.resultRoot);const resultNode=page[owner.resultRoot.__id__];
-assert.equal(resultNode._name,'GameResult');assert.equal(typeof resultNode._active,'boolean');
-const info=page[resultNode._prefab.__id__];assert.equal(info.asset.__id__,0);assert.equal(info.root.__id__,1);assert.equal(info.instance,null,'结算节点属于PageGame而非嵌套实例');
-const embedded=page.find(x=>x.embedded===true);assert.ok(embedded);
-assert.ok(page.some(x=>x.__type__==='cc.BlockInputEvents'));
-console.log('通过：固定结算节点直接显示、关闭清理、重开取消定时与普通节点序列化。');
+assert(!page.some(x=>x._name==='GameResult'||x.resultRoot||x.overlay),'游戏页不能引用结算资源');
+console.log('通过：独立结算缓存、失效请求拦截、关闭清理及移除游戏内结算树。');
 
 v.unlockGlow={angle:0};v.showUnlock=true;session.trial=null;
-v.showEmbedded({won:true,level:1});assert.equal(v.unlockName.node.active,false);
+v.onShow({won:true,level:1});assert.equal(v.unlockName.node.active,false);
 v.lateUpdate(0.5);assert.equal(v.unlockGlow.angle,-45);
-v.closeResult();v.showEmbedded({won:false,level:2,onRevive:()=>{}});
+v.closeResult();v.onShow({won:false,level:2,onRevive:()=>{}});
 assert.equal(v.revivePrompt.active,true);assert.equal(v.failureRoot.active,false);
 v.lateUpdate(1);assert.equal(v.unlockGlow.angle,-45,'失败时不旋转解锁光圈');
-v.showEmbedded({won:false,level:2,onRevive:()=>{},notice:'已取消'});assert.equal(v.revivePrompt.active,true);
+v.onShow({won:false,level:2,onRevive:()=>{},notice:'已取消'});assert.equal(v.revivePrompt.active,true);
 v.dismissRevivePrompt();assert.equal(v.revivePrompt.active,false);assert.equal(v.failureRoot.active,true);
-v.showEmbedded({won:false,level:2,onRevive:()=>{},notice:'已取消'});assert.equal(v.failureRoot.active,true);
-v.showEmbedded({won:false,level:2,onRevive:()=>{}});assert.equal(v.revivePrompt.active,true,'新失败恢复首层');
-assert.equal(page[embedded.unlockName.__id__].__type__,'cc.Label');
-for(const name of ['UnlockText','UnlockName']){const n=page.find(x=>x._name===name);assert.ok(n._components.some(r=>page[r.__id__].__type__==='cc.Label'));assert.ok(!n._components.some(r=>page[r.__id__].__type__==='cc.Sprite'));}
-assert.ok(page[embedded.revivePrompt.__id__]);assert.ok(page[embedded.unlockGlow.__id__]);
+v.onShow({won:false,level:2,onRevive:()=>{},notice:'已取消'});assert.equal(v.failureRoot.active,true);
+v.onShow({won:false,level:2,onRevive:()=>{}});assert.equal(v.revivePrompt.active,true,'新失败恢复首层');
+assert.equal(prefab[view.unlockName.__id__].__type__,'cc.Label');
+const overlay=prefab[view.overlay.__id__];assert.equal(prefab[overlay.summary.__id__].__type__,'cc.Label');assert.equal(prefab[overlay.remaining.__id__].__type__,'cc.RichText');
+assert.ok(prefab[view.revivePrompt.__id__]);assert.ok(prefab[view.unlockGlow.__id__]);
 console.log('通过：解锁文字、光圈速度、失败先复活提示、关闭后二层及取消广告保留层级。');
 const states=[];v.presentation={play(mode){states.push(mode);},stop(){states.push('stop');}};
-v.showUnlock=false;v.showEmbedded({won:true,level:1});assert.equal(v.unlockRoot.active,false);assert.equal(states.at(-1),0);
-v.showEmbedded({won:false,level:1,onRevive:()=>{}});assert.equal(states.at(-1),1);v.dismissRevivePrompt();assert.equal(states.at(-1),2);v.closeResult();assert.equal(states.at(-1),'stop');
-for(const data of [prefab,page]){const result=data.find(x=>x.presentation&&x.successRoot);const fx=data[result.presentation.__id__];assert.equal(fx.cards.length,3);assert.equal(fx.illustrations.length,3);assert.equal(fx.particleRoots.length,3);assert.ok(data[fx.failureAudio.__id__]._clip);assert.ok(data[fx.reviveAudio.__id__]._clip);}
-console.log('通过：三态表现切换、关闭清理、两套入口音效/粒子绑定及设计稿默认隐藏额外解锁行。');
+v.showUnlock=false;v.onShow({won:true,level:1});assert.equal(v.unlockRoot.active,false);assert.equal(states.at(-1),0);
+v.onShow({won:false,level:1,onRevive:()=>{}});assert.equal(states.at(-1),1);v.dismissRevivePrompt();assert.equal(states.at(-1),2);v.closeResult();assert.equal(states.at(-1),'stop');
+for(const data of [prefab]){const result=data.find(x=>x.presentation&&x.successRoot);const fx=data[result.presentation.__id__];assert.equal(fx.cards.length,3);assert.equal(fx.illustrations.length,3);assert.equal(fx.particleRoots.length,3);assert.ok(data[fx.failureAudio.__id__]._clip);assert.ok(data[fx.reviveAudio.__id__]._clip);}
+console.log('通过：三态表现切换、关闭清理、独立入口音效/粒子绑定及设计稿默认隐藏额外解锁行。');
 
 
 v.showUnlock=true;session.trial=null;v.unlockIcons=Array.from({length:60},()=>({}));
 for(const level of [1,30,31,60,61]) {
- v.showEmbedded({won:true,level});
+ v.onShow({won:true,level});
  assert.equal(v.unlockRoot.active,level<=30,'解锁上限不受多余图标影响：'+level);
  if(level<=30)assert.equal(v.unlockIcon.spriteFrame,v.unlockIcons[level-1]);
 }
