@@ -10,5 +10,8 @@ m.play();assert.equal(pending[0].path,'fruit/fruit-1/spriteFrame');const f=frame
 theme.active=2;m.update(.01);assert.equal(pending[0].path,'dessert/dessert-1/spriteFrame');const late=pending.shift();m.stop();late.cb(null,frame());assert(!m.jumper.node.active);assert.equal(f2.refs,0);assert.equal(m.landingButton.scale.x,1);assert.equal(m.jumper.spriteFrame,null);
 console.log('通过：顺序轮换、四次落点回弹、离屏继续循环、品类切换、关闭取消迟到加载和图片释放。');
 
-const logo=new e.HomeAmbientMotion();logo.logoRoute=true;logo.jumper={node:new N(),spriteFrame:null};logo.landingButton=new N();logo.play();pending.shift().cb(null,frame());logo.update(.7);assert(logo.jumper.node.position.x<0);logo.update(1);assert.notEqual(logo.landingButton.scale.x,1);logo.update(2.8);assert(pending.length);pending.shift().cb(null,frame());logo.update(.7);assert(logo.jumper.node.position.x>0,'下一件从右侧进入');logo.stop();assert.equal(logo.landingButton.scale.x,1);
-console.log('通过：Logo左右交替进出、落点反馈和关闭恢复。');
+
+const makeLogo=right=>{const m=new e.HomeAmbientMotion();m.logoRoute=true;m.logoFromRight=right;m.jumper={node:new N(),spriteFrame:null};m.landingButton=new N();m.play();pending.shift().cb(null,frame());return m;};
+const left=makeLogo(false),right=makeLogo(true);left.update(.3);right.update(.3);assert(left.jumper.node.position.x<0);assert(right.jumper.node.position.x>0);assert(left.jumper.node.active&&right.jumper.node.active);
+left.update(.9);right.update(.9);assert.notEqual(left.jumper.node.position.y,right.jumper.node.position.y,'并行路线高度错开');assert.equal(left.landingButton.scale.x,1);left.stop();right.stop();assert(!left.jumper.node.active&&!right.jumper.node.active);
+console.log('通过：Logo左右同时运行、高度错开、加速后关闭恢复。');

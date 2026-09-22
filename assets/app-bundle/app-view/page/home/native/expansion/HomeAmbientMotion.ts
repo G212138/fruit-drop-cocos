@@ -12,6 +12,8 @@ export class HomeAmbientMotion extends Component {
     @property(Node) landingButton: Node = null!;
     /** Logo路线左右交替，按钮路线保持原来的三级跳。 */
     @property({ type: Boolean }) logoRoute = false;
+    /** Logo右侧并行轨迹，独立落点和起始物品避免重叠。 */
+    @property({ type: Boolean }) logoFromRight = false;
     /** 当前物品循环时间，秒。 */
     private elapsed = 0;
     /** 页面显隐及异步请求版本。 */
@@ -35,7 +37,7 @@ export class HomeAmbientMotion extends Component {
         this.baseScale.set(this.landingButton.scale);
         this.running = true;
         this.category = GameTheme.active;
-        this.index = 0;
+        this.index = this.logoRoute && this.logoFromRight ? 15 : 0;
         this.loadItem();
     }
     /** 加载单个共享图片，过期回调不会应用到关闭后的首页。 */
@@ -77,7 +79,7 @@ export class HomeAmbientMotion extends Component {
         if (this.loading) return;
         const previous = this.elapsed;
         this.elapsed += Math.max(0, dt);
-        for (const landing of (this.logoRoute ? [1.65] : [1.2, 1.8, 2.25, 2.6])) {
+        for (const landing of (this.logoRoute ? [this.logoFromRight ? 1.4 : 1.15] : [1.2, 1.8, 2.25, 2.6])) {
             if (previous < landing && this.elapsed >= landing) this.impact = landing;
         }
         this.draw();
@@ -128,31 +130,43 @@ export class HomeAmbientMotion extends Component {
         const pulse = age >= 0 && age < 0.32 ? Math.sin(age / 0.32 * Math.PI * 2) * (1 - age / 0.32) : 0;
         button.setScale(this.baseScale.x * (1 + pulse * 0.035), this.baseScale.y * (1 - pulse * 0.055), this.baseScale.z);
     }
-    /** Logo顶部左右交替入场落点，落地后朝对侧上方弹出；坐标为父节点设计像素。 */
+    /** 两侧同时以恒定重力运动，落点反弹损失能量；横向匀速、不缓停。 */
     private drawLogo(): void {
-        const t = this.elapsed, logo = this.landingButton;
+        const t = this.elapsed * 1.35, logo = this.landingButton;
         const size = logo.getComponent(UITransform)!;
         const width = logo.parent?.getComponent(UITransform)?.width || 750;
-        const direction = this.index % 2 === 0 ? 1 : -1;
+        const direction = this.logoFromRight ? -1 : 1;
+        const duration = this.logoFromRight ? 1.4 : 1.15;
+        const initialHeight = this.logoFromRight ? 280 : 220;
+        const gravity = 700;
         const edge = width / 2 + 65;
-        const landingX = logo.position.x - direction * size.width * 0.12;
+        const landingX = logo.position.x - direction * size.width * 0.22;
         const y = logo.position.y + size.height / 2 + this.jumper.node.getComponent(UITransform)!.height / 2 - 16;
+        const vx = (landingX + direction * edge) / duration;
+        const vy = (0.5 * gravity * duration * duration - initialHeight) / duration;
         let x: number, height: number;
-        if (t < 1.65) {
-            const u = Math.max(0, (t - 0.45) / 1.2);
-            x = -direction * edge + (landingX + direction * edge) * u;
-            height = 230 * (1 - u * u);
+        if (t < duration) {
+            x = -direction * edge + vx * t;
+            height = initialHeight + vy * t - 0.5 * gravity * t * t;
         } else {
-            const u = Math.min(1, (t - 1.65) / 1.55);
-            x = landingX + (direction * edge - landingX) * u;
-            height = 245 * (2 * u - u * u);
+            let age = t - duration;
+            let rebound = (gravity * duration - vy) * 0.8;
+            x = landingX + vx * age;
+            // 仍在Logo顶面范围时继续衰减反弹，离开边缘后自然下落。
+            let contactX = landingX;
+            for (let bounce = 0; bounce < 5; bounce++) {
+                const flight = 2 * rebound / gravity;
+                const nextX = contactX + vx * flight;
+                if (age < flight || Math.abs(nextX - logo.position.x) > size.width / 2) break;
+                age -= flight;
+                contactX = nextX;
+                rebound *= 0.72;
+            }
+            height = rebound * age - 0.5 * gravity * age * age;
         }
-        this.jumper.node.active = t >= 0.45 && t < 3.2;
+        this.jumper.node.active = Math.abs(x) <= edge && height > -size.height - 90 && t < 3.6;
         this.jumper.node.setPosition(x, y + height, 0);
         this.jumper.node.angle = -direction * t * 75;
-        const age = t - this.impact;
-        const pulse = age >= 0 && age < 0.28 ? Math.sin(age / 0.28 * Math.PI) : 0;
-        logo.setScale(this.baseScale.x * (1 + pulse * 0.015), this.baseScale.y * (1 - pulse * 0.025), this.baseScale.z);
     }
     /** 停止循环，取消迟到请求并恢复按钮。 */
     stop(): void {
