@@ -1,0 +1,13 @@
+const fs=require('fs'),assert=require('node:assert/strict');
+const ts=require('C:/ProgramData/cocos/editors/Creator/3.8.8/resources/app.asar.unpacked/node_modules/typescript');
+const source=fs.readFileSync('assets/app-bundle/app-view/page/game/native/PageGame.ts','utf8');
+const method=source.slice(source.indexOf('    private tryResultVideo('),source.indexOf('    /** 在失败原局请求激励复活'));
+let calls=0,roll=.49;const session={trial:false},provider={shared:{show:request=>{calls++;assert.equal(request.placement,'result-video');return Promise.resolve({status:'completed'});}}};
+const compiled=ts.transpileModule('export class Subject {'+method+'}',{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;const out={};
+new Function('exports','EditorSession','TikTokRewardProvider','Math',compiled)(out,session,provider,{random:()=>roll});
+const make=level=>Object.assign(new out.Subject(),{levelNumber:level,ended:true,resultVideoGeneration:-1,isCurrent:()=>true});
+make(1).tryResultVideo(1);assert.equal(calls,0);
+const a=make(2);a.tryResultVideo(1);a.tryResultVideo(1);assert.equal(calls,1);
+roll=.5;const b=make(3);b.tryResultVideo(1);roll=0;b.tryResultVideo(1);assert.equal(calls,1,'未命中也不能重复抽取');
+a.tryResultVideo(2);assert.equal(calls,2,'新局重新判定');session.trial=true;make(2).tryResultVideo(1);assert.equal(calls,2);
+console.log('通过：首关排除、50%边界、每局去重、新局重置、试玩排除。');

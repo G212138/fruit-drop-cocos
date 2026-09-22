@@ -140,6 +140,8 @@ export class PageGame extends BaseView.BindController(GameController) {
     private developmentReward: DevelopmentRewardPanel | null = null;
     /** 异步加载代次，拒绝上一局迟到的回调。 */
     private generation = 0;
+    /** 已判定结算视频的页面代次，复活和重开弹窗不会再次抽取。 */
+    private resultVideoGeneration = -1;
     /** 是否已打开本局结算，防止重复弹窗。 */
     private ended = false;
     /** 关卡配置与棋盘均已就绪才允许开始。 */
@@ -305,6 +307,7 @@ export class PageGame extends BaseView.BindController(GameController) {
         this.resultRequested = true;
         app.manager.ui.show({
             name: 'PopResult',
+            onShow: () => this.tryResultVideo(generation),
             data: {
                 isCurrent: () => this.isCurrent(generation) && this.ended,
                 won: app.store.game.phase === 'won',
@@ -320,6 +323,17 @@ export class PageGame extends BaseView.BindController(GameController) {
                 if (this.isCurrent(generation)) this.resultRequested = false;
             },
             onError: () => this.isCurrent(generation) && this.ended ? true : undefined,
+        });
+    }
+
+    /** 每局最多抽取一次，第2关起50%概率，广告失败不重试且不影响结算。 */
+    private tryResultVideo(generation: number): void {
+        if (!this.isCurrent(generation) || !this.ended || this.resultVideoGeneration === generation) return;
+        this.resultVideoGeneration = generation;
+        if (EditorSession.trial || this.levelNumber < 2 || Math.random() >= 0.5) return;
+        void TikTokRewardProvider.shared.show({ id: `result-${generation}`, placement: 'result-video' }).then(response => {
+            if (!this.isCurrent(generation) || response.status !== 'completed') return;
+            // 奖励方案暂未确定：完整观看也不修改道具、关卡或解锁进度。
         });
     }
 

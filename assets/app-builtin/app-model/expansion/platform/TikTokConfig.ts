@@ -8,6 +8,8 @@ export const TikTokConfig = {
     idleInterstitialAd: 'ad7687943681425901586',
     /** 各业务激励广告位。 */
     rewardedAds: {
+        /** 第2关起结算50%概率视频，奖励逻辑待定。 */
+        'result-video': 'ad7687952904770635783',
         /** 消除道具激励广告。 */
         eliminate: 'ad7683069395916933127',
         /** 刷新道具激励广告。 */
