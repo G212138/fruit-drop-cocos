@@ -22,6 +22,8 @@ export class ResultPresentation extends Component {
     @property(Node) rainRoot: Node = null!;
     /** 成功标题全尺寸字面扫光，使用标题透明度限制光带。 */
     @property(Node) titleGlint: Node = null!;
+    /** 复活提示、最终失败标题的扫光节点，由编辑器绑定。 */
+    @property([Node]) failureTitleGlints: Node[] = [];
     /** 原版失败落点音。 */
     @property(AudioSource) failureAudio: AudioSource = null!;
     /** 原版复活提示音。 */
@@ -115,15 +117,18 @@ export class ResultPresentation extends Component {
         this.drawParticles(t, mode);
         this.drawConfetti(t, mode);
         this.drawRain(t, mode);
-        if (this.titleGlint) {
+        const titleGlints = [this.titleGlint, ...this.failureTitleGlints];
+        titleGlints.forEach((node, index) => { if (node) node.active = index === mode; });
+        const glint = titleGlints[mode];
+        if (glint) {
             const sweep = (t - 0.65) % 4;
-            const active = mode === 0 && sweep >= 0 && sweep < 1.1;
-            this.titleGlint.active = active;
+            const active = mode >= 0 && sweep >= 0 && sweep < 1.1;
+            glint.active = active;
             if (active) {
                 const u = sweep / 1.1;
-                this.titleGlint.setPosition(0, 0);
-                this.titleGlint.angle = 0;
-                const sprite = this.titleGlint.getComponent(Sprite);
+                glint.setPosition(0, 0);
+                glint.angle = 0;
+                const sprite = glint.getComponent(Sprite);
                 const uv = sprite?.spriteFrame?.uv;
                 const material = sprite?.getMaterialInstance?.(0);
                 if (uv && material) {
@@ -131,7 +136,7 @@ export class ResultPresentation extends Component {
                     material.setProperty('sweepX', new Vec4(uv[0], uv[1], uv[2] - uv[0], uv[3] - uv[1]));
                     material.setProperty('sweepY', new Vec4(uv[4] - uv[0], uv[5] - uv[1], -0.25 + 1.7 * u, 0.18));
                 }
-                this.alpha(this.titleGlint, 255);
+                this.alpha(glint, 255);
             }
         }
     }
@@ -261,6 +266,7 @@ export class ResultPresentation extends Component {
             for (const child of root.children) this.alpha(child, 0);
         }
         if (this.titleGlint) this.titleGlint.active = false;
+        this.failureTitleGlints.forEach(node => { if (node) node.active = false; });
         if (this.confettiRoot) this.confettiRoot.active = false;
         if (this.rainRoot) this.rainRoot.active = false;
     }

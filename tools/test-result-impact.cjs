@@ -15,3 +15,23 @@ v.confettiRoot=new N();v.confettiRoot.children=Array.from({length:48},()=>new N(
 v.play(0);const first=JSON.stringify(v.ribbons);v.update(2);const xs=v.confettiRoot.children.map(n=>n.position.x);assert(Math.max(...xs)-Math.min(...xs)>500,'彩带横向散布至少覆盖500设计像素');const poses=v.confettiRoot.children.map(n=>[n.position.x,n.position.y]);v.update(0);assert.deepEqual(v.confettiRoot.children.map(n=>[n.position.x,n.position.y]),poses,'不逐帧重随机');v.play(0);assert.notEqual(JSON.stringify(v.ribbons),first,'每次成功生成新轨迹');console.log('通过：彩带全宽分散、逐帧连续及每次入场随机化。');
 
 v.rainRoot=new N();v.rainRoot.children=Array.from({length:36},()=>new N());v.node={getComponent:()=>({width:1000,height:1800})};v.play(0);assert.equal(v.viewport.width,1000);assert.equal(v.viewport.height,1800);assert.equal(v.rain.length,36);assert(v.rain[0].x < -470);assert(v.rain[35].x > 470);v.rain[0].birth=0;v.rain[0].duration=4;v.drawRain(0,0);assert.equal(v.rainRoot.children[0].position.y,990-v.viewport.offset);v.update(3.9);assert(v.rainRoot.children[0].position.y < -850);v.update(10);assert.equal(v.rainRoot.active,true);assert(v.rain.every(p=>p.birth+p.duration>v.elapsed));v.play(2);assert.equal(v.rainRoot.active,false);v.play(0);v.stop();assert.equal(v.rainRoot.active,false);assert.equal(a[p.rainRoot.__id__]._children.length,36);console.log('通过：顶部持续重生、实际宽高适配、底部覆盖、失败禁用及关闭清理。');
+
+// 三态扫光分别绑定自己的标题，切换与关闭不会残留上一页光带。
+v.failureTitleGlints=[new N(),new N()];
+for (const mode of [0,1,2,1]) {
+ v.play(mode); v.update(0.9);
+ const glints=[v.titleGlint,...v.failureTitleGlints];
+ glints.forEach((n,i)=>assert.equal(n.active,i===mode));
+ v.update(1); assert(glints.every(n=>!n.active));
+ v.stop(); assert(glints.every(n=>!n.active));
+}
+assert.equal(p.failureTitleGlints.length,2);
+p.failureTitleGlints.forEach((r,i)=>{
+ const node=a[r.__id__]; assert.equal(node._parent.__id__,p.titles[i+1].__id__);
+ const sp=a[node._components.find(c=>a[c.__id__].__type__==='cc.Sprite').__id__];
+ const title=a[p.titles[i+1].__id__];
+ const titleSp=a[title._components.find(c=>a[c.__id__].__type__==='cc.Sprite').__id__];
+ assert.deepEqual(sp._spriteFrame,titleSp._spriteFrame);
+ assert(sp._customMaterial?.__uuid__,'扫光必须绑定持久化材质');
+});
+console.log('通过：复活与失败标题扫光绑定、状态隔离、循环及关闭重置。');
