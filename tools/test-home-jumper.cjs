@@ -13,5 +13,15 @@ console.log('通过：顺序轮换、四次落点回弹、离屏继续循环、�
 
 const makeLogo=right=>{const m=new e.HomeAmbientMotion();m.logoRoute=true;m.logoFromRight=right;m.jumper={node:new N(),spriteFrame:null};m.landingButton=new N();m.landingButton.motion={hits:0,useImpactMotion(){this.enabled=true;},bounce(){this.hits++;}};m.play();pending.shift().cb(null,frame());return m;};
 const left=makeLogo(false),right=makeLogo(true);left.update(.3);right.update(.3);assert(left.jumper.node.position.x<0);assert(right.jumper.node.position.x>0);assert(left.jumper.node.active&&right.jumper.node.active);
-assert.equal(left.landingButton.motion.hits,0);assert(left.landingButton.motion.enabled);left.update(.9);right.update(.9);assert.equal(left.landingButton.motion.hits,1);assert.equal(right.landingButton.motion.hits,1);assert.notEqual(left.jumper.node.position.y,right.jumper.node.position.y,'并行路线高度错开');assert.equal(left.landingButton.scale.x,1);left.stop();right.stop();assert(!left.jumper.node.active&&!right.jumper.node.active);
+assert.equal(left.landingButton.motion.hits,0);assert(left.landingButton.motion.enabled);left.update(.4);right.update(.4);assert.equal(left.landingButton.motion.hits,1);assert.equal(right.landingButton.motion.hits,1);assert.notEqual(left.jumper.node.position.y,right.jumper.node.position.y,'并行路线高度错开');assert.equal(left.landingButton.scale.x,1);left.stop();right.stop();assert(!left.jumper.node.active&&!right.jumper.node.active);
 console.log('通过：Logo左右同时运行、高度错开、加速后关闭恢复。');
+
+const route = makeLogo(false);
+for (const target of [0.65, 1.5, 2.28]) {
+    route.update(target / 1.35 - route.elapsed + 0.00001);
+}
+assert.equal(route.landingButton.motion.hits, 3, '三个字母落点各触发一次回弹');
+route.update(3.61 / 1.35 - route.elapsed);
+assert.equal(route.jumper.node.active, false, '从对侧离屏');
+route.stop();
+console.log('通过：Logo连续三个落点反馈和对侧跳出。');

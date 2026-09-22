@@ -139,47 +139,38 @@ export class HomeAmbientMotion extends Component {
         const pulse = age >= 0 && age < 0.32 ? Math.sin(age / 0.32 * Math.PI * 2) * (1 - age / 0.32) : 0;
         button.setScale(this.baseScale.x * (1 + pulse * 0.035), this.baseScale.y * (1 - pulse * 0.055), this.baseScale.z);
     }
-    /** 两侧同时以恒定重力运动，落点反弹损失能量；横向匀速、不缓停。 */
+    /** 两侧进入后沿字母顶部连续弹跳，抛物线连接落点并从对侧跳出。 */
     private drawLogo(): void {
         const t = this.elapsed * 1.35, logo = this.landingButton;
         const size = logo.getComponent(UITransform)!;
         const width = logo.parent?.getComponent(UITransform)?.width || 750;
         const direction = this.logoFromRight ? -1 : 1;
-        const duration = this.logoFromRight ? 1.4 : 1.15;
-        const initialHeight = this.logoFromRight ? 280 : 220;
-        const gravity = 700;
         const edge = width / 2 + 65;
-        const landingX = logo.position.x - direction * size.width * 0.22;
         const y = logo.position.y + size.height / 2 + this.jumper.node.getComponent(UITransform)!.height / 2 - 16;
-        const vx = (landingX + direction * edge) / duration;
-        const vy = (0.5 * gravity * duration * duration - initialHeight) / duration;
-        let x: number, height: number;
-        let contact = duration;
-        if (t < duration) {
-            x = -direction * edge + vx * t;
-            height = initialHeight + vy * t - 0.5 * gravity * t * t;
-        } else {
-            let age = t - duration;
-            let rebound = (gravity * duration - vy) * 0.8;
-            x = landingX + vx * age;
-            // 仍在Logo顶面范围时继续衰减反弹，离开边缘后自然下落。
-            let contactX = landingX;
-            for (let bounce = 0; bounce < 5; bounce++) {
-                const flight = 2 * rebound / gravity;
-                const nextX = contactX + vx * flight;
-                if (age < flight || Math.abs(nextX - logo.position.x) > size.width / 2) break;
-                age -= flight;
-                contact += flight;
-                contactX = nextX;
-                rebound *= 0.72;
-            }
-            height = rebound * age - 0.5 * gravity * age * age;
-        }
-        if (t >= duration && contact > this.logoContact) {
-            this.logoContact = contact;
+        // 横坐标按 Logo 宽度适配，纵向贴合 T、u、b、e 的不同顶部高度。
+        const positions = this.logoFromRight ? [0.16, -0.14, -0.43] : [-0.36, 0.06, 0.43];
+        const heights = this.logoFromRight ? [0, -0.06, -0.02] : [-0.02, -0.06, -0.12];
+        // 保留加速倍率；两侧略错开落点时间，避免中央重叠。
+        const times = this.logoFromRight ? [0.78, 1.62, 2.4] : [0.65, 1.5, 2.28];
+        let segment = 0;
+        while (segment < times.length && t >= times[segment]) segment++;
+        const startTime = segment === 0 ? 0 : times[segment - 1];
+        const endTime = segment < 3 ? times[segment] : 3.6;
+        const startX = segment === 0 ? -direction * edge : logo.position.x + positions[segment - 1] * size.width;
+        const endX = segment < 3 ? logo.position.x + positions[segment] * size.width : direction * edge;
+        const startY = segment === 0 ? (this.logoFromRight ? 190 : 150) : heights[segment - 1] * size.height;
+        const endY = segment < 3 ? heights[segment] * size.height : 65;
+        const duration = endTime - startTime;
+        const u = Math.min(1, Math.max(0, (t - startTime) / duration));
+        // 固定重力的弹道插值；入场直接下落，出场向上跃出屏幕。
+        const gravity = segment === 0 ? 420 : 1000;
+        const x = startX + (endX - startX) * u;
+        const height = startY + (endY - startY) * u + 0.5 * gravity * duration * duration * u * (1 - u);
+        if (segment > 0 && times[segment - 1] > this.logoContact) {
+            this.logoContact = times[segment - 1];
             this.logoMotion?.bounce();
         }
-        this.jumper.node.active = Math.abs(x) <= edge && height > -size.height - 90 && t < 3.6;
+        this.jumper.node.active = t < 3.6;
         this.jumper.node.setPosition(x, y + height, 0);
         this.jumper.node.angle = -direction * t * 75;
     }
