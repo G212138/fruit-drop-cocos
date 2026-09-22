@@ -1,7 +1,6 @@
 import { DEV } from 'cc/env';
 import { LoadingFlight } from './LoadingFlight';
 import { FirstLaunch } from './FirstLaunch';
-import { GameTerrain } from '../../app-builtin/app-model/expansion/GameTerrain';
 import { assetManager, sp, Node, UIOpacity, _decorator, Prefab, JsonAsset, SpriteFrame, Asset } from 'cc';
 import BaseAppInit from '../../../extensions/app/assets/base/BaseAppInit';
 // 在启动包阶段引用骨骼模块，让引擎在基础设施初始化期间注册 Spine WASM。
@@ -69,9 +68,20 @@ export class AppInit extends BaseAppInit {
     }
 
     /** 首页与游戏资源均准备完成后才放行，失败项独立重试。 */
-    private loadHome(): void {
+    private async loadHome(): Promise<void> {
         // 使用存档选中的地块，地块与挡板都完成后才结束启动加载。
-        const terrain = GameTerrain.entry;
+        // AppInit 属于启动包，业务分包就绪前不能静态引用其模块。
+        let terrain: { id: string; file: string };
+        try {
+            const { GameTerrain } = await import('../../app-builtin/app-model/expansion/GameTerrain');
+            if (!this.isValid) return;
+            terrain = GameTerrain.entry;
+        } catch (error) {
+            if (!this.isValid) return;
+            console.warn('[AppInit] 地块模块加载失败，1 秒后重试', error);
+            this.scheduleOnce(() => this.loadHome(), 1);
+            return;
+        }
         const tasks: Array<{ bundle: string; path: string; type: typeof Asset }> = [
             { bundle: 'page-home', path: 'PageHome', type: Prefab },
             { bundle: 'page-game', path: 'PageGame', type: Prefab },

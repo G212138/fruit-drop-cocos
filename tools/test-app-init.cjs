@@ -1,3 +1,4 @@
+(async () => {
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -23,6 +24,8 @@ const cc = {
     _decorator: {ccclass: () => target => target, property: () => () => {}}
 };
 const source = fs.readFileSync(path.resolve(__dirname, '../assets/app-appinit/view/AppInit.ts'), 'utf8');
+const imports = ts.createSourceFile('AppInit.ts',source,ts.ScriptTarget.Latest,true).statements.filter(ts.isImportDeclaration);
+assert(!imports.some(n=>n.moduleSpecifier.text.includes('app-builtin')), '启动脚本不可静态引用尚未加载的业务分包');
 const output = ts.transpileModule(source, {compilerOptions: {
     module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, experimentalDecorators: true
 }}).outputText;
@@ -39,6 +42,7 @@ const first = pending.shift(); first.done(new Error('offline'));
 assert.equal(completed, 0); assert.equal(pending.length, 0);
 retries.shift()(); assert.equal(pending[0].name, first.name);
 while (pending.length) pending.shift().done(null);
+await new Promise(resolve => setImmediate(resolve));
 assert.equal(completed, 0, '分包注册完仍需等待首页依赖');
 assert.ok(resources.some(r=>r.name==='PageGame'));
 assert.ok(resources.some(r=>r.bundle==='pop-settings'&&r.name==='PopSettings'));
@@ -63,3 +67,5 @@ assert.equal(destroyed,false);
 init.onFinish();assert.equal(value,1);assert.equal(destroyed,true);
 assert.equal(reports.length, 0, '不调用 HTML5 专用进度接口');
 console.log('AppInit：启动依赖顺序、失败重试、进度不倒退及首页完成门槛通过');
+
+})().catch(error => { console.error(error); process.exitCode = 1; });
