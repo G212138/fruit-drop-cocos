@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, Vec3, assetManager, isValid } from 'cc';
+import { _decorator, CCInteger, Component, Node, Sprite, SpriteFrame, UITransform, Vec3, assetManager, isValid } from 'cc';
 import { GameTheme } from '../../../../../../app-builtin/app-model/expansion/GameTheme';
 const { ccclass, property } = _decorator;
 /** 首页单个物品沿按钮跳跃，不参与游戏物理和输入。 */
@@ -11,11 +11,11 @@ export class HomeAmbientMotion extends Component {
     /** 按钮外层回弹容器，不覆盖按钮内部点击反馈。 */
     @property(Node) landingButton: Node = null!;
     /** Logo 双侧并行，按钮单侧进入，均采用衰减弹跳。 */
-    @property({ type: Boolean }) logoRoute = false;
+    @property logoRoute = false;
     /** Logo右侧并行轨迹，独立落点和起始物品避免重叠。 */
-    @property({ type: Boolean }) logoFromRight = false;
+    @property logoFromRight = false;
     /** Logo 连续队列序号，三个编辑器节点错开 0.8 秒进入。 */
-    @property({ type: Number }) logoSlot = 0;
+    @property({ type: CCInteger }) logoSlot = 0;
     /** 首次进入延迟，图片预先加载避免临入场等待。 */
     private entryDelay = 0;
     /** 当前物品循环时间，秒。 */

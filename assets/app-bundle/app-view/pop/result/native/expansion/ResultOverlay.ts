@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, RichText, Node } from 'cc';
+import { _decorator, CCString, Component, Label, RichText, Node } from 'cc';
 import { GameLanguage } from '../../../../../../app-builtin/app-model/expansion/GameLanguage';
 import { resultText, ResultKey } from './ResultStrings';
 const { ccclass, property } = _decorator;
@@ -8,7 +8,7 @@ export class ResultOverlay extends Component {
     /** 与keys同序的静态文案标签。 */
     @property([Label]) labels: Label[] = [];
     /** 标签对应的八语种文案键。 */
-    @property([String]) keys: string[] = [];
+    @property([CCString]) keys: string[] = [];
     /** 成功与失败关卡数字。 */
     @property([Label]) levels: Label[] = [];
     /** 成功时的解锁说明或完成说明。 */

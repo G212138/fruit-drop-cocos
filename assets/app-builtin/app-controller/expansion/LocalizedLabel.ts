@@ -1,4 +1,4 @@
-import { _decorator, CCString, Component, Label } from 'cc';
+import { _decorator, Component, Label } from 'cc';
 import { GameLanguage } from '../../app-model/expansion/GameLanguage';
 import { LanguageKey } from '../../app-model/expansion/LanguageCatalog';
 const { ccclass, property } = _decorator;
@@ -7,7 +7,7 @@ const { ccclass, property } = _decorator;
 @ccclass('LocalizedLabel')
 export class LocalizedLabel extends Component {
     /** 统一词条键，制作时写入预制体。 */
-    @property({ type: CCString }) key = '';
+    @property key = '';
     /** 结算按钮使用大写拉丁字母；不改变原始翻译或中文。 */
     @property uppercase = false;
     /** 稳定监听引用，确保禁用后不会积累回调。 */
