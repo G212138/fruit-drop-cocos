@@ -6,12 +6,12 @@ import { PIXELS_PER_PHYSICS_METER } from './PhysicsRules';
 export const SHAKE_RULES = {
     /** 两次开始间隔 1.6 秒，摇完约 0.2 秒可再触发；手感适配值。 */
     cooldown: 1.6,
-    /** 往返过程 1.4 秒，保持每周 0.35 秒的节奏，首尾位移与速度均为零。 */
+    /** 往返过程 1.4 秒，先快后慢收势，首尾位移与速度均为零。 */
     duration: 1.4,
-    /** 左右往返 4 周，增加次数但不提高每周碰撞速度。 */
-    cycles: 4,
-    /** 水平位移包络上限 18 个世界像素。 */
-    amplitude: 18,
+    /** 左右往返 3 周，减轻机械式高频抖动。 */
+    cycles: 3,
+    /** 衰减包络基准 32 个世界像素，实际峰值约 20 像素。 */
+    amplitude: 32,
     /** 背景横向临时扩宽 8%，覆盖摇晃露出的边缘。 */
     backgroundScale: 1.08,
 };
@@ -156,13 +156,14 @@ export class FruitShake {
         }
         this.elapsed = Math.min(SHAKE_RULES.duration, this.elapsed + dt);
         const progress = this.elapsed / SHAKE_RULES.duration;
-        const cycle = Math.min(SHAKE_RULES.cycles - 1, Math.floor(progress * SHAKE_RULES.cycles));
+        const cycle = Math.min(SHAKE_RULES.cycles - 1, Math.floor(this.phase(progress)));
         if (cycle > this.feedbackCycle && progress < 1) {
             this.feedbackCycle = cycle;
             onCycle?.();
         }
-        const offset = SHAKE_RULES.amplitude * Math.sin(progress * Math.PI) ** 2
-            * Math.sin(progress * Math.PI * 2 * SHAKE_RULES.cycles);
+        // 快速建立受力、逐渐卸力，避免中段突然变猛；相位连续减速。
+        const envelope = (1 - Math.exp(-18 * progress)) ** 2 * (1 - progress) ** 2;
+        const offset = SHAKE_RULES.amplitude * envelope * Math.sin(this.phase(progress) * Math.PI * 2);
         for (const state of this.fixed.values()) {
             const body = state.body;
             if (!isValid(body, true) || !body.enabled) continue;
@@ -171,4 +172,9 @@ export class FruitShake {
             body.wakeUp();
         }
     }
+    /** 连续减速的往返相位，开始频率为结束的约 1.67 倍，无分段速度跳变。 */
+    private phase(progress: number): number {
+        return SHAKE_RULES.cycles * (1.25 * progress - 0.25 * progress * progress);
+    }
+
 }

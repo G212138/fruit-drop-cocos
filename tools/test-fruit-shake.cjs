@@ -86,9 +86,9 @@ shake.reset();
 assert.ok(shake.apply(fruits, 100, board)>0);
 let feedback=1;
 for(let i=0;i<100;i++) shake.tick(fruits,1/60,()=>feedback++);
-assert.equal(feedback,4,'四次往返各一次反馈，含启动时第一次');
+assert.equal(feedback,3,'三次往返各一次反馈，含启动时第一次');
 shake.reset();shake.apply(fruits,200,board);shake.stop();
 shake.tick(fruits,1,()=>feedback++);
-assert.equal(feedback,4,'中断后不能继续播反馈');
-console.log('通过：四次摇晃反馈与停止后的回调取消。');
+assert.equal(feedback,3,'中断后不能继续播反馈');
+console.log('通过：三次摇晃反馈与停止后的回调取消。');
 
