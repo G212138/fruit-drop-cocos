@@ -17706,7 +17706,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "RevealSoftGlow",
+    "_name": "RevealRotatingGlow",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -17771,8 +17771,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 510,
-      "height": 510
+      "width": 500,
+      "height": 500
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -17797,21 +17797,18 @@
     "__prefab": {
       "__id__": 868
     },
-    "_customMaterial": {
-      "__uuid__": "7cccbd73-e51a-441f-ad1d-7378d7cccb2e",
-      "__expectedType__": "cc.Material"
-    },
+    "_customMaterial": null,
     "_srcBlendFactor": 2,
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
       "r": 255,
-      "g": 255,
-      "b": 255,
+      "g": 217,
+      "b": 122,
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "f643eb84-6f84-4c90-9f04-668e899153cd@f9941",
+      "__uuid__": "50711493-5d37-4053-8d13-bfc92511a0f4@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -30552,7 +30549,7 @@
       "y": 2
     },
     "_shadowBlur": 2,
-    "_id": "e81uDT+gFFSrylEqKivvaA"
+    "_id": "20i/+2VvFEwZIXGe0Qpd3Q"
   },
   {
     "__type__": "cc.CompPrefabInfo",
