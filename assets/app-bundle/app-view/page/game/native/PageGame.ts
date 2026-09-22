@@ -40,7 +40,7 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 判断是否为正常游戏阶段；设置、广告暂停、结算和入场期间拒绝摇晃。 */
     private canShake(): boolean {
-        return this.ready && !this.ended && !game.isPaused() && !this.settings?.node.activeInHierarchy
+        return this.ready && !this.ended && !game.isPaused() && !this.settingsOpening
             && !!this.board?.canUseProp;
     }
     /** 首关首次放下物品后的配对说明，编辑器绑定。 */
