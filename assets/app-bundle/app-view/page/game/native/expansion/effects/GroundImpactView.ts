@@ -50,9 +50,9 @@ export class GroundImpactView extends Component {
         if (t >= 0.65) { this.node.destroy(); return; }
         this.particles.forEach((sprite, i) => {
             const motion = this.motions[i];
-            // 飞散范围放大 10%，保留原来的播放时长和轨迹形状。
-            sprite.node.setPosition(motion.vx * t * 1.1, (motion.vy * t - (this.dust ? 90 : 360) * t * t) * 1.1, 0);
-            const scale = motion.size * 1.2 * (this.dust ? 1 + t : 1);
+            // 飞散范围为最初的 1.65 倍，保留原来的播放时长和轨迹形状。
+            sprite.node.setPosition(motion.vx * t * 1.65, (motion.vy * t - (this.dust ? 90 : 360) * t * t) * 1.65, 0);
+            const scale = motion.size * 1.8 * (this.dust ? 1 + t : 1);
             sprite.node.setScale(scale, scale, 1);
             sprite.node.angle = motion.spin * t;
             sprite.node.getComponent(UIOpacity)!.opacity = 255 * Math.max(0, 1 - t / 0.65);
