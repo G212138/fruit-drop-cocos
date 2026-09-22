@@ -10,33 +10,33 @@ export const languageNames: Record<string, string> = {
 /** 玩家可见基础词条；按钮文字不烘焙进图片。 */
 const english = {
     play: 'PLAY', themes: 'THEMES', level: 'Level {level}', editor: 'Level Editor',
-    settings: 'Settings', music: 'Music', sound: 'Sound', vibrate: 'Vibration',
+    settings: 'Settings', music: 'Music', sound: 'Sound Effects', vibrate: 'Vibration',
     language: 'Language', system: 'System default', on: 'ON', off: 'OFF',
     continue: 'Continue', home: 'Home', restart: 'Retry', close: 'Close',
     remaining: 'Left', eliminate: 'Remove', shuffle: 'Shuffle', unlock: 'Unlock',
-    next: 'Next Level', revive: 'Revive', unlocked: 'Unlocked!', fruits: 'Fruit', sweets: 'Sweets',
-    selected: 'Selected', themeLocked: 'Clear 30 levels to unlock', saveError: 'Could not save language. Your choice applies for this session.',
+    next: 'Next Level', revive: 'Revive', unlocked: 'Unlocked!', fruits: 'Fruit', sweets: 'Desserts',
+    selected: 'In use', themeLocked: 'Clear 30 levels to unlock', saveError: 'Could not save language. Your choice applies for this session.',
     shake: 'Shake',
-    collection: 'COLLECTION', dailyGift: 'DAILY GIFT', leaderboard: 'RANK', comingSoon: 'Coming soon',
+    collection: 'COLLECTION', dailyGift: 'DAILY GIFT', leaderboard: 'LEADERBOARD', comingSoon: 'Coming soon',
     allFruitCleared: 'ALL CLEARED!', clearChute: 'Clear the chute and keep playing',
     watchAd: 'WATCH AD', noThanks: 'NO THANKS', giveAnotherTry: 'Give it another try!', tryAgain: 'TRY AGAIN',
     paused: 'PAUSED', privacyPolicy: 'Privacy Policy', termsOfUse: 'Terms of Use',
     pairHint: 'Match 2 identical items to clear them',
     hintVertical: 'Items move downward', hintHorizontal: 'Items move to the right',
     hintHidden: 'Match to reveal hidden items', hintIce: 'Match to break the ice', hintBlackHole: 'Multiple items are inside the black hole',
-    confirmTheme: 'CONFIRM USE', themePreview: 'PREVIEW', themeInUse: 'IN USE', themeCount: '{count} / {total} UNLOCKED', themeConfirmHint: 'Applies after confirmation', themeSaveError: 'Could not save. Please try again.',
+    confirmTheme: 'USE THEME', themePreview: 'PREVIEW', themeInUse: 'IN USE', themeCount: '{count} / {total} UNLOCKED', themeConfirmHint: 'Applies after confirmation', themeSaveError: 'Could not save. Please try again.',
 };
 /** 译文键，以英文表为结构基准。 */
 export type LanguageKey = keyof typeof english;
 /** 各语言完整基础词条，与英文按同一顺序校验。 */
 const rows: Record<string, string[]> = {
-    ja: ['プレイ','テーマ','レベル {level}','レベルエディター','設定','音楽','効果音','振動','言語','端末の設定に従う','オン','オフ','続ける','ホーム','もう一度','閉じる','残り','消去','シャッフル','解除','次へ','復活','アンロック！','フルーツ','スイーツ','選択中','30レベルクリアで解放','言語を保存できません。今回のみ適用されます。'],
-    id: ['MAIN','TEMA','Level {level}','Editor Level','Pengaturan','Musik','Suara','Getaran','Bahasa','Ikuti sistem','AKTIF','NONAKTIF','Lanjut','Beranda','Coba lagi','Tutup','Sisa','Hapus','Acak','Buka','Berikutnya','Bangkit','Terbuka!','Buah','Manisan','Dipilih','Selesaikan 30 level untuk membuka','Bahasa gagal disimpan. Pilihan berlaku untuk sesi ini.'],
-    th: ['เล่น','ธีม','ด่าน {level}','แก้ไขด่าน','ตั้งค่า','เพลง','เสียง','การสั่น','ภาษา','ตามระบบ','เปิด','ปิด','เล่นต่อ','หน้าหลัก','ลองใหม่','ปิด','เหลือ','ลบ','สับเปลี่ยน','ปลดล็อก','ถัดไป','คืนชีพ','ปลดล็อกแล้ว!','ผลไม้','ขนม','เลือกแล้ว','ผ่าน 30 ด่านเพื่อปลดล็อก','บันทึกภาษาไม่ได้ การเลือกนี้ใช้ได้เฉพาะครั้งนี้'],
-    vi: ['CHƠI','CHỦ ĐỀ','Màn {level}','Chỉnh sửa màn','Cài đặt','Nhạc','Âm thanh','Rung','Ngôn ngữ','Theo hệ thống','BẬT','TẮT','Tiếp tục','Trang chủ','Thử lại','Đóng','Còn lại','Xóa','Trộn','Mở khóa','Tiếp theo','Hồi sinh','Đã mở khóa!','Trái cây','Đồ ngọt','Đã chọn','Hoàn thành 30 màn để mở khóa','Không lưu được ngôn ngữ. Lựa chọn chỉ áp dụng trong phiên này.'],
-    ms: ['MAIN','TEMA','Tahap {level}','Editor Tahap','Tetapan','Muzik','Bunyi','Getaran','Bahasa','Ikut sistem','HIDUP','MATI','Teruskan','Laman utama','Cuba lagi','Tutup','Baki','Buang','Kocok','Buka','Seterusnya','Hidup semula','Dibuka!','Buah','Manisan','Dipilih','Selesaikan 30 tahap untuk membuka','Bahasa tidak dapat disimpan. Pilihan digunakan untuk sesi ini.'],
-    fil: ['MAGLARO','MGA TEMA','Antas {level}','Editor ng Antas','Mga Setting','Musika','Tunog','Panginginig','Wika','Sundin ang system','BUKAS','PATAY','Magpatuloy','Home','Subukan muli','Isara','Natitira','Alisin','Paghaluin','I-unlock','Susunod','Buhayin','Na-unlock!','Prutas','Matatamis','Napili','Tapusin ang 30 antas para ma-unlock','Hindi na-save ang wika. Para lang sa sesyong ito ang pinili.'],
-    zh: ['开始游戏','主题','第 {level} 关','关卡编辑器','设置','音乐','音效','振动','语言','跟随系统','开','关','继续游戏','返回首页','重新挑战','关闭','剩余','消除','刷新','解锁','下一关','复活','恭喜解锁！','水果','甜品','已使用','通关30关后可使用','语言暂时无法保存，本次会话仍然生效。'],
+    ja: ['プレイ','テーマ','レベル {level}','レベルエディター','設定','音楽','効果音','振動','言語','端末の設定に従う','オン','オフ','続ける','ホーム','もう一度','閉じる','残り','消去','シャッフル','解放','次のレベル','復活','解放しました！','フルーツ','スイーツ','使用中','30レベルクリアで解放','言語を保存できません。今回のみ適用されます。'],
+    id: ['MAIN','TEMA','Level {level}','Editor Level','Pengaturan','Musik','Efek suara','Getaran','Bahasa','Ikuti sistem','AKTIF','NONAKTIF','Lanjut','Beranda','Coba lagi','Tutup','Sisa','Hapus','Acak','Buka','Berikutnya','Hidup Lagi','Terbuka!','Buah','Hidangan penutup','Dipakai','Selesaikan 30 level untuk membuka','Bahasa gagal disimpan. Pilihan berlaku untuk sesi ini.'],
+    th: ['เล่น','ธีม','ด่าน {level}','แก้ไขด่าน','ตั้งค่า','เพลง','เสียงเอฟเฟกต์','การสั่น','ภาษา','ตามระบบ','เปิด','ปิด','เล่นต่อ','หน้าหลัก','ลองใหม่','ปิด','เหลือ','ลบ','สับเปลี่ยน','ปลดล็อก','ถัดไป','คืนชีพ','ปลดล็อกแล้ว!','ผลไม้','ขนมหวาน','ใช้อยู่','ผ่าน 30 ด่านเพื่อปลดล็อก','บันทึกภาษาไม่ได้ การเลือกนี้ใช้ได้เฉพาะครั้งนี้'],
+    vi: ['CHƠI','CHỦ ĐỀ','Màn {level}','Chỉnh sửa màn','Cài đặt','Nhạc','Hiệu ứng âm thanh','Rung','Ngôn ngữ','Theo hệ thống','BẬT','TẮT','Tiếp tục','Trang chủ','Thử lại','Đóng','Còn lại','Xóa','Trộn','Mở khóa','Tiếp theo','Hồi sinh','Đã mở khóa!','Trái cây','Món tráng miệng','Đang dùng','Hoàn thành 30 màn để mở khóa','Không lưu được ngôn ngữ. Lựa chọn chỉ áp dụng trong phiên này.'],
+    ms: ['MAIN','TEMA','Tahap {level}','Editor Tahap','Tetapan','Muzik','Bunyi','Getaran','Bahasa','Ikut sistem','AKTIF','TIDAK AKTIF','Teruskan','Laman utama','Cuba lagi','Tutup','Baki','Buang','Susun semula','Buka','Seterusnya','Hidup semula','Dibuka!','Buah','Pencuci mulut','Digunakan','Selesaikan 30 tahap untuk membuka','Bahasa tidak dapat disimpan. Pilihan digunakan untuk sesi ini.'],
+    fil: ['MAGLARO','MGA TEMA','Level {level}','Level Editor','Mga Setting','Musika','Tunog','Panginginig','Wika','Sundin ang system','ON','OFF','Magpatuloy','Home','Subukan muli','Isara','Natitira','Alisin','Balasahin','I-unlock','Susunod','Magpatuloy','Na-unlock!','Prutas','Panghimagas','Ginagamit','Tapusin ang 30 level para ma-unlock','Hindi na-save ang wika. Para lang sa sesyong ito ang pinili.'],
+    zh: ['开始游戏','主题','第 {level} 关','关卡编辑器','设置','音乐','音效','振动','语言','跟随系统','开','关','继续游戏','返回首页','重新挑战','关闭','剩余','消除','打乱','解锁','下一关','复活','恭喜解锁！','水果','甜品','已使用','通关30关后可使用','语言暂时无法保存，本次会话仍然生效。'],
 };
 /** 每种语言的基础词条，缺项在开发检查中直接报错。 */
 export const languageMessages: Record<string, Record<LanguageKey, string>> = { en: english };
@@ -46,12 +46,12 @@ const shakeLabels: Record<string, string> = {
 };
 /** 新首页、设置及结算界面的补充译文，标题图片固定为英文，不进入词表。 */
 const extendedLabels: Record<string, string[]> = {
-    ja: ['コレクション','デイリーギフト','ランキング','近日公開','すべて消しました！','シュートを空けて続けよう','広告を見る','やめる','もう一度挑戦しよう！','もう一度','一時停止','プライバシーポリシー','利用規約','同じアイテムを2個そろえると消せます'],
-    id: ['KOLEKSI','HADIAH HARIAN','PERINGKAT','Segera hadir','SEMUA BERHASIL DIBERSIHKAN!','Kosongkan jalur dan lanjut bermain','TONTON IKLAN','TIDAK, TERIMA KASIH','Coba sekali lagi!','COBA LAGI','DIJEDA','Kebijakan Privasi','Ketentuan Penggunaan','Cocokkan 2 benda yang sama'],
+    ja: ['コレクション','デイリーギフト','ランキング','近日公開','すべて消しました！','出口を空けて続けよう','広告を見る','やめる','もう一度挑戦しよう！','もう一度','一時停止','プライバシーポリシー','利用規約','同じアイテムを2個そろえると消せます'],
+    id: ['KOLEKSI','HADIAH HARIAN','PERINGKAT','Segera hadir','SEMUA BERHASIL DIBERSIHKAN!','Kosongkan jalur dan lanjut bermain','TONTON IKLAN','TIDAK, TERIMA KASIH','Coba sekali lagi!','COBA LAGI','DIJEDA','Kebijakan Privasi','Ketentuan Penggunaan','Cocokkan 2 benda yang sama untuk menghilangkannya'],
     th: ['คอลเลกชัน','ของขวัญรายวัน','อันดับ','เร็ว ๆ นี้','เคลียร์ทั้งหมดแล้ว!','เคลียร์ช่องแล้วเล่นต่อ','ดูโฆษณา','ไม่ ขอบคุณ','ลองอีกครั้ง!','ลองใหม่','หยุดชั่วคราว','นโยบายความเป็นส่วนตัว','ข้อกำหนดการใช้งาน','จับคู่สิ่งของที่เหมือนกัน 2 ชิ้น'],
-    vi: ['BỘ SƯU TẬP','QUÀ HẰNG NGÀY','XẾP HẠNG','Sắp ra mắt','ĐÃ DỌN SẠCH TẤT CẢ!','Dọn máng và chơi tiếp','XEM QUẢNG CÁO','KHÔNG, CẢM ƠN','Thử lại lần nữa!','THỬ LẠI','TẠM DỪNG','Chính sách quyền riêng tư','Điều khoản sử dụng','Ghép 2 vật phẩm giống nhau để xóa'],
-    ms: ['KOLEKSI','HADIAH HARIAN','KEDUDUKAN','Akan datang','SEMUANYA SELESAI!','Kosongkan laluan dan terus bermain','TONTON IKLAN','TIDAK, TERIMA KASIH','Cuba sekali lagi!','CUBA LAGI','DIJEDA','Dasar Privasi','Terma Penggunaan','Padankan 2 objek yang sama'],
-    fil: ['KOLEKSYON','ARAW-ARAW NA REGALO','RANGGO','Malapit na','NALINIS NA ANG LAHAT!','Linisin ang lagusan at magpatuloy','MANOOD NG AD','HINDI, SALAMAT','Subukan muli!','SUBUKAN MULI','NAKA-PAUSE','Patakaran sa Privacy','Mga Tuntunin ng Paggamit','Pagtambalin ang 2 magkaparehong bagay'],
+    vi: ['BỘ SƯU TẬP','QUÀ HẰNG NGÀY','XẾP HẠNG','Sắp ra mắt','ĐÃ DỌN SẠCH TẤT CẢ!','Dọn lối ra để chơi tiếp','XEM QUẢNG CÁO','KHÔNG, CẢM ƠN','Thử lại lần nữa!','THỬ LẠI','TẠM DỪNG','Chính sách quyền riêng tư','Điều khoản sử dụng','Ghép 2 vật phẩm giống nhau để xóa'],
+    ms: ['KOLEKSI','HADIAH HARIAN','KEDUDUKAN','Akan datang','SEMUANYA SELESAI!','Kosongkan laluan dan terus bermain','TONTON IKLAN','TIDAK, TERIMA KASIH','Cuba sekali lagi!','CUBA LAGI','DIJEDA','Dasar Privasi','Terma Penggunaan','Padankan 2 objek yang sama untuk menghapuskannya'],
+    fil: ['KOLEKSYON','ARAW-ARAW NA REGALO','RANGGO','Malapit na','NALINIS NA ANG LAHAT!','Linisin ang lagusan at magpatuloy','MANOOD NG AD','HINDI, SALAMAT','Subukan muli!','SUBUKAN MULI','NAKA-PAUSE','Patakaran sa Privacy','Mga Tuntunin ng Paggamit','Pagtambalin ang 2 magkaparehong item para maalis ang mga ito'],
     zh: ['图鉴','每日礼物','排行','即将开放','全部消除！','清理洞口并继续游戏','观看广告','不用了','再试一次吧！','重新挑战','暂停','隐私政策','使用条款','2 个相同物品即可消除'],
 };
 /** 主题预览与确认使用的独立译文，顺序对应新增词条。 */
@@ -67,7 +67,7 @@ const themeLabels: Record<string, string[]> = {
 /** 开局机制提示译文；图片仅保留图案和底框。 */
 const hintLabels: Record<string, string[]> = {
     zh: ['从上往下移动','从左往右移动','通过消除揭开隐藏物品','通过消除解锁冰冻物品','黑洞内有多个物品'],
-    ja: ['アイテムは下へ移動','アイテムは右へ移動','マッチして隠れたアイテムを表示','マッチして氷を壊そう','ブラックホールには複数のアイテム'],
+    ja: ['アイテムは下へ移動','アイテムは右へ移動','マッチして隠れたアイテムを見つけよう','マッチして氷を壊そう','ブラックホールには複数のアイテム'],
     id: ['Benda bergerak ke bawah','Benda bergerak ke kanan','Cocokkan untuk membuka benda tersembunyi','Cocokkan untuk memecahkan es','Ada beberapa benda di dalam lubang hitam'],
     th: ['สิ่งของเคลื่อนลงด้านล่าง','สิ่งของเคลื่อนไปทางขวา','จับคู่เพื่อเผยสิ่งของที่ซ่อนอยู่','จับคู่เพื่อทำลายน้ำแข็ง','มีสิ่งของหลายชิ้นในหลุมดำ'],
     vi: ['Vật phẩm di chuyển xuống','Vật phẩm di chuyển sang phải','Ghép để lộ vật phẩm ẩn','Ghép để phá băng','Có nhiều vật phẩm trong hố đen'],
