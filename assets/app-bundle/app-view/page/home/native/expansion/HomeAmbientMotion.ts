@@ -14,6 +14,10 @@ export class HomeAmbientMotion extends Component {
     @property({ type: Boolean }) logoRoute = false;
     /** Logo右侧并行轨迹，独立落点和起始物品避免重叠。 */
     @property({ type: Boolean }) logoFromRight = false;
+    /** Logo 连续队列序号，三个编辑器节点错开 0.8 秒进入。 */
+    @property({ type: Number }) logoSlot = 0;
+    /** 首次进入延迟，图片预先加载避免临入场等待。 */
+    private entryDelay = 0;
     /** 当前物品循环时间，秒。 */
     private elapsed = 0;
     /** 页面显隐及异步请求版本。 */
@@ -45,14 +49,16 @@ export class HomeAmbientMotion extends Component {
         }
         this.running = true;
         this.category = GameTheme.active;
-        this.index = this.logoRoute && this.logoFromRight ? 15 : 0;
+        this.index = this.logoRoute ? (this.logoFromRight ? 15 : 0) + this.logoSlot : 0;
+        this.entryDelay = this.logoRoute ? this.logoSlot * 0.8 : 0;
         this.loadItem();
     }
     /** 加载单个共享图片，过期回调不会应用到关闭后的首页。 */
     private loadItem(): void {
         const ticket = ++this.request;
         this.loading = true;
-        this.elapsed = 0;
+        this.elapsed = -this.entryDelay;
+        this.entryDelay = 0;
         this.impact = -10;
         this.cycleDuration = 4.35;
         this.jumper.node.active = false;
@@ -80,7 +86,8 @@ export class HomeAmbientMotion extends Component {
         if (!this.running) return;
         if (this.category !== GameTheme.active) {
             this.category = GameTheme.active;
-            this.index = 0;
+            this.index = this.logoRoute ? (this.logoFromRight ? 15 : 0) + this.logoSlot : 0;
+            this.entryDelay = this.logoRoute ? this.logoSlot * 0.8 : 0;
             this.landingButton.setScale(this.baseScale);
             this.loadItem();
             return;
@@ -89,12 +96,13 @@ export class HomeAmbientMotion extends Component {
         this.elapsed += Math.max(0, dt);
         this.draw();
         if (this.elapsed >= this.cycleDuration) {
-            this.index = (this.index + 1) % 30;
+            this.index = (this.index + (this.logoRoute ? 3 : 1)) % 30;
             this.loadItem();
         }
     }
     /** 恒定横向速度与重力弹道；只有顶面内的落点反弹，出界自然下落。 */
     private draw(): void {
+        if (this.elapsed < 0) { this.jumper.node.active = false; return; }
         const surface = this.landingButton;
         const size = surface.getComponent(UITransform)!;
         const width = surface.parent?.getComponent(UITransform)?.width || 750;
@@ -138,7 +146,7 @@ export class HomeAmbientMotion extends Component {
         }
         // 所有路线离屏后只留短间隔，下一件物品接续，不再长时间空等。
         const exitTime = 2 * edge / speed;
-        this.cycleDuration = exitTime + 0.18;
+        this.cycleDuration = this.logoRoute ? 2.4 : exitTime + 0.18;
         this.jumper.node.active = t < exitTime;
         this.jumper.node.setPosition(x, baseline + height, 0);
         this.jumper.node.angle = -direction * t * 110;

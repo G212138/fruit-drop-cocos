@@ -24,7 +24,7 @@ for(const logo of [false,true]) {
  assert(contacts[2]-contacts[1]<contacts[1]-contacts[0],'后一次飞行时间变短');
  if(logo) assert.equal(m.landingButton.motion.hits,contacts.length);
  m.update(m.cycleDuration-m.elapsed-.01);assert(!m.jumper.node.active,'离屏后短间隔');
- m.update(.02);assert.equal(pending[0].path,'fruit/fruit-2/spriteFrame');
+ m.update(.02);assert.equal(pending[0].path,logo?'fruit/fruit-4/spriteFrame':'fruit/fruit-2/spriteFrame');
  pending.shift().cb(null,frame());assert.equal(f.refs,0);m.stop();
  assert.equal(m.landingButton.scale.x,1);
 }
@@ -36,3 +36,13 @@ const {m,f}=make();theme.active=2;m.update(.01);
 assert.equal(pending[0].path,'dessert/dessert-1/spriteFrame');const late=pending.shift();
 m.stop();late.cb(null,frame());assert.equal(f.refs,0);assert.equal(m.jumper.spriteFrame,null);
 console.log('通过：横向匀速、连续衰减反弹、双侧同步、短间隔轮换、切换品类和关闭释放。');
+const stream=[];
+for(let slot=0;slot<3;slot++) {
+ const {m}=make(true);m.stop();m.logoSlot=slot;m.play();pending.shift().cb(null,frame());stream.push(m);
+}
+for(const actor of stream) actor.update(.9);
+assert.equal(stream.filter(actor=>actor.jumper.node.active).length,2,'下一件在前件离屏前进入');
+for(const actor of stream) actor.update(.8);
+assert.equal(stream.filter(actor=>actor.jumper.node.active).length,3,'三件物品同时在场');
+for(const actor of stream) actor.stop();
+console.log('通过：Logo队列错峰持续入场，前后物品重叠运行。');
