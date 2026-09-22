@@ -44,6 +44,10 @@ export class ResultPresentation extends Component {
     @property(AudioSource) failureAudio: AudioSource = null!;
     /** 原版复活提示音。 */
     @property(AudioSource) reviveAudio: AudioSource = null!;
+    /** 成功页首次喷彩带时播放一次，持续飘落不重复触发。 */
+    @property(AudioSource) confettiAudio: AudioSource = null!;
+    /** 本轮是否已经处理喷彩带音效。 */
+    private confettiSoundPlayed = false;
     /** 本次播放状态；-1表示已清理。 */
     private mode = -1;
     /** 当前播放时间，秒。 */
@@ -63,6 +67,7 @@ export class ResultPresentation extends Component {
         this.stop();
         this.mode = mode;
         this.elapsed = 0;
+        this.confettiSoundPlayed = false;
         if (mode === 0) {
             const size = this.node?.getComponent(UITransform);
             this.viewport = { width: size?.width || 750, height: size?.height || 1334, offset: this.cards[0]?.position.y || 0 };
@@ -88,6 +93,10 @@ export class ResultPresentation extends Component {
     update(dt: number): void {
         if (this.mode < 0) return;
         this.elapsed += Math.max(0, dt);
+        if (this.mode === 0 && !this.confettiSoundPlayed && this.elapsed >= 0.12) {
+            this.confettiSoundPlayed = true;
+            if (GameSettings.current.snapshot.sound) this.confettiAudio?.play();
+        }
         this.draw();
     }
     /** @param node 记录当前预制体布局，首次播放后固定作为恢复基准。 */
@@ -368,6 +377,7 @@ export class ResultPresentation extends Component {
         if (this.revealItem) this.revealItem.color = Color.WHITE;
         if (this.revealGlint) this.revealGlint.active = false;
         if (this.revealWave) this.revealWave.active = false;
+        this.confettiAudio?.stop();
         this.failureAudio?.stop();
         this.reviveAudio?.stop();
         for (const [node, origin] of this.origins) {
