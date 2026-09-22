@@ -114,9 +114,9 @@ export class HomeAmbientMotion extends Component {
         const startX = -direction * edge;
         const firstX = surface.position.x - direction * size.width * 0.4;
         const firstTime = Math.abs(firstX - startX) / speed;
-        // 重力单位为设计像素/秒²；每跳保留 64% 竖直速度，跳高自然衰减。
-        const gravity = this.logoRoute ? 1800 : 1600;
-        const restitution = 0.64;
+        // 重力单位为设计像素/秒²；每跳保留 55% 竖直速度，跳高自然衰减。
+        const gravity = this.logoRoute ? 2160 : 1920;
+        const restitution = 0.55;
         const t = this.elapsed;
         const x = startX + vx * t;
         const baseline = surface.position.y + size.height / 2 + this.jumper.node.getComponent(UITransform)!.height / 2 - (this.logoRoute ? 16 : 6);
