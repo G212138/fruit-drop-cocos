@@ -38,7 +38,7 @@ export class PopResult extends BaseView {
 
     /** 更新解锁光圈动画，不调整页面布局。@param deltaTime 本帧秒数；光圈每秒顺时针90度旋转。 */
     lateUpdate(deltaTime: number): void {
-        if (this.won && this.unlockRoot.active && this.unlockGlow) this.unlockGlow.angle -= 90 * deltaTime;
+        if (!this.presentation?.unlockReveal && this.won && this.unlockRoot.active && this.unlockGlow) this.unlockGlow.angle -= 90 * deltaTime;
     }
 
     /** 预制体中的胜负结果标签。 */

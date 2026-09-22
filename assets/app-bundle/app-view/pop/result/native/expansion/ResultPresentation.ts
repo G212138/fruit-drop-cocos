@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, UIOpacity, UITransform, Vec3, AudioSource, Sprite, Vec4 } from 'cc';
+import { _decorator, Component, Node, UIOpacity, UITransform, Vec3, AudioSource, Sprite, Vec4, Color } from 'cc';
 import { GameSettings } from '../../../../../../app-builtin/app-model/expansion/GameSettings';
 const { ccclass, property } = _decorator;
 /** 结算动画使用预制体内切图；时间单位秒，不改变按钮可点击状态。 */
@@ -28,6 +28,14 @@ export class ResultPresentation extends Component {
     @property([Node]) primaryMotions: Node[] = [];
     /** 主按钮表面扫光，按下一关、试玩重试、复活、重新挑战排列。 */
     @property([Node]) primaryGlints: Node[] = [];
+    /** 新品揭晓物品及特效节点，全部在预制体内制作。 */
+    @property(Node) unlockReveal: Node = null!;
+    @property(Sprite) revealItem: Sprite = null!;
+    @property([Node]) revealRays: Node[] = [];
+    @property(Node) revealWave: Node = null!;
+    @property(Node) revealStage: Node = null!;
+    @property(Node) revealGlint: Node = null!;
+    @property([Node]) revealSparks: Node[] = [];
     /** 原版失败落点音。 */
     @property(AudioSource) failureAudio: AudioSource = null!;
     /** 原版复活提示音。 */
@@ -58,6 +66,11 @@ export class ResultPresentation extends Component {
             this.rain = (this.rainRoot?.children || []).map((_, i) => this.newRain(i, true));
         }
         this.buttonsSettled = false;
+        if (this.revealItem) {
+            this.remember(this.revealItem.node);
+            const glint = this.revealGlint?.getComponent(Sprite);
+            if (glint) glint.spriteFrame = this.revealItem.spriteFrame;
+        }
         for (const node of [...this.titles, ...this.illustrations, ...this.buttonRoots.reduce<Node[]>((all, root) => all.concat(root.children), [])]) this.remember(node);
         if (GameSettings.current.snapshot.sound) {
             if (mode === 1) this.reviveAudio?.play();
@@ -117,6 +130,7 @@ export class ResultPresentation extends Component {
             this.buttonRoots[mode]?.children.forEach((button, i) => this.pose(button, 0.92 + 0.08 * this.pop((t - 0.25 - i * 0.035) / 0.26)));
             this.buttonsSettled = t >= 0.9;
         }
+        this.drawUnlock(t, mode);
         this.drawPrimaryButtons(t, mode);
         this.drawHalos(t, mode);
         this.drawParticles(t, mode);
@@ -142,6 +156,46 @@ export class ResultPresentation extends Component {
                     material.setProperty('sweepY', new Vec4(uv[4] - uv[0], uv[5] - uv[1], -0.25 + 1.7 * u, 0.18));
                 }
                 this.alpha(glint, 255);
+            }
+        }
+    }
+    /** @param t 播放秒数。@param mode 成功新品专属；1秒揭晓后转为悬浮循环。 */
+    private drawUnlock(t: number, mode: number): void {
+        if (!this.unlockReveal?.active || !this.revealItem || mode !== 0) return;
+        const reveal = this.clamp((t - 0.25) / 0.45);
+        const light = Math.round(45 + 210 * reveal);
+        this.revealItem.color = new Color(light, light, light, 255);
+        this.pose(this.revealItem.node, 0.72 + 0.28 * this.pop((t - 0.25) / 0.55), t > 0.8 ? Math.sin((t - 0.8) * 1.7) * 9 : 0);
+        this.revealRays.forEach((ray, i) => {
+            ray.angle = (i ? -1 : 1) * t * (i ? 11 : 17);
+            ray.setScale(0.75 + 0.25 * reveal + Math.sin(t * 1.8 + i) * 0.04, 0.75 + 0.25 * reveal + Math.sin(t * 1.8 + i) * 0.04, 1);
+            this.alpha(ray, reveal * (i ? 145 : 210));
+        });
+        if (this.revealStage) this.alpha(this.revealStage, reveal * (165 + Math.sin(t * 2) * 20));
+        if (this.revealWave) {
+            const u = this.clamp((t - 0.45) / 0.75);
+            this.revealWave.active = t >= 0.45 && u < 1;
+            this.revealWave.setScale(0.25 + u * 1.6, 0.25 + u * 1.6, 1);
+            this.alpha(this.revealWave, (1 - u) * 210);
+        }
+        this.revealSparks.forEach((spark, i) => {
+            const a = i * Math.PI * 2 / this.revealSparks.length;
+            const u = this.clamp(t / 0.65);
+            const radius = t < 0.65 ? 260 - 200 * u : 155 + Math.sin(t * 1.3 + i) * 32;
+            spark.setPosition(Math.cos(a + t * 0.12) * radius, Math.sin(a + t * 0.12) * radius);
+            spark.angle = t * 40 + i * 30;
+            this.alpha(spark, t < 0.65 ? 200 : 65 + 100 * Math.sin(t * 2 + i) ** 2);
+        });
+        if (this.revealGlint) {
+            const phase = (t - 1.15) % 4.6;
+            this.revealGlint.active = phase >= 0 && phase < 1.25;
+            const sprite = this.revealGlint.getComponent(Sprite);
+            const uv = sprite?.spriteFrame?.uv;
+            const mat = sprite?.getMaterialInstance?.(0);
+            if (this.revealGlint.active && uv && mat) {
+                mat.setProperty('sweepX', new Vec4(uv[0], uv[1], uv[2] - uv[0], uv[3] - uv[1]));
+                mat.setProperty('sweepY', new Vec4(uv[4] - uv[0], uv[5] - uv[1], -0.25 + 1.7 * phase / 1.25, 0.23));
+                this.alpha(this.revealGlint, 180);
             }
         }
     }
@@ -280,6 +334,9 @@ export class ResultPresentation extends Component {
     /** 关闭或切页时恢复布局并清空所有特效，不留下后台循环和迟到回调。 */
     stop(): void {
         this.mode = -1;
+        if (this.revealItem) this.revealItem.color = Color.WHITE;
+        if (this.revealGlint) this.revealGlint.active = false;
+        if (this.revealWave) this.revealWave.active = false;
         this.failureAudio?.stop();
         this.reviveAudio?.stop();
         for (const [node, origin] of this.origins) {

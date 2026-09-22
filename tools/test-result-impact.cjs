@@ -56,3 +56,11 @@ p.primaryGlints.forEach(r=>{
  assert.equal(button._children[0].__id__,r.__id__,'扫光置于文字图标下方');
 });
 console.log('通过：主按钮呼吸、扫光状态隔离、点击反馈保留及关闭重置。');
+
+// 新品揭晓按真实时间恢复，关闭时清除光波与扫光。
+cc.Color=class {constructor(r,g,b,a){Object.assign(this,{r,g,b,a});}};cc.Color.WHITE=new cc.Color(255,255,255,255);
+v.unlockReveal=new N();v.revealItem={node:new N(),spriteFrame:null,color:cc.Color.WHITE};
+v.revealRays=[new N(),new N()];v.revealWave=new N();v.revealStage=new N();v.revealGlint=new N();v.revealSparks=[new N(),new N()];
+v.play(0);assert.equal(v.revealItem.color.r,45);v.update(.6);assert(v.revealWave.active);v.update(.7);assert(v.revealGlint.active);assert.equal(v.revealItem.color.r,255);v.update(2);assert(!v.revealWave.active);v.stop();assert(!v.revealGlint.active);assert(!v.revealWave.active);assert.equal(v.revealItem.node.position.y,25);
+assert.equal(p.revealRays.length,2);assert.equal(p.revealSparks.length,10);assert(p.revealGlint&&p.revealItem);
+console.log('通过：新品剪影揭晓、光波、物品扫光及关闭恢复。');
