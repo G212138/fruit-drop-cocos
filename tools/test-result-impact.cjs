@@ -62,5 +62,5 @@ cc.Color=class {constructor(r,g,b,a){Object.assign(this,{r,g,b,a});}};cc.Color.W
 v.unlockReveal=new N();v.revealItem={node:new N(),spriteFrame:null,color:cc.Color.WHITE};
 v.revealRays=[new N(),new N()];v.revealWave=new N();v.revealStage=new N();v.revealGlint=new N();v.revealSparks=[new N(),new N()];
 v.play(0);assert.equal(v.revealItem.color.r,45);v.update(.6);assert(v.revealWave.active);v.update(.7);assert(v.revealGlint.active);assert.equal(v.revealItem.color.r,255);v.update(2);assert(!v.revealWave.active);v.stop();assert(!v.revealGlint.active);assert(!v.revealWave.active);assert.equal(v.revealItem.node.position.y,25);
-assert.equal(p.revealRays.length,2);assert.equal(p.revealSparks.length,10);assert(p.revealGlint&&p.revealItem);
+assert.equal(p.revealRays.length,1);assert.equal(p.revealSparks.length,0);assert(p.revealGlint&&p.revealItem);
 console.log('通过：新品剪影揭晓、光波、物品扫光及关闭恢复。');

@@ -167,9 +167,15 @@ export class ResultPresentation extends Component {
         this.revealItem.color = new Color(light, light, light, 255);
         this.pose(this.revealItem.node, 0.72 + 0.28 * this.pop((t - 0.25) / 0.55), t > 0.8 ? Math.sin((t - 0.8) * 1.7) * 9 : 0);
         this.revealRays.forEach((ray, i) => {
-            ray.angle = (i ? -1 : 1) * t * (i ? 11 : 17);
+            ray.angle = 0;
             ray.setScale(0.75 + 0.25 * reveal + Math.sin(t * 1.8 + i) * 0.04, 0.75 + 0.25 * reveal + Math.sin(t * 1.8 + i) * 0.04, 1);
-            this.alpha(ray, reveal * (i ? 145 : 210));
+            this.alpha(ray, reveal * 155);
+            const sprite = ray.getComponent(Sprite), uv = sprite?.spriteFrame?.uv;
+            const mat = sprite?.getMaterialInstance?.(0);
+            if (uv && mat) {
+                mat.setProperty('sweepX', new Vec4(uv[0], uv[1], uv[2] - uv[0], uv[3] - uv[1]));
+                mat.setProperty('sweepY', new Vec4(uv[4] - uv[0], uv[5] - uv[1], 0, 0));
+            }
         });
         if (this.revealStage) this.alpha(this.revealStage, reveal * (165 + Math.sin(t * 2) * 20));
         if (this.revealWave) {
