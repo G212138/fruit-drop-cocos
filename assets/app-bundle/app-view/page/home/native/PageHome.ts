@@ -1,7 +1,7 @@
 import { UiClickSound } from '../../../../../app-builtin/app-controller/expansion/UiClickSound';
 import { GameLanguage } from '../../../../../app-builtin/app-model/expansion/GameLanguage';
 import { TikTokStartup } from '../../../../../app-builtin/app-controller/expansion/TikTokStartup';
-import { _decorator, JsonAsset, Node, Label, EditBox } from 'cc';
+import { _decorator, JsonAsset, Node, Label, EditBox, Sprite, Vec4 } from 'cc';
 import { PREVIEW } from 'cc/env';
 import { GameTheme } from '../../../../../app-builtin/app-model/expansion/GameTheme';
 import BaseView from 'db://app/base/BaseView';
@@ -11,6 +11,24 @@ const { ccclass, property } = _decorator;
 /** 首页由预制体定义外观，脚本只处理入口操作。 */
 @ccclass('PageHome')
 export class PageHome extends BaseView {
+    /** 开始按钮表面扫光，位于文字与图标下方。 */
+    @property(Node) playSweep: Node = null!;
+    /** 首页可见期间的扫光时钟，秒；隐藏时停止。 */
+    private sweepTime = -1;
+    /** 每3.8秒扫过一次，保留按钮自身点击动画。@param dt 帧间隔秒数。 */
+    update(dt: number): void {
+        if (this.sweepTime < 0 || !this.playSweep) return;
+        this.sweepTime += Math.max(0, dt);
+        const phase = (this.sweepTime - 0.8) % 3.8;
+        this.playSweep.active = phase >= 0 && phase < 1.2;
+        if (!this.playSweep.active) return;
+        const sprite = this.playSweep.getComponent(Sprite), uv = sprite?.spriteFrame?.uv;
+        const mat = sprite?.getMaterialInstance(0);
+        if (uv && mat) {
+            mat.setProperty('sweepX', new Vec4(uv[0], uv[1], uv[2] - uv[0], uv[3] - uv[1]));
+            mat.setProperty('sweepY', new Vec4(uv[4] - uv[0], uv[5] - uv[1], -0.25 + 1.7 * phase / 1.2, 0.22));
+        }
+    }
     /** 开始按钮译文，预制体预留宽度并允许缩小字体。 */
     @property(Label) playLabel: Label = null!;
     /** 主题入口译文。 */
@@ -31,6 +49,8 @@ export class PageHome extends BaseView {
 
     /** 首页出现时刷新入口状态；游戏资源已在启动阶段完成加载。 */
     onShow(): void {
+        this.sweepTime = 0;
+        if (this.playSweep) this.playSweep.active = false;
         UiClickSound.bind(this.node);
         if (this.levelJumpRoot) this.levelJumpRoot.active = PREVIEW;
         app.controller.settings.begin();
@@ -56,6 +76,8 @@ export class PageHome extends BaseView {
 
     /** 退出首页时解除设置监听并关闭内嵌面板。 */
     onHide(): void {
+        this.sweepTime = -1;
+        if (this.playSweep) this.playSweep.active = false;
         // 页面缓存期间保留按钮监听，保证开始游戏等切页点击仍能在业务回调后播放；下次显示先解绑，避免重复。
         app.controller.settings.end();
         GameLanguage.unsubscribe(this.languageChanged);
