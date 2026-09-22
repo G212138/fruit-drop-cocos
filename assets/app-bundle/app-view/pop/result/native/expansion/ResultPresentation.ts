@@ -169,7 +169,7 @@ export class ResultPresentation extends Component {
         this.revealRays.forEach((ray, i) => {
             ray.angle = 0;
             ray.setScale(0.75 + 0.25 * reveal + Math.sin(t * 1.8 + i) * 0.04, 0.75 + 0.25 * reveal + Math.sin(t * 1.8 + i) * 0.04, 1);
-            this.alpha(ray, reveal * 155);
+            this.alpha(ray, reveal * (195 + Math.sin(t * 1.8) * 15));
             const sprite = ray.getComponent(Sprite), uv = sprite?.spriteFrame?.uv;
             const mat = sprite?.getMaterialInstance?.(0);
             if (uv && mat) {
