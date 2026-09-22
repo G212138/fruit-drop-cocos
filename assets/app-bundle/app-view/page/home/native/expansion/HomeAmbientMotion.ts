@@ -30,11 +30,19 @@ export class HomeAmbientMotion extends Component {
     private baseScale = new Vec3(1, 1, 1);
     /** 最近一次落点的时间，秒。 */
     private impact = -10;
+    /** 共用 Logo 表现组件，避免左右同时改写比例。 */
+    private logoMotion: (Component & { useImpactMotion(): void; bounce(): void }) | null = null;
+    /** 已通知的物理落点时间，秒。 */
+    private logoContact = -1;
     /** 首页显示时按当前品类开始，避免后台循环。 */
     play(): void {
         this.stop();
         if (!this.jumper || !this.landingButton) return;
         this.baseScale.set(this.landingButton.scale);
+        if (this.logoRoute) {
+            this.logoMotion = this.landingButton.getComponentInChildren('HomeLogoMotion') as typeof this.logoMotion;
+            this.logoMotion?.useImpactMotion();
+        }
         this.running = true;
         this.category = GameTheme.active;
         this.index = this.logoRoute && this.logoFromRight ? 15 : 0;
@@ -46,6 +54,7 @@ export class HomeAmbientMotion extends Component {
         this.loading = true;
         this.elapsed = 0;
         this.impact = -10;
+        this.logoContact = -1;
         this.jumper.node.active = false;
         const kind = this.category === 2 ? 'dessert' : 'fruit';
         const bundle = assetManager.getBundle('shared-items');
@@ -145,6 +154,7 @@ export class HomeAmbientMotion extends Component {
         const vx = (landingX + direction * edge) / duration;
         const vy = (0.5 * gravity * duration * duration - initialHeight) / duration;
         let x: number, height: number;
+        let contact = duration;
         if (t < duration) {
             x = -direction * edge + vx * t;
             height = initialHeight + vy * t - 0.5 * gravity * t * t;
@@ -159,10 +169,15 @@ export class HomeAmbientMotion extends Component {
                 const nextX = contactX + vx * flight;
                 if (age < flight || Math.abs(nextX - logo.position.x) > size.width / 2) break;
                 age -= flight;
+                contact += flight;
                 contactX = nextX;
                 rebound *= 0.72;
             }
             height = rebound * age - 0.5 * gravity * age * age;
+        }
+        if (t >= duration && contact > this.logoContact) {
+            this.logoContact = contact;
+            this.logoMotion?.bounce();
         }
         this.jumper.node.active = Math.abs(x) <= edge && height > -size.height - 90 && t < 3.6;
         this.jumper.node.setPosition(x, y + height, 0);

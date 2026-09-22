@@ -17,11 +17,34 @@ export class HomeLogoMotion extends Component {
     /** 本组件创建的补间，停止时不影响其他组件。 */
     private motion: Tween<Node> | null = null;
 
-    /** 显示时从基准位置启动柔和浮动。 */
+    /** 首页关闭呼吸；加载页保留原表现。 */
+    private impactOnly = false;
+    /** 回弹经过秒数，持续 0.32 秒。 */
+    private impactAge = 1;
+    /** 启用共享的落点回弹。 */
+    useImpactMotion(): void {
+        this.impactOnly = true;
+        this.stopMotion();
+    }
+    /** 物品落下时触发，双侧共用同一个控制器。 */
+    bounce(): void {
+        this.impactAge = 0;
+    }
+    /** 按钮同款压缩回弹，空闲时保持静止。 */
+    update(dt: number): void {
+        if (!this.impactOnly || this.impactAge >= 0.32 || !this.originScale) return;
+        this.impactAge = Math.min(0.32, this.impactAge + Math.max(0, dt));
+        const phase = this.impactAge / 0.32;
+        const pulse = Math.sin(phase * Math.PI * 2) * (1 - phase);
+        const scale = this.originScale;
+        this.node.setScale(scale.x * (1 + pulse * 0.035), scale.y * (1 - pulse * 0.055), scale.z);
+    }
+    /** 显示时恢复基准，首页不启动循环浮动。 */
     onEnable(): void {
         if (!this.originPosition) this.originPosition = this.node.position.clone();
         if (!this.originScale) this.originScale = this.node.scale.clone();
         this.stopMotion();
+        if (this.impactOnly) return;
         const position = this.originPosition;
         const scale = this.originScale;
         const duration = Math.max(0.1, this.halfCycleSeconds);
@@ -48,6 +71,7 @@ export class HomeLogoMotion extends Component {
 
     /** 停止本组件动画并恢复基准变换。 */
     private stopMotion(): void {
+        this.impactAge = 1;
         this.motion?.stop();
         this.motion = null;
         if (this.originPosition) this.node.setPosition(this.originPosition);
