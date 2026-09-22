@@ -4,24 +4,35 @@ class V{constructor(x=1,y=1,z=1){Object.assign(this,{x,y,z});}set(v){Object.assi
 class N{constructor(){this.active=true;this.position={x:0,y:-337,z:0};this.scale=new V();this.size={width:550,height:140,setContentSize(w,h){this.width=w;this.height=h;}};this.parent={getComponent:()=>({width:750})};}getComponentInChildren(){return this.motion || null;}getComponent(){return this.size;}setPosition(x,y,z){this.position={x,y,z};}setScale(x,y,z){this.scale=typeof x==='object'?new V(x.x,x.y,x.z):new V(x,y,z);}}
 const pending=[],theme={active:1};const cc={_decorator:{ccclass:()=>x=>x,property:()=>()=>{}},Component:class{},Node:N,Sprite:class{},SpriteFrame:class{},UITransform:class{},Vec3:V,isValid:()=>true,assetManager:{getBundle:()=>({load:(path,type,cb)=>pending.push({path,cb})})}};cc.Sprite.SizeMode={CUSTOM:0};
 const e={};new Function('require','exports',ts.transpileModule(fs.readFileSync('assets/app-bundle/app-view/page/home/native/expansion/HomeAmbientMotion.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,experimentalDecorators:true}}).outputText)(n=>n==='cc'?cc:{GameTheme:theme},e);
-const m=new e.HomeAmbientMotion();m.jumper={node:new N(),spriteFrame:null};m.landingButton=new N();
+
 const frame=()=>({originalSize:{width:100,height:80},refs:0,addRef(){this.refs++;},decRef(){this.refs--;}});
-m.play();assert.equal(pending[0].path,'fruit/fruit-1/spriteFrame');const f=frame();pending.shift().cb(null,f);m.update(.6);assert.equal(m.landingButton.scale.x,1);m.update(.68);assert.notEqual(m.landingButton.scale.x,1);m.update(.35);assert.equal(m.landingButton.scale.x,1);m.update(2.2);assert(!m.jumper.node.active);m.update(.7);assert.equal(pending[0].path,'fruit/fruit-2/spriteFrame');const f2=frame();pending.shift().cb(null,f2);assert.equal(f.refs,0);
-theme.active=2;m.update(.01);assert.equal(pending[0].path,'dessert/dessert-1/spriteFrame');const late=pending.shift();m.stop();late.cb(null,frame());assert(!m.jumper.node.active);assert.equal(f2.refs,0);assert.equal(m.landingButton.scale.x,1);assert.equal(m.jumper.spriteFrame,null);
-console.log('通过：顺序轮换、落点回弹、离屏继续循环、品类切换、关闭取消迟到加载和图片释放。');
-
-
-const makeLogo=right=>{const m=new e.HomeAmbientMotion();m.logoRoute=true;m.logoFromRight=right;m.jumper={node:new N(),spriteFrame:null};m.landingButton=new N();m.landingButton.motion={hits:0,useImpactMotion(){this.enabled=true;},bounce(){this.hits++;}};m.play();pending.shift().cb(null,frame());return m;};
-const left=makeLogo(false),right=makeLogo(true);left.update(.3);right.update(.3);assert(left.jumper.node.position.x<0);assert(right.jumper.node.position.x>0);assert(left.jumper.node.active&&right.jumper.node.active);
-assert.equal(left.landingButton.motion.hits,0);assert(left.landingButton.motion.enabled);left.update(.4);right.update(.4);assert.equal(left.landingButton.motion.hits,1);assert.equal(right.landingButton.motion.hits,1);assert.notEqual(left.jumper.node.position.y,right.jumper.node.position.y,'并行路线高度错开');assert.equal(left.landingButton.scale.x,1);left.stop();right.stop();assert(!left.jumper.node.active&&!right.jumper.node.active);
-console.log('通过：Logo左右同时运行、高度错开、加速后关闭恢复。');
-
-const route = makeLogo(false);
-for (const target of [0.65, 1.5, 2.28]) {
-    route.update(target / 1.35 - route.elapsed + 0.00001);
+const make=(logo=false,right=false)=>{
+ const m=new e.HomeAmbientMotion();m.logoRoute=logo;m.logoFromRight=right;
+ m.jumper={node:new N(),spriteFrame:null};m.landingButton=new N();
+ m.landingButton.motion={hits:0,useImpactMotion(){this.enabled=true;},bounce(){this.hits++;}};
+ m.play();const f=frame();pending.shift().cb(null,f);return {m,f};
+};
+for(const logo of [false,true]) {
+ const {m,f}=make(logo);let previous=m.jumper.node.position;let lastImpact=-10;const contacts=[];
+ for(let i=0;i<190;i++) {
+  m.update(.01);const current=m.jumper.node.position;
+  assert(Math.abs((current.x-previous.x)/.01-(logo?440:400))<1e-7,'全程横向速度连续');
+  if(m.impact>lastImpact){contacts.push(m.impact);lastImpact=m.impact;}
+  previous={...current};
+ }
+ assert(contacts.length>=3,'连续衰减反弹');
+ assert(contacts[2]-contacts[1]<contacts[1]-contacts[0],'后一次飞行时间变短');
+ if(logo) assert.equal(m.landingButton.motion.hits,contacts.length);
+ m.update(m.cycleDuration-m.elapsed-.01);assert(!m.jumper.node.active,'离屏后短间隔');
+ m.update(.02);assert.equal(pending[0].path,'fruit/fruit-2/spriteFrame');
+ pending.shift().cb(null,frame());assert.equal(f.refs,0);m.stop();
+ assert.equal(m.landingButton.scale.x,1);
 }
-assert.equal(route.landingButton.motion.hits, 3, '三个字母落点各触发一次回弹');
-route.update(3.61 / 1.35 - route.elapsed);
-assert.equal(route.jumper.node.active, false, '从对侧离屏');
-route.stop();
-console.log('通过：Logo连续三个落点反馈和对侧跳出。');
+const {m:left}=make(true),{m:right}=make(true,true);
+left.update(.4);right.update(.4);
+assert(Math.abs(left.jumper.node.position.x+right.jumper.node.position.x)<1e-8,'双侧同步对称');
+left.stop();right.stop();
+const {m,f}=make();theme.active=2;m.update(.01);
+assert.equal(pending[0].path,'dessert/dessert-1/spriteFrame');const late=pending.shift();
+m.stop();late.cb(null,frame());assert.equal(f.refs,0);assert.equal(m.jumper.spriteFrame,null);
+console.log('通过：横向匀速、连续衰减反弹、双侧同步、短间隔轮换、切换品类和关闭释放。');
