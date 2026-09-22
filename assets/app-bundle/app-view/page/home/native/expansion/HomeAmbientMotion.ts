@@ -1,31 +1,136 @@
-import { _decorator, Component, Node, Vec3 } from 'cc';
+import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, Vec3, assetManager, isValid } from 'cc';
+import { GameTheme } from '../../../../../../app-builtin/app-model/expansion/GameTheme';
 const { ccclass, property } = _decorator;
-/** 首页装饰动效，不参与游戏物理和输入。 */
+/** 首页单个物品沿按钮跳跃，不参与游戏物理和输入。 */
 @ccclass('HomeAmbientMotion')
 export class HomeAmbientMotion extends Component {
-    /** 只缩放按钮文字，避免覆盖按钮原有按压反馈。 */
+    /** 保留旧文字绑定，只用于恢复正常比例。 */
     @property(Node) playLabel: Node = null!;
-    /** 当前动效时间，单位秒。 */
+    /** 编辑器制作的独立装饰物品。 */
+    @property(Sprite) jumper: Sprite = null!;
+    /** 按钮外层回弹容器，不覆盖按钮内部点击反馈。 */
+    @property(Node) landingButton: Node = null!;
+    /** 当前物品循环时间，秒。 */
     private elapsed = 0;
-    /** 文字原始缩放。 */
-    private labelScale = new Vec3(1, 1, 1);
-    /** 记录文字原始缩放并初始化。 */
-    onLoad(): void {
-        if (this.playLabel) this.labelScale.set(this.playLabel.scale);
-        this.update(0);
+    /** 页面显隐及异步请求版本。 */
+    private running = false;
+    /** 图片请求完成前暂停时间轴。 */
+    private loading = false;
+    private request = 0;
+    /** 当前品类和零起始物品序号。 */
+    private category = 1;
+    private index = 0;
+    /** 当前图片持有引用，切换或关闭时释放。 */
+    private held: SpriteFrame | null = null;
+    /** 按钮原始比例，回弹结束精确恢复。 */
+    private baseScale = new Vec3(1, 1, 1);
+    /** 最近一次落点的时间，秒。 */
+    private impact = -10;
+    /** 首页显示时按当前品类开始，避免后台循环。 */
+    play(): void {
+        this.stop();
+        if (!this.jumper || !this.landingButton) return;
+        this.baseScale.set(this.landingButton.scale);
+        this.running = true;
+        this.category = GameTheme.active;
+        this.index = 0;
+        this.loadItem();
     }
-    /** 每五秒轻弹一次文字，幅度为原始缩放的4.5%。 */
+    /** 加载单个共享图片，过期回调不会应用到关闭后的首页。 */
+    private loadItem(): void {
+        const ticket = ++this.request;
+        this.loading = true;
+        this.elapsed = 0;
+        this.impact = -10;
+        this.jumper.node.active = false;
+        const kind = this.category === 2 ? 'dessert' : 'fruit';
+        const bundle = assetManager.getBundle('shared-items');
+        if (!bundle) { this.loading = false; this.elapsed = 4.35; return; }
+        bundle.load(`${kind}/${kind}-${this.index + 1}/spriteFrame`, SpriteFrame, (error, frame: SpriteFrame) => {
+            if (!this.running || !isValid(this) || ticket !== this.request) return;
+            this.loading = false;
+            if (error || !frame) { this.elapsed = 4.35; return; }
+            frame.addRef();
+            this.held?.decRef();
+            this.held = frame;
+            this.jumper.spriteFrame = frame;
+            this.jumper.sizeMode = Sprite.SizeMode.CUSTOM;
+            const size = frame.originalSize;
+            const scale = 68 / Math.max(size.width, size.height);
+            this.jumper.node.getComponent(UITransform)!.setContentSize(size.width * scale, size.height * scale);
+            this.jumper.node.active = true;
+            this.draw();
+        });
+    }
+    /** @param dt 帧间隔秒数，按实际时间推进并跨帧检测落点。 */
     update(dt: number): void {
-        this.elapsed += Math.min(dt, 0.1);
-        if (this.playLabel) {
-            const phase = this.elapsed % 5;
-            const pulse = phase < 0.7 ? Math.sin(phase / 0.7 * Math.PI) * 0.045 : 0;
-            this.playLabel.setScale(this.labelScale.x * (1 + pulse), this.labelScale.y * (1 + pulse), this.labelScale.z);
+        if (!this.running) return;
+        if (this.category !== GameTheme.active) {
+            this.category = GameTheme.active;
+            this.index = 0;
+            this.landingButton.setScale(this.baseScale);
+            this.loadItem();
+            return;
+        }
+        if (this.loading) return;
+        const previous = this.elapsed;
+        this.elapsed += Math.max(0, dt);
+        for (const landing of [1.2, 1.95, 2.6]) {
+            if (previous < landing && this.elapsed >= landing) this.impact = landing;
+        }
+        this.draw();
+        if (this.elapsed >= 4.35) {
+            this.index = (this.index + 1) % 30;
+            this.loadItem();
         }
     }
-    /** 隐藏首页时恢复文字，避免影响后续界面。 */
-    onDisable(): void {
-        if (this.playLabel) this.playLabel.setScale(this.labelScale);
+    /** 根据当前按钮和画布尺寸绘制左入、三次落点、右出的轨迹。 */
+    private draw(): void {
+        const t = this.elapsed, button = this.landingButton;
+        const size = button.getComponent(UITransform)!;
+        const canvasWidth = button.parent?.getComponent(UITransform)?.width || 750;
+        const x0 = button.position.x - size.width * 0.36;
+        const x1 = button.position.x + size.width * 0.16;
+        const x2 = button.position.x + size.width * 0.41;
+        const y = button.position.y + size.height / 2 + this.jumper.node.getComponent(UITransform)!.height / 2 - 6;
+        let x: number, height: number;
+        if (t < 1.2) {
+            const u = t / 1.2;
+            const start = -canvasWidth / 2 - 50;
+            // 横向速度逐渐收敛，靠近按钮左端时接近竖直下落。
+            x = start + (x0 - start) * (1 - Math.pow(1 - u, 3));
+            height = 730 * (1 - u * u);
+        } else if (t < 1.95) {
+            const u = (t - 1.2) / 0.75;
+            x = x0 + (x1 - x0) * u;
+            height = 4 * 225 * u * (1 - u);
+        } else if (t < 2.6) {
+            const u = (t - 1.95) / 0.65;
+            x = x1 + (x2 - x1) * u;
+            height = 4 * 78 * u * (1 - u);
+        } else {
+            const u = Math.min(1, (t - 2.6) / 1.15);
+            x = x2 + (canvasWidth / 2 + 70 - x2) * u;
+            height = 4 * 32 * u * (1 - u) - 90 * u * u;
+        }
+        this.jumper.node.setPosition(x, y + height, 0);
+        this.jumper.node.angle = -t * 85;
+        if (t >= 3.75) this.jumper.node.active = false;
+        const age = t - this.impact;
+        const pulse = age >= 0 && age < 0.32 ? Math.sin(age / 0.32 * Math.PI * 2) * (1 - age / 0.32) : 0;
+        button.setScale(this.baseScale.x * (1 + pulse * 0.035), this.baseScale.y * (1 - pulse * 0.055), this.baseScale.z);
     }
+    /** 停止循环，取消迟到请求并恢复按钮。 */
+    stop(): void {
+        this.running = false;
+        ++this.request;
+        if (this.jumper) { this.jumper.node.active = false; this.jumper.spriteFrame = null; }
+        if (this.landingButton) this.landingButton.setScale(this.baseScale);
+        this.held?.decRef();
+        this.held = null;
+    }
+    /** 节点关闭时停止装饰动画。 */
+    onDisable(): void { this.stop(); }
+    /** 销毁时释放当前图片。 */
+    onDestroy(): void { this.stop(); }
 }
-
