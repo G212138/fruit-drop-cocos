@@ -1,0 +1,39 @@
+{
+  "__type__": "cc.Material",
+  "_name": "",
+  "_objFlags": 0,
+  "__editorExtras__": {},
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "7b5a3907-f6f0-473c-9a04-8653702c24cf",
+    "__expectedType__": "cc.EffectAsset"
+  },
+  "_techIdx": 0,
+  "_defines": [
+    {
+      "USE_TEXTURE": true,
+      "CC_PIPELINE_TYPE": 0,
+      "CC_USE_HDR": true,
+      "CC_USE_DEBUG_VIEW": 0,
+      "CC_SHADOWMAP_FORMAT": 0,
+      "CC_SHADOWMAP_USE_LINEAR_DEPTH": 0,
+      "CC_SUPPORT_CASCADED_SHADOW_MAP": true,
+      "CC_SHADOW_TYPE": 0,
+      "CC_DIR_SHADOW_PCF_TYPE": 0,
+      "CC_DIR_LIGHT_SHADOW_TYPE": 0,
+      "CC_CASCADED_LAYERS_TRANSITION": 0,
+      "CC_USE_IBL": 0,
+      "CC_USE_DIFFUSEMAP": 0,
+      "CC_IBL_CONVOLUTED": false,
+      "CC_USE_FOG": 4,
+      "CC_USE_ACCURATE_FOG": 0,
+      "CC_TONE_MAPPING_TYPE": 0
+    }
+  ],
+  "_states": [
+    {}
+  ],
+  "_props": [
+    {}
+  ]
+}

@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, UIOpacity, UITransform, Vec3, AudioSource } from 'cc';
+import { _decorator, Component, Node, UIOpacity, UITransform, Vec3, AudioSource, Sprite, Vec4 } from 'cc';
 import { GameSettings } from '../../../../../../app-builtin/app-model/expansion/GameSettings';
 const { ccclass, property } = _decorator;
 /** 结算动画使用预制体内切图；时间单位秒，不改变按钮可点击状态。 */
@@ -20,7 +20,7 @@ export class ResultPresentation extends Component {
     @property(Node) confettiRoot: Node = null!;
     /** 顶部持续随机飘落的彩带节点，覆盖实际屏幕。 */
     @property(Node) rainRoot: Node = null!;
-    /** 成功标题上掠过的星芒切图。 */
+    /** 成功标题全尺寸字面扫光，使用标题透明度限制光带。 */
     @property(Node) titleGlint: Node = null!;
     /** 原版失败落点音。 */
     @property(AudioSource) failureAudio: AudioSource = null!;
@@ -116,14 +116,22 @@ export class ResultPresentation extends Component {
         this.drawConfetti(t, mode);
         this.drawRain(t, mode);
         if (this.titleGlint) {
-            const sweep = (t - 0.45) % 4;
-            const active = mode === 0 && sweep >= 0 && sweep < 0.7;
+            const sweep = (t - 0.65) % 4;
+            const active = mode === 0 && sweep >= 0 && sweep < 1.1;
             this.titleGlint.active = active;
             if (active) {
-                const u = sweep / 0.7;
-                this.titleGlint.setPosition(-230 + 460 * u, 18 + Math.sin(u * Math.PI) * 65);
-                this.titleGlint.angle = u * 100;
-                this.alpha(this.titleGlint, Math.sin(u * Math.PI) * 245);
+                const u = sweep / 1.1;
+                this.titleGlint.setPosition(0, 0);
+                this.titleGlint.angle = 0;
+                const sprite = this.titleGlint.getComponent(Sprite);
+                const uv = sprite?.spriteFrame?.uv;
+                const material = sprite?.getMaterialInstance?.(0);
+                if (uv && material) {
+                    // 使用实际图集 UV 基向量，兼容打包旋转及动态合图。
+                    material.setProperty('sweepX', new Vec4(uv[0], uv[1], uv[2] - uv[0], uv[3] - uv[1]));
+                    material.setProperty('sweepY', new Vec4(uv[4] - uv[0], uv[5] - uv[1], -0.25 + 1.7 * u, 0.18));
+                }
+                this.alpha(this.titleGlint, 255);
             }
         }
     }
