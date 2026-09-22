@@ -4,8 +4,8 @@ import { PIXELS_PER_PHYSICS_METER } from './PhysicsRules';
 
 /** 容器摇晃适配参数，并非原版配置。 */
 export const SHAKE_RULES = {
-    /** 两次开始间隔 1.6 秒，摇完约 0.2 秒可再触发；手感适配值。 */
-    cooldown: 1.6,
+    /** 不设置额外冷却，仅由 busy 阻止晃动过程中重复触发；结束即可继续。 */
+    cooldown: 0,
     /** 往返过程 1.4 秒，先快后慢收势，首尾位移与速度均为零。 */
     duration: 1.4,
     /** 左右往返 3 周，减轻机械式高频抖动。 */
