@@ -16,6 +16,8 @@ export class ResultPresentation extends Component {
     @property([Node]) haloRoots: Node[] = [];
     /** 三种状态的按钮节点容器，只做轻微缩放入场。 */
     @property([Node]) buttonRoots: Node[] = [];
+    /** 成功专用彩带，编辑器绑定48个彩带切图节点，播放一轮后隐藏。 */
+    @property(Node) confettiRoot: Node = null!;
     /** 成功标题上掠过的星芒切图。 */
     @property(Node) titleGlint: Node = null!;
     /** 原版失败落点音。 */
@@ -97,6 +99,7 @@ export class ResultPresentation extends Component {
         }
         this.drawHalos(t, mode);
         this.drawParticles(t, mode);
+        this.drawConfetti(t, mode);
         if (this.titleGlint) {
             const sweep = (t - 0.45) % 4;
             const active = mode === 0 && sweep >= 0 && sweep < 0.7;
@@ -140,6 +143,27 @@ export class ResultPresentation extends Component {
             });
         });
     }
+    /** @param t 当前秒数。@param mode 仅成功播放，彩带从屏幕两侧向中间喷出，交汇后受重力飘落。 */
+    private drawConfetti(t: number, mode: number): void {
+        const root = this.confettiRoot;
+        if (!root) return;
+        root.active = mode === 0 && t >= 0.22 && t < 4.2;
+        if (!root.active) return;
+        root.children.forEach((ribbon, i) => {
+            const age = t - 0.22 - (i % 8) * 0.055;
+            const side = i % 2 ? 1 : -1;
+            const life = 2.8 + (i % 4) * 0.18;
+            const visible = age >= 0 && age < life;
+            ribbon.active = visible;
+            if (!visible) return;
+            ribbon.setPosition(side * (390 - (200 + i % 7 * 14) * age) + Math.sin(age * 5 + i) * 26,
+                30 + (370 + i % 6 * 28) * age - 200 * age * age);
+            ribbon.angle = side * (i * 19 + age * (150 + i % 3 * 45));
+            const scale = 0.85 + i % 3 * 0.20;
+            ribbon.setScale(scale * (0.25 + Math.abs(Math.cos(age * 7 + i)) * 0.75), scale, 1);
+            this.alpha(ribbon, 235 * this.clamp((life - age) / 0.65));
+        });
+    }
     /** 关闭或切页时恢复布局并清空所有特效，不留下后台循环和迟到回调。 */
     stop(): void {
         this.mode = -1;
@@ -155,6 +179,7 @@ export class ResultPresentation extends Component {
             for (const child of root.children) this.alpha(child, 0);
         }
         if (this.titleGlint) this.titleGlint.active = false;
+        if (this.confettiRoot) this.confettiRoot.active = false;
     }
     /** 组件关闭时恢复静态布局。 */
     onDisable(): void {
