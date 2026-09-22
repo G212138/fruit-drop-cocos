@@ -8,7 +8,7 @@ const m=new e.HomeAmbientMotion();m.jumper={node:new N(),spriteFrame:null};m.lan
 const frame=()=>({originalSize:{width:100,height:80},refs:0,addRef(){this.refs++;},decRef(){this.refs--;}});
 m.play();assert.equal(pending[0].path,'fruit/fruit-1/spriteFrame');const f=frame();pending.shift().cb(null,f);m.update(.6);assert.equal(m.landingButton.scale.x,1);m.update(.68);assert.notEqual(m.landingButton.scale.x,1);m.update(.35);assert.equal(m.landingButton.scale.x,1);m.update(2.2);assert(!m.jumper.node.active);m.update(.7);assert.equal(pending[0].path,'fruit/fruit-2/spriteFrame');const f2=frame();pending.shift().cb(null,f2);assert.equal(f.refs,0);
 theme.active=2;m.update(.01);assert.equal(pending[0].path,'dessert/dessert-1/spriteFrame');const late=pending.shift();m.stop();late.cb(null,frame());assert(!m.jumper.node.active);assert.equal(f2.refs,0);assert.equal(m.landingButton.scale.x,1);assert.equal(m.jumper.spriteFrame,null);
-console.log('通过：顺序轮换、四次落点回弹、离屏继续循环、品类切换、关闭取消迟到加载和图片释放。');
+console.log('通过：顺序轮换、落点回弹、离屏继续循环、品类切换、关闭取消迟到加载和图片释放。');
 
 
 const makeLogo=right=>{const m=new e.HomeAmbientMotion();m.logoRoute=true;m.logoFromRight=right;m.jumper={node:new N(),spriteFrame:null};m.landingButton=new N();m.landingButton.motion={hits:0,useImpactMotion(){this.enabled=true;},bounce(){this.hits++;}};m.play();pending.shift().cb(null,frame());return m;};

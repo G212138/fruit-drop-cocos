@@ -88,7 +88,7 @@ export class HomeAmbientMotion extends Component {
         if (this.loading) return;
         const previous = this.elapsed;
         this.elapsed += Math.max(0, dt);
-        for (const landing of (this.logoRoute ? [this.logoFromRight ? 1.4 : 1.15] : [1.2, 1.8, 2.25, 2.6])) {
+        for (const landing of (this.logoRoute ? [this.logoFromRight ? 1.4 : 1.15] : [1.2, 1.8, 2.4])) {
             if (previous < landing && this.elapsed >= landing) this.impact = landing;
         }
         this.draw();
@@ -103,34 +103,29 @@ export class HomeAmbientMotion extends Component {
         const t = this.elapsed, button = this.landingButton;
         const size = button.getComponent(UITransform)!;
         const canvasWidth = button.parent?.getComponent(UITransform)?.width || 750;
-        const x0 = button.position.x - size.width * 0.36;
+        const x0 = button.position.x - size.width * 0.32;
         const x1 = button.position.x - size.width * 0.01;
-        const x2 = button.position.x + size.width * 0.25;
-        const x3 = button.position.x + size.width * 0.44;
+        const x2 = button.position.x + size.width * 0.31;
         const y = button.position.y + size.height / 2 + this.jumper.node.getComponent(UITransform)!.height / 2 - 6;
         let x: number, height: number;
         if (t < 1.2) {
             const u = t / 1.2;
             const start = -canvasWidth / 2 - 50;
-            // 横向速度逐渐收敛，靠近按钮左端时接近竖直下落。
-            x = start + (x0 - start) * (1 - Math.pow(1 - u, 3));
-            height = 730 * (1 - u * u);
+            // 从左侧较低处斜向落入，避免穿过侧边入口。
+            x = start + (x0 - start) * u;
+            height = 175 * (1 - u * u);
         } else if (t < 1.8) {
             const u = (t - 1.2) / 0.6;
             x = x0 + (x1 - x0) * u;
-            height = 4 * 225 * u * (1 - u);
-        } else if (t < 2.25) {
-            const u = (t - 1.8) / 0.45;
+            height = 4 * 72 * u * (1 - u);
+        } else if (t < 2.4) {
+            const u = (t - 1.8) / 0.6;
             x = x1 + (x2 - x1) * u;
-            height = 4 * 78 * u * (1 - u);
-        } else if (t < 2.6) {
-            const u = (t - 2.25) / 0.35;
-            x = x2 + (x3 - x2) * u;
-            height = 4 * 36 * u * (1 - u);
+            height = 4 * 58 * u * (1 - u);
         } else {
-            const u = Math.min(1, (t - 2.6) / 1.15);
-            x = x3 + (canvasWidth / 2 + 70 - x3) * u;
-            height = 4 * 32 * u * (1 - u) - 90 * u * u;
+            const u = Math.min(1, (t - 2.4) / 1.35);
+            x = x2 + (canvasWidth / 2 + 120 - x2) * u;
+            height = 4 * 36 * u * (1 - u) - 165 * u * u;
         }
         this.jumper.node.setPosition(x, y + height, 0);
         this.jumper.node.angle = -t * 85;
@@ -148,8 +143,8 @@ export class HomeAmbientMotion extends Component {
         const edge = width / 2 + 65;
         const y = logo.position.y + size.height / 2 + this.jumper.node.getComponent(UITransform)!.height / 2 - 16;
         // 横坐标按 Logo 宽度适配，纵向贴合 T、u、b、e 的不同顶部高度。
-        const positions = this.logoFromRight ? [0.16, -0.14, -0.43] : [-0.36, 0.06, 0.43];
-        const heights = this.logoFromRight ? [0, -0.06, -0.02] : [-0.02, -0.06, -0.12];
+        const positions = this.logoFromRight ? [0.21, -0.13, -0.46] : [-0.34, 0.035, 0.30];
+        const heights = this.logoFromRight ? [-0.04, -0.07, 0.015] : [0.08, -0.07, 0.06];
         // 保留加速倍率；两侧略错开落点时间，避免中央重叠。
         const times = this.logoFromRight ? [0.78, 1.62, 2.4] : [0.65, 1.5, 2.28];
         let segment = 0;
@@ -159,11 +154,11 @@ export class HomeAmbientMotion extends Component {
         const startX = segment === 0 ? -direction * edge : logo.position.x + positions[segment - 1] * size.width;
         const endX = segment < 3 ? logo.position.x + positions[segment] * size.width : direction * edge;
         const startY = segment === 0 ? (this.logoFromRight ? 190 : 150) : heights[segment - 1] * size.height;
-        const endY = segment < 3 ? heights[segment] * size.height : 65;
+        const endY = segment < 3 ? heights[segment] * size.height : (this.logoFromRight ? 0 : -25);
         const duration = endTime - startTime;
         const u = Math.min(1, Math.max(0, (t - startTime) / duration));
-        // 固定重力的弹道插值；入场直接下落，出场向上跃出屏幕。
-        const gravity = segment === 0 ? 420 : 1000;
+        // 弹道连接字母落点；离场降低弧高，贴近两侧低跳出的标注。
+        const gravity = segment === 0 ? 420 : segment === 3 ? 220 : 1000;
         const x = startX + (endX - startX) * u;
         const height = startY + (endY - startY) * u + 0.5 * gravity * duration * duration * u * (1 - u);
         if (segment > 0 && times[segment - 1] > this.logoContact) {
