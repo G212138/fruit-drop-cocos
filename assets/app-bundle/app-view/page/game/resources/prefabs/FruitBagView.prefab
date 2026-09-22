@@ -268,10 +268,6 @@
       "__uuid__": "5c9c25ff-d569-4512-b31d-99f61cc8080a@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
-    "dessertFrame": {
-      "__uuid__": "2a445234-07c6-4621-aba5-57f8e8340d20@f9941",
-      "__expectedType__": "cc.SpriteFrame"
-    },
     "mouth": true,
     "lockPlug": false,
     "_id": ""
@@ -524,10 +520,6 @@
     },
     "fruitFrame": {
       "__uuid__": "7a21355e-3cd6-4d3a-a056-4949fb3ee6ee@f9941",
-      "__expectedType__": "cc.SpriteFrame"
-    },
-    "dessertFrame": {
-      "__uuid__": "c37faf8c-9320-44d5-a468-1ae871bcf1b4@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "mouth": false,

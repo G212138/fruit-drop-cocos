@@ -10,8 +10,6 @@ export class ThemeSprite extends Component {
     @property(Sprite) target: Sprite = null!;
     /** 原水果主题图片。 */
     @property(SpriteFrame) fruitFrame: SpriteFrame = null!;
-    /** 原甜品主题图片。 */
-    @property(SpriteFrame) dessertFrame: SpriteFrame = null!;
     /** 是否为袋口；为真时同步原版82.5/59设计像素的高度。 */
     @property mouth = false;
     /** 所有地块锁墙统一宽90、高80设计像素，碰撞与布局不变。 */
