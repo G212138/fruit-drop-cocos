@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, UIOpacity, Vec3, AudioSource } from 'cc';
+import { _decorator, Component, Node, UIOpacity, UITransform, Vec3, AudioSource } from 'cc';
 import { GameSettings } from '../../../../../../app-builtin/app-model/expansion/GameSettings';
 const { ccclass, property } = _decorator;
 /** 结算动画使用预制体内切图；时间单位秒，不改变按钮可点击状态。 */
@@ -18,6 +18,8 @@ export class ResultPresentation extends Component {
     @property([Node]) buttonRoots: Node[] = [];
     /** 成功专用彩带，编辑器绑定48个彩带切图节点，播放一轮后隐藏。 */
     @property(Node) confettiRoot: Node = null!;
+    /** 顶部持续随机飘落的彩带节点，覆盖实际屏幕。 */
+    @property(Node) rainRoot: Node = null!;
     /** 成功标题上掠过的星芒切图。 */
     @property(Node) titleGlint: Node = null!;
     /** 原版失败落点音。 */
@@ -30,6 +32,12 @@ export class ResultPresentation extends Component {
     private elapsed = 0;
     /** 按钮入场结束后交还缩放控制给点击反馈。 */
     private buttonsSettled = false;
+    /** 每次入场只采样一次，避免逐帧随机导致彩带抖动；距离为设计像素，时间为秒。 */
+    private ribbons: { delay: number; rise: number; life: number; startX: number; startY: number; endX: number; top: number; fall: number; sway: number; frequency: number; phase: number; spin: number; scale: number; roll: number }[] = [];
+    /** 当前视口设计宽、高以及内容容器相对屏幕中心偏移，单位像素。 */
+    private viewport = { width: 750, height: 1334, offset: 0 };
+    /** 顶部彩带各自的出生时刻和周期；只在重生时随机。 */
+    private rain: { birth: number; duration: number; x: number; sway: number; phase: number; spin: number; scale: number; roll: number }[] = [];
     /** 编辑器原始位置和比例，支持用户微调并避免复用累积偏差。 */
     private readonly origins = new Map<Node, { position: Vec3; scale: Vec3; angle: number }>();
     /** @param mode 0成功、1复活、2失败；切换前恢复所有节点。 */
@@ -37,6 +45,12 @@ export class ResultPresentation extends Component {
         this.stop();
         this.mode = mode;
         this.elapsed = 0;
+        if (mode === 0) {
+            const size = this.node?.getComponent(UITransform);
+            this.viewport = { width: size?.width || 750, height: size?.height || 1334, offset: this.cards[0]?.position.y || 0 };
+            this.prepareConfetti();
+            this.rain = (this.rainRoot?.children || []).map((_, i) => this.newRain(i, true));
+        }
         this.buttonsSettled = false;
         for (const node of [...this.titles, ...this.illustrations, ...this.buttonRoots.reduce<Node[]>((all, root) => all.concat(root.children), [])]) this.remember(node);
         if (GameSettings.current.snapshot.sound) {
@@ -100,6 +114,7 @@ export class ResultPresentation extends Component {
         this.drawHalos(t, mode);
         this.drawParticles(t, mode);
         this.drawConfetti(t, mode);
+        this.drawRain(t, mode);
         if (this.titleGlint) {
             const sweep = (t - 0.45) % 4;
             const active = mode === 0 && sweep >= 0 && sweep < 0.7;
@@ -143,25 +158,84 @@ export class ResultPresentation extends Component {
             });
         });
     }
-    /** @param t 当前秒数。@param mode 仅成功播放，彩带从屏幕两侧向中间喷出，交汇后受重力飘落。 */
+    /** 随机错开左右喷射的落点和物理参数，分层落点覆盖整个750像素设计宽度。 */
+    private prepareConfetti(): void {
+        const count = this.confettiRoot?.children.length ?? 0;
+        const slots = Array.from({ length: count }, (_, i) => i);
+        for (let i = count - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [slots[i], slots[j]] = [slots[j], slots[i]];
+        }
+        this.ribbons = slots.map((slot, i) => ({
+            delay: 0.12 + Math.random() * 0.65,
+            rise: 0.6 + Math.random() * 0.65,
+            life: 4.1 + Math.random() * 1.3,
+            startX: (i % 2 ? 1 : -1) * (this.viewport.width / 2 + Math.random() * 35),
+            startY: this.viewport.height * (-0.15 + Math.random() * 0.25) - this.viewport.offset,
+            endX: this.viewport.width * (-0.5 + (slot + Math.random()) / Math.max(1, count)),
+            top: this.viewport.height * (0.12 + Math.random() * 0.36) - this.viewport.offset,
+            fall: this.viewport.height * (0.17 + Math.random() * 0.12),
+            sway: 25 + Math.random() * 55,
+            frequency: 1.3 + Math.random() * 2.5,
+            phase: Math.random() * Math.PI * 2,
+            spin: (Math.random() < 0.5 ? -1 : 1) * (70 + Math.random() * 240),
+            scale: 0.65 + Math.random() * 0.85,
+            roll: 2 + Math.random() * 6,
+        }));
+    }
+    /** @param t 当前秒数。@param mode 先从两侧向内喷散，再按独立速度与侧风飘落。 */
     private drawConfetti(t: number, mode: number): void {
         const root = this.confettiRoot;
         if (!root) return;
-        root.active = mode === 0 && t >= 0.22 && t < 4.2;
+        root.active = mode === 0 && this.ribbons.some(p => t >= p.delay && t < p.delay + p.life);
         if (!root.active) return;
         root.children.forEach((ribbon, i) => {
-            const age = t - 0.22 - (i % 8) * 0.055;
-            const side = i % 2 ? 1 : -1;
-            const life = 2.8 + (i % 4) * 0.18;
-            const visible = age >= 0 && age < life;
-            ribbon.active = visible;
-            if (!visible) return;
-            ribbon.setPosition(side * (390 - (200 + i % 7 * 14) * age) + Math.sin(age * 5 + i) * 26,
-                30 + (370 + i % 6 * 28) * age - 200 * age * age);
-            ribbon.angle = side * (i * 19 + age * (150 + i % 3 * 45));
-            const scale = 0.85 + i % 3 * 0.20;
-            ribbon.setScale(scale * (0.25 + Math.abs(Math.cos(age * 7 + i)) * 0.75), scale, 1);
-            this.alpha(ribbon, 235 * this.clamp((life - age) / 0.65));
+            const p = this.ribbons[i];
+            if (!p) { ribbon.active = false; return; }
+            const age = t - p.delay;
+            ribbon.active = age >= 0 && age < p.life;
+            if (!ribbon.active) return;
+            const u = this.clamp(age / p.rise);
+            const travel = 1 - Math.pow(1 - u, 2);
+            const falling = Math.max(0, age - p.rise);
+            const drift = p.sway * (Math.sin(falling * p.frequency + p.phase) - Math.sin(p.phase));
+            ribbon.setPosition(p.startX + (p.endX - p.startX) * travel + drift,
+                p.startY + (p.top - p.startY) * travel - p.fall * Math.pow(falling, 1.12));
+            ribbon.angle = p.phase * 180 / Math.PI + age * p.spin;
+            ribbon.setScale(p.scale * (0.2 + Math.abs(Math.cos(age * p.roll + p.phase)) * 0.8), p.scale, 1);
+            this.alpha(ribbon, 235 * this.clamp(age / 0.08) * this.clamp((p.life - age) / 0.8));
+        });
+    }
+    /** @param index 彩带列号，分层随机覆盖全宽。@param initial 首次分散到不同下落阶段。 */
+    private newRain(index: number, initial = false): { birth: number; duration: number; x: number; sway: number; phase: number; spin: number; scale: number; roll: number } {
+        const duration = 3.6 + Math.random() * 3.0;
+        const count = this.rainRoot?.children.length || 1;
+        return {
+            birth: initial ? -Math.random() * duration : this.elapsed,
+            duration,
+            x: this.viewport.width * (-0.5 + (index + Math.random()) / count),
+            sway: 15 + Math.random() * 45,
+            phase: Math.random() * Math.PI * 2,
+            spin: (Math.random() - 0.5) * 300,
+            scale: 0.6 + Math.random() * 0.65,
+            roll: 2 + Math.random() * 5,
+        };
+    }
+    /** @param t 当前秒数。@param mode 成功页持续下落，越过屏幕底部后回到顶部重生。 */
+    private drawRain(t: number, mode: number): void {
+        const root = this.rainRoot;
+        if (!root) return;
+        root.active = mode === 0;
+        if (!root.active) return;
+        root.children.forEach((ribbon, i) => {
+            let p = this.rain[i];
+            if (!p || t >= p.birth + p.duration) p = this.rain[i] = this.newRain(i);
+            const age = t - p.birth, u = this.clamp(age / p.duration);
+            ribbon.setPosition(p.x + Math.sin(age * 1.8 + p.phase) * p.sway,
+                this.viewport.height / 2 + 90 - (this.viewport.height + 180) * u - this.viewport.offset);
+            ribbon.angle = p.phase * 180 / Math.PI + age * p.spin;
+            ribbon.setScale(p.scale * (0.25 + Math.abs(Math.cos(age * p.roll + p.phase)) * 0.75), p.scale, 1);
+            this.alpha(ribbon, 215 * this.clamp((1 - u) / 0.1));
         });
     }
     /** 关闭或切页时恢复布局并清空所有特效，不留下后台循环和迟到回调。 */
@@ -180,6 +254,7 @@ export class ResultPresentation extends Component {
         }
         if (this.titleGlint) this.titleGlint.active = false;
         if (this.confettiRoot) this.confettiRoot.active = false;
+        if (this.rainRoot) this.rainRoot.active = false;
     }
     /** 组件关闭时恢复静态布局。 */
     onDisable(): void {
