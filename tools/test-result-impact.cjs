@@ -35,3 +35,24 @@ p.failureTitleGlints.forEach((r,i)=>{
  assert(sp._customMaterial?.__uuid__,'扫光必须绑定持久化材质');
 });
 console.log('通过：复活与失败标题扫光绑定、状态隔离、循环及关闭重置。');
+
+// 主按钮外层呼吸不改写内部按钮点击缩放，并按结算状态隔离扫光。
+v.primaryMotions=Array.from({length:4},()=>new N());
+v.primaryGlints=Array.from({length:4},()=>new N());
+v.primaryMotions.forEach(n=>{n.children=[new N()];v.remember(n);});
+for(const mode of [0,1,2]) {
+ v.play(mode);v.primaryMotions.forEach(n=>n.children[0].setScale(.96,.96));v.update(2);
+ v.primaryMotions.forEach((n,i)=>{
+  assert.equal(n.children[0].scale.x,.96);
+  assert.equal(v.primaryGlints[i].active,[0,0,1,2][i]===mode);
+ });
+ v.stop();assert(v.primaryGlints.every(n=>!n.active));
+ v.primaryMotions.forEach(n=>assert.equal(n.scale.x,1));
+}
+assert.equal(p.primaryMotions.length,4);assert.equal(p.primaryGlints.length,4);
+p.primaryGlints.forEach(r=>{
+ const n=a[r.__id__];const button=a[n._parent.__id__];
+ assert(button._components.some(c=>a[c.__id__].__type__==='cc.Button'));
+ assert.equal(button._children[0].__id__,r.__id__,'扫光置于文字图标下方');
+});
+console.log('通过：主按钮呼吸、扫光状态隔离、点击反馈保留及关闭重置。');

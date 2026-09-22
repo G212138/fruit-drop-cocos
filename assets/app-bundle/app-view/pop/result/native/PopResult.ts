@@ -100,7 +100,7 @@ export class PopResult extends BaseView {
     private won = false;
 
     /** @param data 页面已确认的胜负结果和原关卡编号。 */
-    onShow(data: { won: boolean; level: number; onRevive?: () => void; notice?: string; remaining?: number; isCurrent?: () => boolean }): void {
+    onShow(data: { won: boolean; level: number; onRevive?: () => void; notice?: string; remaining?: number; category?: 1 | 2; isCurrent?: () => boolean }): void {
         this.hideEvent = 2;
         UiClickSound.bind(this.node);
         this.level = data.level;
@@ -141,7 +141,7 @@ export class PopResult extends BaseView {
             }, 0.7);
         } else if (!showPrompt && this.failAnimation) this.failAnimation.setAnimation(0, '2', true);
         this.reviveButton.active = !data.won && !!this.onRevive;
-        this.overlay?.render(data.level, data.remaining ?? 0, data.won && this.unlockRoot.active);
+        this.overlay?.render(data.level, data.remaining ?? 0, data.won && this.unlockRoot.active, data.category ?? 1);
         this.presentation?.play(data.won ? 0 : showPrompt ? 1 : 2);
     }
 

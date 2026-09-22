@@ -21,6 +21,8 @@ export class ResultOverlay extends Component {
     private level = 1;
     /** 本次剩余个数。 */
     private count = 0;
+    /** 本局品类，1水果、2甜品，显示期间保持不变。 */
+    private category: 1 | 2 = 1;
     /** 本关是否显示新解锁物品。 */
     private unlocked = false;
     /** 打开时绑定语言更新。 */
@@ -33,8 +35,9 @@ export class ResultOverlay extends Component {
         GameLanguage.unsubscribe(this.refresh);
     }
     /** @param level 累计关卡。 @param count 棋盘剩余个数。 @param unlocked 本关是否解锁物品。 */
-    render(level: number, count: number, unlocked: boolean): void {
+    render(level: number, count: number, unlocked: boolean, category: 1 | 2 = 1): void {
         this.level = level;
+        this.category = category;
         this.count = Math.max(0, Math.floor(count));
         this.unlocked = unlocked;
         this.refresh();
@@ -45,7 +48,7 @@ export class ResultOverlay extends Component {
         this.labels.forEach((label, i) => { label.string = resultText(language, this.keys[i] as ResultKey); });
         this.levels.forEach(label => { label.string = resultText(language, 'level', { level: this.level }); });
         if (this.summary) this.summary.string = resultText(language, this.unlocked ? 'unlock' : 'complete');
-        if (this.remaining) this.remaining.string = resultText(language, 'remaining', { count: '<color=#FFAD57><b>' + this.count + '</b></color>' });
+        if (this.remaining) this.remaining.string = resultText(language, this.category === 2 ? 'remainingDessert' : 'remaining', { count: '<color=#FFAD57><b>' + this.count + '</b></color>' });
         if (this.successArt) this.successArt.active = !this.unlocked;
     };
 }

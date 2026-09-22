@@ -14,3 +14,17 @@ for(const file of ['assets/app-bundle/app-view/pop/result/native/PopResult.prefa
 }
 console.log('通过：八语种结算文案、分享能力门禁/失败/重复回调、无底框三态及分享按钮绑定。');
 
+
+const language={current:'zh',subscribe(){},unsubscribe(){}};
+const cc={_decorator:{ccclass:()=>x=>x,property:()=>()=>{}},Component:class{},Label:class{},RichText:class{},Node:class{}};
+const {ResultOverlay}=load(base+'ResultOverlay.ts',name=>name==='cc'?cc:name.includes('GameLanguage')?{GameLanguage:language}:{resultText});
+const overlay=new ResultOverlay();overlay.remaining={string:''};
+for(const lang of ['zh','en','ja','id','th','vi','ms','fil']) {
+ language.current=lang;
+ overlay.render(12,40,false,1);const fruit=overlay.remaining.string;
+ overlay.render(12,40,false,2);const dessert=overlay.remaining.string;
+ assert(fruit.includes('40')&&dessert.includes('40'));assert.notEqual(fruit,dessert);
+ assert(!fruit.includes('{')&&!dessert.includes('{'));
+ if(lang==='zh'){assert(fruit.endsWith('个水果'));assert(dessert.endsWith('个甜品'));}
+}
+console.log('通过：八语种按本局水果或甜品切换剩余数量文案。');

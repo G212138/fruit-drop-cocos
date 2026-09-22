@@ -24,6 +24,10 @@ export class ResultPresentation extends Component {
     @property(Node) titleGlint: Node = null!;
     /** 复活提示、最终失败标题的扫光节点，由编辑器绑定。 */
     @property([Node]) failureTitleGlints: Node[] = [];
+    /** 主按钮独立动效容器，避免覆盖 Button 自身点击缩放。 */
+    @property([Node]) primaryMotions: Node[] = [];
+    /** 主按钮表面扫光，按下一关、试玩重试、复活、重新挑战排列。 */
+    @property([Node]) primaryGlints: Node[] = [];
     /** 原版失败落点音。 */
     @property(AudioSource) failureAudio: AudioSource = null!;
     /** 原版复活提示音。 */
@@ -113,6 +117,7 @@ export class ResultPresentation extends Component {
             this.buttonRoots[mode]?.children.forEach((button, i) => this.pose(button, 0.92 + 0.08 * this.pop((t - 0.25 - i * 0.035) / 0.26)));
             this.buttonsSettled = t >= 0.9;
         }
+        this.drawPrimaryButtons(t, mode);
         this.drawHalos(t, mode);
         this.drawParticles(t, mode);
         this.drawConfetti(t, mode);
@@ -139,6 +144,27 @@ export class ResultPresentation extends Component {
                 this.alpha(glint, 255);
             }
         }
+    }
+    /** @param t 播放秒数。@param mode 结算状态；呼吸幅度2%，扫光与标题错开。 */
+    private drawPrimaryButtons(t: number, mode: number): void {
+        const modes = [0, 0, 1, 2];
+        this.primaryMotions.forEach((motion, i) => {
+            const glint = this.primaryGlints[i];
+            const visible = modes[i] === mode && motion.children[0]?.active !== false;
+            if (t >= 0.9) this.pose(motion, visible ? 1 + 0.02 * Math.sin((t - 0.9) * Math.PI / 2) ** 2 : 1);
+            if (!glint) return;
+            const sweep = (t - 1.6) % 3.8;
+            glint.active = visible && sweep >= 0 && sweep < 1.2;
+            if (!glint.active) return;
+            const sprite = glint.getComponent(Sprite);
+            const uv = sprite?.spriteFrame?.uv;
+            const material = sprite?.getMaterialInstance?.(0);
+            if (uv && material) {
+                material.setProperty('sweepX', new Vec4(uv[0], uv[1], uv[2] - uv[0], uv[3] - uv[1]));
+                material.setProperty('sweepY', new Vec4(uv[4] - uv[0], uv[5] - uv[1], -0.25 + 1.7 * sweep / 1.2, 0.22));
+            }
+            this.alpha(glint, 115);
+        });
     }
     /** @param t 当前秒数。@param mode 当前状态；失败不播放爆光。 */
     private drawHalos(t: number, mode: number): void {
@@ -267,6 +293,7 @@ export class ResultPresentation extends Component {
         }
         if (this.titleGlint) this.titleGlint.active = false;
         this.failureTitleGlints.forEach(node => { if (node) node.active = false; });
+        this.primaryGlints.forEach(node => { if (node) node.active = false; });
         if (this.confettiRoot) this.confettiRoot.active = false;
         if (this.rainRoot) this.rainRoot.active = false;
     }

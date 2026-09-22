@@ -311,6 +311,7 @@ export class PageGame extends BaseView.BindController(GameController) {
                 level: this.levelNumber,
                 notice,
                 remaining: app.store.game.remaining,
+                category: GameTheme.active,
                 onRevive: this.board?.canRevive ? () => {
                     if (this.isCurrent(generation)) void this.requestRevive();
                 } : undefined,
