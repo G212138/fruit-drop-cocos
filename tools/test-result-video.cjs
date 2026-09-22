@@ -4,7 +4,7 @@ const source=fs.readFileSync('assets/app-bundle/app-view/page/game/native/PageGa
 const method=source.slice(source.indexOf('    private tryResultVideo('),source.indexOf('    /** 在失败原局请求激励复活'));
 let calls=0,roll=.49;const session={trial:false},provider={shared:{show:request=>{calls++;assert.equal(request.placement,'result-video');return Promise.resolve({status:'completed'});}}};
 const compiled=ts.transpileModule('export class Subject {'+method+'}',{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;const out={};
-new Function('exports','EditorSession','TikTokRewardProvider','Math',compiled)(out,session,provider,{random:()=>roll});
+new Function('exports','EditorSession','PlatformRewards','Math',compiled)(out,session,provider,{random:()=>roll});
 const make=level=>Object.assign(new out.Subject(),{levelNumber:level,ended:true,resultVideoGeneration:-1,isCurrent:()=>true});
 make(1).tryResultVideo(1);assert.equal(calls,0);
 const a=make(2);a.tryResultVideo(1);a.tryResultVideo(1);assert.equal(calls,1);

@@ -13,9 +13,9 @@ import { FruitViewportLayout } from './expansion/board/FruitViewportLayout';
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
 import { DEV, PREVIEW } from 'cc/env';
 import { RewardGate } from '../../../../../app-builtin/app-model/expansion/RewardGate';
-import { getTikTokGame } from '../../../../../app-builtin/app-model/expansion/platform/TikTokRuntime';
-import { TikTokRewardProvider } from '../../../../../app-builtin/app-model/expansion/platform/TikTokRewardProvider';
-import { TikTokStartup } from '../../../../../app-builtin/app-controller/expansion/TikTokStartup';
+import { getPlatformGame } from '../../../../../app-builtin/app-model/expansion/platform/PlatformRuntime';
+import { PlatformRewards } from '../../../../../app-builtin/app-model/expansion/platform/PlatformRewards';
+import { PlatformStartup } from '../../../../../app-builtin/app-controller/expansion/PlatformStartup';
 import { DevelopmentRewardPanel } from './expansion/reward/DevelopmentRewardPanel';
 import { _decorator, Node, Prefab, JsonAsset, instantiate, isValid } from 'cc';
 import BaseView from 'db://app/base/BaseView';
@@ -156,7 +156,7 @@ export class PageGame extends BaseView.BindController(GameController) {
      */
     onShow(data?: { level?: number }): void {
         UiClickSound.bind(this.node);
-        TikTokStartup.enter();
+        PlatformStartup.enter();
         // XForge 隐藏模式 2：缓存页面，防止卸载分包破坏共享图片；退出仍执行 onHide 清理。
         this.hideEvent = 2;
         GameTheme.refresh();
@@ -167,7 +167,7 @@ export class PageGame extends BaseView.BindController(GameController) {
         this.releaseChildren();
         this.settingsController.begin();
         this.rewardGate = new RewardGate({show: request => {
-            if (getTikTokGame()) return TikTokRewardProvider.shared.show(request);
+            if (getPlatformGame()) return PlatformRewards.shared.show(request);
             if (DEV && this.developmentReward) return this.developmentReward.show(request);
             return Promise.resolve({...request, status:'unavailable', source:'platform'});
         }}, DEV);
@@ -177,7 +177,7 @@ export class PageGame extends BaseView.BindController(GameController) {
         this.loadLevel(generation);
         this.loadCollectionFeedback(generation);
         this.bindProps();
-        if (DEV && !getTikTokGame()) this.loadDevelopmentReward(generation);
+        if (DEV && !getPlatformGame()) this.loadDevelopmentReward(generation);
     }
 
     /**
@@ -331,7 +331,7 @@ export class PageGame extends BaseView.BindController(GameController) {
         if (!this.isCurrent(generation) || !this.ended || this.resultVideoGeneration === generation) return;
         this.resultVideoGeneration = generation;
         if (EditorSession.trial || this.levelNumber < 2 || Math.random() >= 0.5) return;
-        void TikTokRewardProvider.shared.show({ id: `result-${generation}`, placement: 'result-video' }).then(response => {
+        void PlatformRewards.shared.show({ id: `result-${generation}`, placement: 'result-video' }).then(response => {
             if (!this.isCurrent(generation) || response.status !== 'completed') return;
             // 奖励方案暂未确定：完整观看也不修改道具、关卡或解锁进度。
         });

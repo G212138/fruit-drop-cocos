@@ -1,8 +1,8 @@
 import { game, input, Input, Node, isValid } from 'cc';
 import { app } from '../../../app/app';
-import { TikTokLifecycle } from './TikTokLifecycle';
-import { getTikTokGame, supportsTikTok, TikTokGameApi } from '../../app-model/expansion/platform/TikTokRuntime';
-import { TikTokConfig } from '../../app-model/expansion/platform/TikTokConfig';
+import { PlatformLifecycle } from './PlatformLifecycle';
+import { getPlatformGame, supportsPlatform, PlatformApi } from '../../app-model/expansion/platform/PlatformRuntime';
+import { platformInterstitialId } from '../../app-model/expansion/platform/PlatformRuntime';
 
 /** 非游戏进行期间，前台同页30秒无操作展示插屏，不发放奖励。 */
 export class IdleInterstitial {
@@ -30,8 +30,8 @@ export class IdleInterstitial {
     private static readonly reset = (): void => { this.lastActivity = Date.now(); };
     /** 首页就绪后安装；不支持插屏的环境不启动。 */
     static install(): void {
-        const api = getTikTokGame();
-        if (this.installed || !supportsTikTok(api, 'createInterstitialAd')) return;
+        const api = getPlatformGame();
+        if (this.installed || !platformInterstitialId() || !supportsPlatform(api, 'createInterstitialAd')) return;
         this.installed = true;
         this.bindTouchRoot();
         this.reset();
@@ -50,7 +50,7 @@ export class IdleInterstitial {
     private static tick(): void {
         this.bindTouchRoot();
         const playing = app.manager.ui.isShow('PageGame') && app.store.game.phase === 'playing';
-        if (playing || this.busy || TikTokLifecycle.blocked || game.isPaused()) {
+        if (playing || this.busy || PlatformLifecycle.blocked || game.isPaused()) {
             this.reset();
             return;
         }
@@ -60,11 +60,11 @@ export class IdleInterstitial {
     }
     /** 创建一次性广告，异常或关闭都恢复游戏，不处理奖励。 */
     private static show(): void {
-        const api = getTikTokGame();
-        if (!supportsTikTok(api, 'createInterstitialAd')) return;
+        const api = getPlatformGame();
+        if (!platformInterstitialId() || !supportsPlatform(api, 'createInterstitialAd')) return;
         this.busy = true;
-        TikTokLifecycle.setInterstitialVisible(true);
-        let ad: ReturnType<NonNullable<TikTokGameApi['createInterstitialAd']>> | null = null;
+        PlatformLifecycle.setInterstitialVisible(true);
+        let ad: ReturnType<NonNullable<PlatformApi['createInterstitialAd']>> | null = null;
         let settled = false;
         /** 180秒失联保护，防止SDK不回调导致游戏永久暂停。 */
         const timeout = setTimeout(() => finish(), 180000);
@@ -77,10 +77,10 @@ export class IdleInterstitial {
             try { ad?.offError(finish); } catch { /* 继续恢复。 */ }
             this.busy = false;
             this.reset();
-            TikTokLifecycle.setInterstitialVisible(false);
+            PlatformLifecycle.setInterstitialVisible(false);
         };
         try {
-            ad = api!.createInterstitialAd!({ adUnitId: TikTokConfig.idleInterstitialAd });
+            ad = api!.createInterstitialAd!({ adUnitId: platformInterstitialId() });
             ad.onClose(finish);
             ad.onError(finish);
             Promise.resolve(ad.show()).catch(finish);

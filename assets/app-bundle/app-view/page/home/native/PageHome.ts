@@ -1,7 +1,7 @@
 import { HomeAmbientMotion } from './expansion/HomeAmbientMotion';
 import { UiClickSound } from '../../../../../app-builtin/app-controller/expansion/UiClickSound';
 import { GameLanguage } from '../../../../../app-builtin/app-model/expansion/GameLanguage';
-import { TikTokStartup } from '../../../../../app-builtin/app-controller/expansion/TikTokStartup';
+import { PlatformStartup } from '../../../../../app-builtin/app-controller/expansion/PlatformStartup';
 import { _decorator, JsonAsset, Node, Label, EditBox, Sprite, Vec4 } from 'cc';
 import { PREVIEW } from 'cc/env';
 import { GameTheme } from '../../../../../app-builtin/app-model/expansion/GameTheme';
@@ -55,7 +55,7 @@ export class PageHome extends BaseView {
         UiClickSound.bind(this.node);
         if (this.levelJumpRoot) this.levelJumpRoot.active = PREVIEW;
         app.controller.settings.begin();
-        TikTokStartup.enter();
+        PlatformStartup.enter();
         // XForge 隐藏模式 2：缓存页面，防止卸载分包破坏共享图片；退出仍执行 onHide 清理。
         this.hideEvent = 2;
         GameTheme.refresh();

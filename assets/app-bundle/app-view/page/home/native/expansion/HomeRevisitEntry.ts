@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, Label } from 'cc';
+import { getPlatformGame } from '../../../../../../app-builtin/app-model/expansion/platform/PlatformRuntime';
 import { DEV } from 'cc/env';
 import { app } from '../../../../../../app/app';
 import { GameLanguage } from '../../../../../../app-builtin/app-model/expansion/GameLanguage';
@@ -24,8 +25,8 @@ export class HomeRevisitEntry extends Component {
     /** 按真实平台能力显示入口，开发模式便于验收。 */
     onEnable(): void {
         const api = getTikTokGame();
-        this.shortcutButton.active = DEV || (!!api?.canIUse && supportsTikTok(api,'addShortcut') && supportsTikTok(api,'getShortcutMissionReward'));
-        this.profileButton.active = DEV || (!!api?.canIUse && supportsTikTok(api,'startEntranceMission') && supportsTikTok(api,'getEntranceMissionReward'));
+        this.shortcutButton.active = (DEV && !getPlatformGame()) || (!!api?.canIUse && supportsTikTok(api,'addShortcut') && supportsTikTok(api,'getShortcutMissionReward'));
+        this.profileButton.active = (DEV && !getPlatformGame()) || (!!api?.canIUse && supportsTikTok(api,'startEntranceMission') && supportsTikTok(api,'getEntranceMissionReward'));
         this.refresh();
         GameLanguage.subscribe(this.refresh);
     }

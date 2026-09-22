@@ -3,7 +3,7 @@ const base='assets/app-bundle/app-view/pop/result/native/expansion/';
 function load(file,req){const e={};new Function('require','exports',ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,experimentalDecorators:true}}).outputText)(req,e);return e;}
 const {resultText}=load(base+'ResultStrings.ts',()=>({}));const keys=['success','ended','revive','level','unlock','complete','retryHint','remaining','continue','next','restart','home','shareWin','shareLose','watch','editor','shareUnavailable','shareFailed','shareWinTitle','shareLoseTitle','adCancelled','adUnavailable','cancel'];
 for(const lang of ['zh','en','ja','id','th','vi','ms','fil'])for(const key of keys){const s=resultText(lang,key,{level:12,count:98});assert(s);assert(!s.includes('{'));}
-const runtime={getTikTokGame:()=>null,supportsTikTok:(api,name)=>!!api&&typeof api[name]==='function'&&(!api.canIUse||api.canIUse(name))};const {ResultShare}=load(base+'ResultShare.ts',()=>runtime);const results=[];const done=r=>results.push(r);
+const runtime={getPlatformGame:()=>null,supportsPlatform:(api,name)=>!!api&&typeof api[name]==='function'&&(!api.canIUse||api.canIUse(name))};const {ResultShare}=load(base+'ResultShare.ts',()=>runtime);const results=[];const done=r=>results.push(r);
 ResultShare.open('test',12,true,done);assert.equal(results.pop(),'unavailable');let request;const api={shareAppMessage(o){request=o;}};ResultShare.open('win',12,true,done,api);assert.equal(request.title,'win');assert.equal(request.query,'source=result&level=12&result=won');request.success();request.fail();assert.deepEqual(results,['opened']);results.length=0;
 ResultShare.open('help',9,false,done,{shareAppMessage(){throw Error('sdk');}});assert.deepEqual(results,['failed']);results.length=0;ResultShare.open('test',1,false,done,{canIUse:()=>false,shareAppMessage(){assert.fail();}});assert.equal(results[0],'unavailable');
 for(const file of ['assets/app-bundle/app-view/pop/result/native/PopResult.prefab']){
@@ -32,3 +32,4 @@ console.log('通过：八语种按本局水果或甜品切换剩余数量文案�
 overlay.failureCount={string:''};overlay.failurePrefix={string:''};overlay.failureSuffix={string:''};
 language.current='zh';overlay.render(2,40,false,1);assert.equal(overlay.failureCount.string,'40');assert.equal(overlay.failurePrefix.string,'还剩');assert.equal(overlay.failureSuffix.string,'个水果');
 overlay.render(2,7,false,2);assert.equal(overlay.failureCount.string,'7');assert.equal(overlay.failureSuffix.string,'个甜品');
+
