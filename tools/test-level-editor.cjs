@@ -85,3 +85,14 @@ assert.equal(imports.scrollX,300);
 assert.equal(imports.selected,0);
 console.log('通过：原版包装格式、关卡表选择、数字循环、失败保留草稿、混合机制配置往返与试玩隔离。');
 
+
+// 大布局能到达两端并保留边距，小布局限制在画布内，缩放后重新换算范围。
+const {clampEditorPan}=load(base+'/EditorPlacement.ts');
+assert.equal(clampEditorPan(99999,-1000,200,280),720);
+assert.equal(clampEditorPan(-99999,-1000,200,280),80);
+assert.equal(-1000+clampEditorPan(99999,-1000,200,280),-280);
+assert.equal(200+clampEditorPan(-99999,-1000,200,280),280);
+assert.equal(clampEditorPan(99999,-50,50,280),230);
+assert.equal(clampEditorPan(-99999,-50,50,280),-230);
+assert.equal(clampEditorPan(99999,-1000,200,140),860);
+console.log('通过：动态平移边界、两端可达、操作余量及缩放换算。');

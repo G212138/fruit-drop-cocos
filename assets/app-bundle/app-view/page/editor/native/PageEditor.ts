@@ -1,5 +1,5 @@
 import { GameTheme } from '../../../../../app-builtin/app-model/expansion/GameTheme';
-import { findEditorPlacement } from '../../../../../app-builtin/app-model/expansion/level/EditorPlacement';
+import { findEditorPlacement, clampEditorPan } from '../../../../../app-builtin/app-model/expansion/level/EditorPlacement';
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
 import { _decorator, Node, Label, EditBox, Prefab, SpriteFrame, instantiate, input, Input, EventKeyboard, KeyCode, EventMouse, EventTouch, UITransform, Vec3, JsonAsset } from 'cc';
 import BaseView from 'db://app/base/BaseView';
@@ -233,8 +233,32 @@ export class PageEditor extends BaseView {
         this.draft.scrollY += (current.y - previous.y) / zoom;
         this.updateViewport();
     }
+    /** 依据全部物品的图片尺寸计算边界，缩放和编辑后同步更新；留出48设计像素操作余量。 */
+    private clampViewport(): void {
+        const items = this.draft.document.d;
+        if (!items.length) {
+            this.draft.scrollX = 0;
+            this.draft.scrollY = 0;
+            return;
+        }
+        const viewport = this.fruitRoot.parent!.getComponent(UITransform)!;
+        const zoom = this.workspace?.canvasZoom || 1;
+        const centerY = this.workspace?.verticalOffset || 0;
+        const bounds = items.map(item => {
+            const radius = this.fruitRadius(Number(item.n)) * (item.FatherBlackHoleID ? 0.5 : 1);
+            return { left: item.p[0] - radius, right: item.p[0] + radius,
+                bottom: item.p[1] - radius, top: item.p[1] + radius };
+        });
+        this.draft.scrollX = clampEditorPan(this.draft.scrollX,
+            Math.min(...bounds.map(b => b.left)), Math.max(...bounds.map(b => b.right)),
+            Math.max(1, viewport.width / 2 - 48) / zoom);
+        this.draft.scrollY = clampEditorPan(this.draft.scrollY + centerY,
+            Math.min(...bounds.map(b => b.bottom)), Math.max(...bounds.map(b => b.top)),
+            Math.max(1, viewport.height / 2 - 48) / zoom) - centerY;
+    }
     /** 两轴平移只影响视口，不改变原始关卡坐标。 */
     private updateViewport(): void {
+        this.clampViewport();
         if (this.workspace) {
             this.workspace.applyCanvas(this.draft.scrollX, this.draft.scrollY);
             return;

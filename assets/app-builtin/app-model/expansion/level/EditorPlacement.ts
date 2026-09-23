@@ -40,3 +40,15 @@ export function findEditorPlacement(x: number, y: number, radius: number, mode: 
     }
     throw new Error('附近没有足够空间，请移动视口或整理已有水果后再添加');
 }
+
+/** 按内容边缘和可视半径限制单轴平移；内容较小时允许在视口内调整位置。
+ * @param offset 请求的显示偏移，单位设计像素。
+ * @param min 内容最小边缘，包含图片半径。
+ * @param max 内容最大边缘，包含图片半径。
+ * @param halfExtent 可用视口的一半，已扣除编辑余量并换算缩放。
+ */
+export function clampEditorPan(offset: number, min: number, max: number, halfExtent: number): number {
+    const first = halfExtent - max;
+    const second = -halfExtent - min;
+    return Math.max(Math.min(first, second), Math.min(Math.max(first, second), offset));
+}

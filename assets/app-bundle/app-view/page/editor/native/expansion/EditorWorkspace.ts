@@ -70,6 +70,8 @@ export class EditorWorkspace extends Component {
         this.fruitRoot.setPosition(x * this.zoom, (y + this.centerY) * this.zoom);
         this.zoomLabel.string = Math.round(this.zoom * 100) + '%';
     }
+    /** 当前画布显示倍率，用于将屏幕边距换算为数据坐标。 */
+    get canvasZoom(): number { return this.zoom; }
     /** 新物品仍添加到当前视口中心附近。 */
     get verticalOffset(): number { return this.centerY; }
     /** 输入框聚焦时让原有键盘编辑快捷键保持避让。 */
