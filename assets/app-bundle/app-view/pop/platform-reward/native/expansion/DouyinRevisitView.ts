@@ -9,11 +9,7 @@ export class DouyinRevisitView extends Component {
     /** 编辑器绑定的桌面与侧边栏面板。 */
     @property(Node) shortcutDialog: Node = null!;
     @property(Node) profileDialog: Node = null!;
-    /** 编辑器绑定说明、奖励、按钮与状态。 */
-    @property(Label) shortcutDescription: Label = null!;
-    @property(Label) profileDescription: Label = null!;
-    @property(Label) shortcutReward: Label = null!;
-    @property(Label) profileReward: Label = null!;
+    /** 原稿中的标题与奖励为静态切图，仅按钮与结果提示动态更新。 */
     @property(Label) shortcutAction: Label = null!;
     @property(Label) profileAction: Label = null!;
     @property(Label) shortcutNotice: Label = null!;
@@ -28,10 +24,6 @@ export class DouyinRevisitView extends Component {
     private messages = { profile: '', shortcut: '' };
     /** 页面刷新引用稳定，便于离开时注销。 */
     private readonly refresh = (): void => {
-        this.profileDescription.string = '每日从首页侧边栏进入，即可领取';
-        this.shortcutDescription.string = '首次添加桌面快捷方式，领取专属奖励';
-        this.profileReward.string = '每日奖励：打乱道具 ×1';
-        this.shortcutReward.string = '首次奖励：消除道具 ×1';
         for (const mission of ['profile', 'shortcut'] as DouyinMission[]) {
             const action = mission === 'profile' ? this.profileAction : this.shortcutAction;
             const notice = mission === 'profile' ? this.profileNotice : this.shortcutNotice;
