@@ -1,4 +1,4 @@
-import { Node, UITransform, Vec3 } from 'cc';
+import { Node, UITransform, Vec3, Widget } from 'cc';
 
 /** 只读取组件布局完成后的补位上界，不修改任何节点或布局组件。 */
 export class FruitViewportLayout {
@@ -10,10 +10,17 @@ export class FruitViewportLayout {
      * @returns 标记下缘在水果容器内的高度，单位设计像素。
      */
     apply(_page: Node, _board: Node, fruits: Node, status: Node): number {
+        this.updateLayout(fruits);
+        this.updateLayout(status);
         const transform = fruits.getComponent(UITransform)!;
         const marker = status.getComponent(UITransform)!;
         const world = marker.convertToWorldSpaceAR(new Vec3(0, -marker.height * marker.anchorY, 0));
         // 保留原补位16设计像素间距；仅供玩法补位读取，不用于调整UI。
         return transform.convertToNodeSpaceAR(world).y - 16;
+    }
+    /** 从父级到子级同步编辑器配置的布局，避免开局读取适配前的设计坐标。 */
+    private updateLayout(node: Node): void {
+        if (node.parent) this.updateLayout(node.parent);
+        node.getComponent(Widget)?.updateAlignment();
     }
 }
