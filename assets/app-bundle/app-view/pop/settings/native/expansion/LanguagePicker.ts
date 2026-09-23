@@ -25,7 +25,7 @@ export class LanguagePicker extends Component {
     onDisable(): void { GameLanguage.unsubscribe(this.languageChanged); }
     /** 打开或收起预制体中的选项列表。 */
     toggle(): void {
-        this.optionsRoot.active = !this.optionsRoot.active;
+        this.optionsRoot.active = GameLanguage.selectable && !this.optionsRoot.active;
         if (this.optionsRoot.active) this.refresh();
     }
     /** @param event 编辑器按钮事件。 @param code 编辑器绑定的稳定语言代码。 */

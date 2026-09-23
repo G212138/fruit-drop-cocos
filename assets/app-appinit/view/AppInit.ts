@@ -1,3 +1,4 @@
+import './DouyinArtwork';
 import { DEV } from 'cc/env';
 import { LoadingFlight } from './LoadingFlight';
 import { FirstLaunch } from './FirstLaunch';

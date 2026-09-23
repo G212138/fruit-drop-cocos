@@ -1,3 +1,4 @@
+import { platformFixedLanguage } from './platform/PlatformRuntime';
 import { sys } from 'cc';
 import { LanguageChoice, LanguageKey, languageOptions, languageText, resolveLanguage } from './LanguageCatalog';
 import { PlatformStorage } from './platform/PlatformStorage';
@@ -12,6 +13,8 @@ export class GameLanguage {
     private static readonly listeners = new Set<() => void>();
     /** 当前偏好；旧系统选项或无效存档迁移为当前设备对应语言。 */
     static get choice(): LanguageChoice {
+        const fixed = platformFixedLanguage();
+        if (fixed) return fixed;
         if (this.selected === null) {
             try {
                 const saved = PlatformStorage.getItem(this.storageKey) as LanguageChoice;
@@ -23,6 +26,8 @@ export class GameLanguage {
         }
         return this.selected;
     }
+    /** 当前平台是否允许选择语言。 */
+    static get selectable(): boolean { return !platformFixedLanguage(); }
     /** 当前真正使用的语言；平台优先提供完整地区码。 */
     static get current(): string {
         return this.choice;
@@ -33,6 +38,8 @@ export class GameLanguage {
     }
     /** @param choice 用户明确选择的语言；返回保存是否成功，失败仍应用本次选择。 */
     static select(choice: LanguageChoice): boolean {
+        const fixed = platformFixedLanguage();
+        if (fixed) return choice === fixed;
         if (languageOptions.indexOf(choice) < 0) return false;
         this.selected = choice;
         let saved = true;

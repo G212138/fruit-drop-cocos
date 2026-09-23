@@ -15,6 +15,7 @@ async function main(){
  const {FirstLaunch}=load('assets/app-appinit/view/FirstLaunch.ts');assert.equal(FirstLaunch.page,'PageGame');FirstLaunch.complete();assert.equal(storage.get('dy:fruit-drop.first-entry.v1'),'1');
  const {DouyinSilentLogin}=load(root+'DouyinSilentLogin.ts');assert.equal(await DouyinSilentLogin.shared.login(),true);assert.equal(loginOptions.force,false);assert.equal(storage.size,2,'登录临时凭证不得落盘');
  const {DouyinRewardProvider}=load(root+'DouyinRewardProvider.ts');const provider=DouyinRewardProvider.shared;
+ assert.equal(runtime.platformFixedLanguage(),'zh');
  DouyinConfig.idleInterstitialAd='must-not-show';assert.equal(runtime.platformInterstitialId(),'');
  DouyinConfig.rewardedAds['result-video']='must-not-show';assert.equal((await provider.show({id:'blocked',placement:'result-video'})).status,'unavailable');assert.equal(calls,0);
  DouyinConfig.rewardedAds.revive='';
@@ -27,7 +28,7 @@ async function main(){
  DouyinLifecycle.setInterstitialVisible(true);assert.equal((await provider.show(request)).status,'unavailable');DouyinLifecycle.setInterstitialVisible(false);
  const {ResultShare}=load('assets/app-bundle/app-view/pop/result/native/expansion/ResultShare.ts');let result;ResultShare.open('test',2,true,v=>result=v);assert.equal(share.title,'test');share.success();assert.equal(result,'opened');
  const {PlatformRewards}=load(root+'PlatformRewards.ts');assert.equal(PlatformRewards.shared,provider);
- const tiktok={getStorageSync:()=> 'tiktok-save',setStorageSync(){}};global.TTMinis={game:tiktok};assert.equal(runtime.platformKind(),'tiktok');assert.equal(runtime.getPlatformGame(),tiktok);assert.equal(load(root+'DouyinRuntime.ts').getDouyinGame(),null);assert.equal(PlatformStorage.getItem('level'),'tiktok-save');assert.equal(PlatformRewards.shared,load(root+'TikTokRewardProvider.ts').TikTokRewardProvider.shared);assert.equal(runtime.platformInterstitialId(),'ad7687943681425901586');
+ const tiktok={getStorageSync:()=> 'tiktok-save',setStorageSync(){}};global.TTMinis={game:tiktok};assert.equal(runtime.platformKind(),'tiktok');assert.equal(runtime.platformFixedLanguage(),'');assert.equal(runtime.getPlatformGame(),tiktok);assert.equal(load(root+'DouyinRuntime.ts').getDouyinGame(),null);assert.equal(PlatformStorage.getItem('level'),'tiktok-save');assert.equal(PlatformRewards.shared,load(root+'TikTokRewardProvider.ts').TikTokRewardProvider.shared);assert.equal(runtime.platformInterstitialId(),'ad7687943681425901586');
  delete global.TTMinis;delete global.tt;global.wx={};assert.equal(runtime.platformKind(),'browser','未接入微信不能误识别为抖音');delete global.wx;
  console.log('通过：双平台识别与配置隔离、空广告位、抖音加载/展示/取消/完成/错误/互斥、后台恢复、静默匿名登录、存档与分享。');
 }

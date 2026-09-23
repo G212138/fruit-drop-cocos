@@ -16,7 +16,8 @@ for (const locale of ['en','ja','id','th','vi','ms','fil','zh']) {
 for (const [input,expected] of [['ja-JP','ja'],['id_ID','id'],['in-ID','id'],['tl-PH','fil'],['fil-PH','fil'],['th-TH','th'],['de-DE','en']]) assert.equal(catalog.resolveLanguage(input),expected);
 const store = new Map();
 const sys = {language:'ja',languageCode:'ja-JP',localStorage:{getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,v)}};
-function service(){return compile('GameLanguage',n=>n==='cc'?{sys}:n.endsWith('/PlatformStorage')?{PlatformStorage:sys.localStorage}:catalog).GameLanguage;}
+let fixedLanguage = '';
+function service(){return compile('GameLanguage',n=>n==='cc'?{sys}:n.endsWith('/PlatformRuntime')?{platformFixedLanguage:()=>fixedLanguage}:n.endsWith('/PlatformStorage')?{PlatformStorage:sys.localStorage}:catalog).GameLanguage;}
 let language = service(); assert.equal(language.choice,'ja'); assert.equal(language.current,'ja');
 let updates=0; const update=()=>updates++; language.subscribe(update);
 assert.equal(language.select('vi'),true); assert.equal(language.current,'vi'); assert.equal(updates,1);
@@ -31,3 +32,9 @@ sys.localStorage.setItem=()=>{throw new Error('storage unavailable');};
 assert.equal(language.select('ms'),false); assert.equal(language.current,'ms');
 assert.equal(language.select('unsupported'),false); assert.equal(language.current,'ms');
 console.log('通过：八种词表、系统区域码/别名、英文回退、手动选择持久化、监听解除与存储失败。');
+
+fixedLanguage='zh';assert.equal(language.current,'zh');assert.equal(language.selectable,false);
+assert.equal(language.select('en'),false);assert.equal(language.current,'zh');
+assert.equal(language.select('zh'),true);
+fixedLanguage='';assert.equal(language.current,'ms','抖音固定语言不覆盖其他平台的偏好');assert.equal(language.selectable,true);
+console.log('通过：抖音固定中文并禁用切换，其他平台偏好保持独立。');

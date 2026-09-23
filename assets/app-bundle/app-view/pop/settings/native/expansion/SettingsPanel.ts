@@ -1,3 +1,4 @@
+import { GameLanguage } from '../../../../../../app-builtin/app-model/expansion/GameLanguage';
 import { _decorator, Component, Node, Label, UIOpacity, Tween, Vec3, tween, isValid, Layout, UITransform } from 'cc';
 import { SettingsToggleView } from './SettingsToggleView';
 import type { PreferencesSnapshot } from '../../../../../../app-builtin/app-model/expansion/GamePreferences';
@@ -45,7 +46,7 @@ export class SettingsPanel extends Component {
         const contentSize = this.content.getComponent(UITransform)!;
         const previousHeight = contentSize.height;
         this.languageOptions.active = false;
-        this.languageRow.active = mode === 'home';
+        this.languageRow.active = mode === 'home' && GameLanguage.selectable;
         this.gameActions.active = mode === 'game';
         this.bodyLayout.updateLayout();
         const height = this.bodyLayout.node.getComponent(UITransform)!.height + 112;

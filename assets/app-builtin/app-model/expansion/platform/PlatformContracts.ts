@@ -85,6 +85,8 @@ export interface AutomaticAdPolicy {
 export interface PlatformAdapter {
     /** 稳定平台标识。 */
     readonly kind: 'tiktok' | 'douyin' | 'browser';
+    /** 固定界面语言；空字符串表示允许用户选择。 */
+    readonly fixedLanguage: 'zh' | '';
     /** 当前平台的自动广告策略。 */
     readonly automaticAds: AutomaticAdPolicy;
     /** 获取当前宿主，未运行在该平台时返回空。 */

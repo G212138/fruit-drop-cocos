@@ -12,7 +12,8 @@ const cc = {_decorator:{ccclass:()=>value=>value,property:()=>()=>{}},Component:
     tween:target=>{const chain={to:()=>chain,call:fn=>{pending.set(target,fn);return chain;},start:()=>{}};return chain;}};
 const output=ts.transpileModule(fs.readFileSync('assets/app-bundle/app-view/pop/settings/native/expansion/SettingsPanel.ts','utf8'),{
     compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.CommonJS,experimentalDecorators:true}}).outputText;
-const result={};new Function('require','exports',output)(name=>name==='cc'?cc:{},result);
+const languagePolicy={selectable:true};
+const result={};new Function('require','exports',output)(name=>name==='cc'?cc:name.endsWith('/GameLanguage')?{GameLanguage:languagePolicy}:{},result);
 const panel=new result.SettingsPanel();
 panel.musicRow=row();panel.soundRow=row();panel.vibrateRow=row();panel.content={};panel.opacity={};
 const events=[];panel.node={active:true,emit:(...event)=>events.push(event)};
@@ -47,3 +48,7 @@ for(let i=0;i<5;i++){
  panel.setMode('home');assert.deepEqual(panel.titlePlate.position,{x:8,y:292,z:1});assert.deepEqual(panel.closeButton.position,{x:265,y:288,z:2});
 }
 console.log('通过：保留手调标题和关闭按钮位置，反复切换模式不累积偏移。');
+
+languagePolicy.selectable=false;panel.setMode('home');assert.equal(panel.languageRow.active,false);assert.equal(panel.languageOptions.active,false);
+languagePolicy.selectable=true;panel.setMode('home');assert.equal(panel.languageRow.active,true);
+console.log('通过：抖音隐藏语言行和子面板，其他平台首页保留入口。');

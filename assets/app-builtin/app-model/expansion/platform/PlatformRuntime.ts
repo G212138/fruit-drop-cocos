@@ -20,3 +20,6 @@ export function getPlatformGame(): PlatformApi | null { return currentPlatform()
 export function platformInterstitialId(): string { return currentPlatform().automaticAds.idleInterstitialId; }
 /** 结算流程只询问能力，平台名单由注册层维护。 */
 export function allowsAutomaticResultVideo(): boolean { return currentPlatform().automaticAds.resultVideo; }
+
+/** 平台固定语言策略；空值沿用设备语言及用户偏好。 */
+export function platformFixedLanguage(): 'zh' | '' { return currentPlatform().fixedLanguage; }

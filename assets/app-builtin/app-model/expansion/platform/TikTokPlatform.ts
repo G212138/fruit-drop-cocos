@@ -5,6 +5,7 @@ import { TikTokConfig } from './TikTokConfig';
 export const TikTokPlatform: PlatformAdapter = {
     kind: 'tiktok',
     getApi: getTikTokGame,
+    fixedLanguage: '',
     automaticAds: {
         resultVideo: true,
         /** 仅此平台启用30秒闲置插屏。 */

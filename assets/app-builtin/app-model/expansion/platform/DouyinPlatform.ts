@@ -4,5 +4,6 @@ import { getDouyinGame } from './DouyinRuntime';
 export const DouyinPlatform: PlatformAdapter = {
     kind: 'douyin',
     getApi: getDouyinGame,
+    fixedLanguage: 'zh',
     automaticAds: { resultVideo: false, idleInterstitialId: '' },
 };
