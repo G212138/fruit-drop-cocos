@@ -16341,8 +16341,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 15.01611328125,
-      "height": 44.1
+      "width": 84,
+      "height": 52
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -16379,12 +16379,12 @@
     },
     "_string": "1",
     "_horizontalAlign": 1,
-    "_verticalAlign": 0,
+    "_verticalAlign": 1,
     "_actualFontSize": 27,
     "_fontSize": 27,
     "_fontFamily": "Arial",
     "_lineHeight": 35,
-    "_overflow": 0,
+    "_overflow": 2,
     "_enableWrapText": false,
     "_font": null,
     "_isSystemFontUsed": true,
@@ -16566,7 +16566,7 @@
     "_fontSize": 27,
     "_fontFamily": "Arial",
     "_lineHeight": 35,
-    "_overflow": 0,
+    "_overflow": 2,
     "_enableWrapText": false,
     "_font": null,
     "_isSystemFontUsed": true,
@@ -17114,8 +17114,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 15.01611328125,
-      "height": 44.1
+      "width": 64,
+      "height": 52
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -17152,12 +17152,12 @@
     },
     "_string": "0",
     "_horizontalAlign": 1,
-    "_verticalAlign": 0,
+    "_verticalAlign": 1,
     "_actualFontSize": 27,
     "_fontSize": 27,
     "_fontFamily": "Arial",
     "_lineHeight": 35,
-    "_overflow": 0,
+    "_overflow": 2,
     "_enableWrapText": false,
     "_font": null,
     "_isSystemFontUsed": true,
@@ -17339,7 +17339,7 @@
     "_fontSize": 27,
     "_fontFamily": "Arial",
     "_lineHeight": 35,
-    "_overflow": 0,
+    "_overflow": 2,
     "_enableWrapText": false,
     "_font": null,
     "_isSystemFontUsed": true,
@@ -17887,8 +17887,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 15.01611328125,
-      "height": 44.1
+      "width": 72,
+      "height": 52
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -17925,12 +17925,12 @@
     },
     "_string": "1",
     "_horizontalAlign": 1,
-    "_verticalAlign": 0,
+    "_verticalAlign": 1,
     "_actualFontSize": 27,
     "_fontSize": 27,
     "_fontFamily": "Arial",
     "_lineHeight": 35,
-    "_overflow": 0,
+    "_overflow": 2,
     "_enableWrapText": false,
     "_font": null,
     "_isSystemFontUsed": true,
@@ -18112,7 +18112,7 @@
     "_fontSize": 27,
     "_fontFamily": "Arial",
     "_lineHeight": 35,
-    "_overflow": 0,
+    "_overflow": 2,
     "_enableWrapText": false,
     "_font": null,
     "_isSystemFontUsed": true,
@@ -19559,7 +19559,7 @@
       "b": 138,
       "a": 255
     },
-    "_string": "拖拽移动 · 滚轮平移 · Enter 添加 · Shift 隐藏\nDelete 删除 · 空格清空编号 · 数字键输入编号",
+    "_string": "空白拖动画布 · 拖拽物品 · 滚轮平移\nEnter 添加 · Shift 隐藏 · Delete 删除 · 空格清空编号",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 23,

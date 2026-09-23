@@ -1,7 +1,7 @@
 import { GameTheme } from '../../../../../app-builtin/app-model/expansion/GameTheme';
 import { findEditorPlacement } from '../../../../../app-builtin/app-model/expansion/level/EditorPlacement';
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
-import { _decorator, Node, Label, EditBox, Prefab, SpriteFrame, instantiate, input, Input, EventKeyboard, KeyCode, EventMouse, JsonAsset } from 'cc';
+import { _decorator, Node, Label, EditBox, Prefab, SpriteFrame, instantiate, input, Input, EventKeyboard, KeyCode, EventMouse, EventTouch, UITransform, Vec3, JsonAsset } from 'cc';
 import BaseView from 'db://app/base/BaseView';
 import { app } from '../../../../../app/app';
 import { EditorFruitMarker } from './expansion/EditorFruitMarker';
@@ -58,7 +58,8 @@ export class PageEditor extends BaseView {
         this.fruitRoot.on('editor-select', this.select, this);
         this.fruitRoot.on('editor-move', this.move, this);
         input.on(Input.EventType.KEY_DOWN, this.keyDown, this);
-        this.node.on(Node.EventType.MOUSE_WHEEL, this.wheel, this);
+        this.fruitRoot.parent!.on(Node.EventType.MOUSE_WHEEL, this.wheel, this);
+        this.fruitRoot.parent!.on(Node.EventType.TOUCH_MOVE, this.panCanvas, this);
         this.render();
     }
     /** 隐藏时解除全局输入，不影响其他页面。 */
@@ -67,6 +68,7 @@ export class PageEditor extends BaseView {
         this.fruitRoot.targetOff(this);
         input.off(Input.EventType.KEY_DOWN, this.keyDown, this);
         this.node.targetOff(this);
+        this.fruitRoot.parent!.targetOff(this);
     }
     /** 按当前数据实例化标记，布局全部由已有容器与预制体定义。 */
     private render(): void {
@@ -132,8 +134,8 @@ export class PageEditor extends BaseView {
             const kind = Number(this.numberInput.string);
             if (!Number.isInteger(kind) || kind < 1 || kind > 30)
                 throw new Error('水果编号必须在1至30之间');
-            const x = this.draft.document.m === 2 ? this.draft.scrollX : 0;
-            const y = (this.draft.document.m === 1 ? this.draft.scrollY : 0) + (this.workspace?.verticalOffset || 0);
+            const x = this.draft.scrollX;
+            const y = this.draft.scrollY + (this.workspace?.verticalOffset || 0);
             const existing = this.draft.document.d.map(item => ({ x: item.p[0], y: item.p[1],
                 radius: this.fruitRadius(Number(item.n)) * (item.FatherBlackHoleID ? 0.5 : 1) }));
             const position = findEditorPlacement(-x, -y, this.fruitRadius(kind), this.draft.document.m, existing);
@@ -213,13 +215,31 @@ export class PageEditor extends BaseView {
         this.draft.scroll(event.getScrollY());
         this.updateViewport();
     }
-    /** 只移动当前模式的视口轴，不改变原始关卡坐标。 */
+    /** 空白处拖动平移整个画布；水果事件不参与，位移换算为未缩放的草稿单位。 */
+    private panCanvas(event: EventTouch): void {
+        if (this.workspace?.modalOpen) return;
+        let target = event.target as Node;
+        while (target && target !== this.fruitRoot.parent) {
+            if (target === this.fruitRoot) return;
+            target = target.parent!;
+        }
+        const transform = this.fruitRoot.parent!.getComponent(UITransform)!;
+        const point = event.getUILocation();
+        const delta = event.getUIDelta();
+        const current = transform.convertToNodeSpaceAR(new Vec3(point.x, point.y));
+        const previous = transform.convertToNodeSpaceAR(new Vec3(point.x - delta.x, point.y - delta.y));
+        const zoom = this.fruitRoot.scale.x || 1;
+        this.draft.scrollX += (current.x - previous.x) / zoom;
+        this.draft.scrollY += (current.y - previous.y) / zoom;
+        this.updateViewport();
+    }
+    /** 两轴平移只影响视口，不改变原始关卡坐标。 */
     private updateViewport(): void {
         if (this.workspace) {
-            this.workspace.applyCanvas(this.draft.document.m === 2 ? this.draft.scrollX : 0, this.draft.document.m === 1 ? this.draft.scrollY : 0);
+            this.workspace.applyCanvas(this.draft.scrollX, this.draft.scrollY);
             return;
         }
-        this.fruitRoot.setPosition(this.draft.document.m === 2 ? this.draft.scrollX : 0, this.draft.document.m === 1 ? this.draft.scrollY : 0, 0);
+        this.fruitRoot.setPosition(this.draft.scrollX, this.draft.scrollY, 0);
     }
     /** @param event 键盘事件；文本框编辑期间不处理删除快捷键。 */
     private keyDown(event: EventKeyboard): void {

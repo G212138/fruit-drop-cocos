@@ -8,7 +8,7 @@ export class EditorDraft {
     selected = -1;
     /** 编辑器视口纵向偏移，单位设计像素；导出时不计入坐标。 */
     scrollY = 0;
-    /** 横向编辑模式的视口偏移，单位设计像素；原版范围零至一千五百。 */
+    /** 横向编辑模式的视口偏移，单位设计像素；不限制范围，允许编辑屏外物品。 */
     scrollX = 0;
     /** 试玩前的独立快照，包含选择和视口，不保存到玩家关卡进度。 */
     private trialSnapshot: { document: LevelDocument; selected: number; scrollY: number; scrollX: number } | null = null;
@@ -188,12 +188,12 @@ export class EditorDraft {
         this.document.m = this.document.m === 1 ? 2 : 1;
     }
 
-    /** @param delta 原始滚轮增量；沿用原版小增量放大五十倍、滚动倍率零点二和各模式边界。 */
+    /** @param delta 原始滚轮增量；沿用原版小增量放大五十倍、滚动倍率零点二；取消固定边界以访问全部物品。 */
     scroll(delta: number): void {
         if (!Number.isFinite(delta)) return;
         const movement = (Math.abs(delta) < 5 ? delta * 50 : delta) * 0.2;
-        if (this.document.m === 2) this.scrollX = Math.max(0, Math.min(1500, this.scrollX + movement));
-        else this.scrollY = Math.max(-2000, Math.min(0, this.scrollY + movement));
+        if (this.document.m === 2) this.scrollX = this.scrollX + movement;
+        else this.scrollY = this.scrollY + movement;
     }
 
     /** 保存编辑快照并返回独立试玩数据；不允许未完成配对的草稿开始试玩。 */
