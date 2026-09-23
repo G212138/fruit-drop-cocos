@@ -1,7 +1,7 @@
 import { RewardProvider, RewardRequest, RewardResponse } from '../RewardGate';
 import { DouyinConfig } from './DouyinConfig';
 import { getDouyinGame, DouyinGameApi, DouyinRewardedAd } from './DouyinRuntime';
-import { supportsPlatform } from './PlatformRuntime';
+import { supportsPlatform } from './PlatformContracts';
 
 /** 真实激励广告边界；不直接修改库存、复活状态或关卡进度。 */
 export class DouyinRewardProvider implements RewardProvider {
@@ -31,7 +31,7 @@ export class DouyinRewardProvider implements RewardProvider {
     show(request: RewardRequest): Promise<RewardResponse> {
         const api = this.runtime();
         const adUnitId = DouyinConfig.rewardedAds[request.placement];
-        if (this.busy || this.interstitialBusy || !adUnitId || !supportsPlatform(api, 'createRewardedVideoAd')) {
+        if (request.placement === 'result-video' || this.busy || this.interstitialBusy || !adUnitId || !supportsPlatform(api, 'createRewardedVideoAd')) {
             return Promise.resolve({ ...request, status: 'unavailable', source: 'platform' });
         }
         this.busy = true;

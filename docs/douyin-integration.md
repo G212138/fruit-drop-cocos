@@ -1,42 +1,53 @@
-# 抖音小游戏适配
+# 多平台适配与抖音接入
 
-当前为代码适配完成、待提供参数与真机验收。App ID 和所有广告位按要求留空，不生成虚假奖励。
+## 当前状态
 
-## 平台边界
+抖音 App ID：`ttaf1dd9a03178d36c02`，已写入 DouyinConfig.ts 和 tools/douyin-build.json。
+抖音只需五个主动激励广告位：消除、打乱、复活、扩容、主题解锁；目前全部留空。
+30秒闲置插屏和第二关起50%结算视频仅TikTok启用，其他平台关闭，与是否填写广告位无关。
+尚未构建、上传或进行抖音真机验收。
 
-- `TTMinis.game` 优先识别为 TikTok；其原生包中即使同时有 `tt`，仍使用原有 TikTok 配置、广告、登录与任务实现。
-- 只有 `tt` 时启用独立抖音实现。不会创建或覆盖全局 SDK 别名。
-- 游戏页面通过 PlatformRuntime / PlatformRewards / PlatformStartup 选择实现；微信尚未接入，后续另加适配。
-- 抖音已接入本地存储、首次启动路由、静默登录、分享按钮、前后台暂停、短震与长震、广告生命周期。
-- 抖音激励视频显式 load 后 show，仅 isEnded === true 才向奖励门禁报告完成；失败、取消、超时及空广告位不发奖。
-- TikTok 桌面/侧栏任务在抖音中隐藏，包括抖音调试包。没有套用另一平台的任务奖励资格。
-- 抖音暂为本地游客模式；静默登录允许 anonymousCode，但不保存凭证，不将其当作 OpenID 或服务端会话。
+## 代码职责
 
-## 后续填写
+代码位于 `assets/app-builtin/app-model/expansion/platform`；生命周期和启动入口位于 `assets/app-builtin/app-controller/expansion`。
 
-1. `assets/app-builtin/app-model/expansion/platform/DouyinConfig.ts`：App ID 与七种激励用途、闲置插屏广告位。未使用的 prop 保持空。
-2. `tools/douyin-build.json`：`packages.bytedance-mini-game.appid` 填相同抖音 App ID。
-3. Cocos Creator 3.8.8 选择抖音小游戏，使用该配置；输出为 `build/douyin`。保留原 TikTok 构建配置及输出目录。
-4. **抖音包不要执行 `prepare-tiktok-native.cjs`。** 构建后运行 `node tools/check-douyin-build.cjs`。
-5. 用抖音开发者工具导入 `build/douyin`，完成真机预览后再上传；当前尚未构建、上传或发布抖音包。
+| 模块 | 职责 |
+| --- | --- |
+| PlatformContracts | 纯公共接口、能力检查，不引用具体平台 |
+| TikTokPlatform / TikTokConfig / TikTokRuntime | TikTok策略、配置与SDK边界 |
+| TikTokRewardProvider / TikTokLogin等 | TikTok广告、身份与专属任务 |
+| DouyinPlatform / DouyinConfig / DouyinRuntime | 抖音独立策略、配置与SDK边界 |
+| DouyinRewardProvider / DouyinSilentLogin | 抖音广告、静默登录，不引用TikTok实现 |
+| BrowserPlatform | 浏览器降级，无真实广告或宿主 |
+| PlatformRuntime / PlatformRewards | 平台选择与转发，不承载平台业务 |
+| TikTokStartup / DouyinStartup | 各自独立启动链 |
+| TikTokLifecycle / DouyinLifecycle | 各自维护后台、广告暂停与振动 |
+| PlatformStartup / PlatformLifecycle | 启动与生命周期分发 |
 
-## 验收
+游戏页面只调用公共入口、查询能力，不判断平台名称。新增微信时添加独立实现并在选择层注册，自动广告默认关闭。
+TikTok优先识别TTMinis.game，避免原生包的tt别名被误识别为抖音。不会创建或覆盖任何SDK全局别名。
 
-- 首次进入关卡、回首页、重开，重新启动后关卡/设置/语言/道具存档保留。
-- 分享按钮、小游戏切后台与前台，振动开关及晃一晃长震。
-- 各广告用途：完整观看、中途关闭、无库存、加载失败、重复点击、后台返回、旧局回调。
-- 闲置插屏：空配置不启动；配置后点击任意位置重计时，游戏进行中不出现。
-- 第二关起结算视频保持50%概率，空配置无展示无奖励。
-- TikTok 回归：广告位未变，桌面/侧栏任务、分享、登录、存档、复活和暂停恢复逐项真机检查。
+## 抖音行为
 
-已运行模拟契约测试，不等同真实 SDK 或真机验收。项目完整类型检查仍有历史 tsconfig / 框架问题，本次新增适配未发现类型报错。
+- 已适配存档、首次启动路由、分享、静默登录、长短震动与前后台恢复。
+- 激励视频先load再show，只有isEnded严格为true才向奖励门禁报告完成。
+- 空广告位、提前关闭、异常、超时不发奖；自动结算广告在提供器层也被阻断。
+- TikTok的桌面/侧栏奖励入口在抖音隐藏，不套用其他平台奖励资格。
+- 无后端时保持本地游客体验；临时code或anonymousCode不落盘，不视为OpenID或服务端会话。
+
+## 构建与验收
+
+1. 将五个抖音广告位填写到DouyinConfig.ts。
+2. 使用Cocos Creator 3.8.8的抖音小游戏构建和tools/douyin-build.json，输出build/douyin。
+3. 不要对抖音产物运行prepare-tiktok-native.cjs；构建后运行node tools/check-douyin-build.cjs。
+4. 抖音开发者工具导入build/douyin，验证启动、存档、分享、广告完成/取消/异常、前后台、振动和安全区。
+5. TikTok同时真机回归原有广告、桌面/侧栏奖励、登录、分享、复活及后台恢复。
+
+已通过双平台模拟契约、TikTok广告/登录、闲置插屏、结算概率和主题广告测试，不能替代真机验收。
+历史检查边界：全量类型检查仍有AppInit模块配置、TerrainProgress旧库以及框架类型问题；旧test-tiktok-startup缺少cc/env模拟，test-game-screen-layout断言与当前布局不一致。本次未修改游戏布局或框架。
 
 ## 官方资料
 
 - https://developer.open-douyin.com/docs/resource/zh-CN/mini-game/develop/api/javascript-api/overview
 - https://developer.open-douyin.com/docs/resource/zh-CN/mini-game/develop/api/javascript-api/open-capacity/log-in/tt-login
-- https://developer.open-douyin.com/docs/resource/zh-CN/mini-game/develop/api/javascript-api/open-capacity/retweet/tt-share-app-message
-- https://developer.open-douyin.com/docs/resource/zh-CN/mini-game/develop/api/javascript-api/data-caching/tt-set-storage-sync
 - https://docs.cocos.com/creator/3.8/manual/zh/editor/publish/publish-bytedance-mini-game.html
-
-历史测试边界：test-tiktok-startup.cjs 的旧模拟器缺少 cc/env 支持；test-game-screen-layout.cjs 与当前地形布局断言不一致。这两项仍未通过，未为本次适配修改游戏布局。

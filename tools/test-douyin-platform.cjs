@@ -6,7 +6,7 @@ function load(file){file=path.resolve(file);if(cache[file])return cache[file];co
 const root='assets/app-builtin/app-model/expansion/platform/';
 async function main(){
  const runtime=load(root+'PlatformRuntime.ts');assert.equal(runtime.platformKind(),'browser');
- const {DouyinConfig}=load(root+'DouyinConfig.ts');assert.equal(DouyinConfig.appId,'');assert(Object.values(DouyinConfig.rewardedAds).every(v=>v===''));assert.equal(runtime.platformInterstitialId(),'');
+ const {DouyinConfig}=load(root+'DouyinConfig.ts');assert.equal(DouyinConfig.appId,'ttaf1dd9a03178d36c02');assert(Object.values(DouyinConfig.rewardedAds).every(v=>v===''));assert.equal(runtime.platformInterstitialId(),'');
  let calls=0,close,error,loaded=0,shown=0,offs=0,hide,show,loginOptions,share;
  const ad={load(){loaded++;return Promise.resolve()},show(){shown++;return Promise.resolve()},onClose(f){close=f},offClose(){offs++},onError(f){error=f},offError(){offs++}};
  global.tt={canIUse:()=>true,createRewardedVideoAd(o){assert.equal(o.adUnitId,'douyin-test');calls++;return ad},onHide(f){hide=f},onShow(f){show=f},vibrateLong(o){o.success()},login(o){loginOptions=o;o.success({anonymousCode:'anonymous-only'})},getStorageSync:k=>storage.get('dy:'+k),setStorageSync:(k,v)=>storage.set('dy:'+k,v),shareAppMessage(o){share=o}};
@@ -15,6 +15,8 @@ async function main(){
  const {FirstLaunch}=load('assets/app-appinit/view/FirstLaunch.ts');assert.equal(FirstLaunch.page,'PageGame');FirstLaunch.complete();assert.equal(storage.get('dy:fruit-drop.first-entry.v1'),'1');
  const {DouyinSilentLogin}=load(root+'DouyinSilentLogin.ts');assert.equal(await DouyinSilentLogin.shared.login(),true);assert.equal(loginOptions.force,false);assert.equal(storage.size,2,'登录临时凭证不得落盘');
  const {DouyinRewardProvider}=load(root+'DouyinRewardProvider.ts');const provider=DouyinRewardProvider.shared;
+ DouyinConfig.idleInterstitialAd='must-not-show';assert.equal(runtime.platformInterstitialId(),'');
+ DouyinConfig.rewardedAds['result-video']='must-not-show';assert.equal((await provider.show({id:'blocked',placement:'result-video'})).status,'unavailable');assert.equal(calls,0);
  const request={id:'dy-test',placement:'revive'};assert.equal((await provider.show(request)).status,'unavailable');assert.equal(calls,0);
  DouyinConfig.rewardedAds.revive='douyin-test';
  const {DouyinLifecycle}=load('assets/app-builtin/app-controller/expansion/DouyinLifecycle.ts');DouyinLifecycle.install();
@@ -29,3 +31,11 @@ async function main(){
  console.log('通过：双平台识别与配置隔离、空广告位、抖音加载/展示/取消/完成/错误/互斥、后台恢复、静默匿名登录、存档与分享。');
 }
 main().catch(e=>{console.error(e);process.exitCode=1});
+
+// 防止后续改动让平台实现互相依赖，公共契约不得引用具体宿主。
+for(const folder of [root,'assets/app-builtin/app-controller/expansion/']) {
+ for(const file of fs.readdirSync(folder).filter(name=>name.startsWith('Douyin')&&name.endsWith('.ts'))) {
+  assert(!/from\s+['"][^'"]*TikTok/.test(fs.readFileSync(folder+file,'utf8')),file+' 不得引用TikTok实现');
+ }
+}
+assert(!/from\s+['"][^'"]*(TikTok|Douyin)/.test(fs.readFileSync(root+'PlatformContracts.ts','utf8')));

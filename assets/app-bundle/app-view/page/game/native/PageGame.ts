@@ -13,7 +13,7 @@ import { FruitViewportLayout } from './expansion/board/FruitViewportLayout';
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
 import { DEV, PREVIEW } from 'cc/env';
 import { RewardGate } from '../../../../../app-builtin/app-model/expansion/RewardGate';
-import { getPlatformGame } from '../../../../../app-builtin/app-model/expansion/platform/PlatformRuntime';
+import { getPlatformGame, allowsAutomaticResultVideo } from '../../../../../app-builtin/app-model/expansion/platform/PlatformRuntime';
 import { PlatformRewards } from '../../../../../app-builtin/app-model/expansion/platform/PlatformRewards';
 import { PlatformStartup } from '../../../../../app-builtin/app-controller/expansion/PlatformStartup';
 import { DevelopmentRewardPanel } from './expansion/reward/DevelopmentRewardPanel';
@@ -328,6 +328,7 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 每局最多抽取一次，第2关起50%概率，广告失败不重试且不影响结算。 */
     private tryResultVideo(generation: number): void {
+        if (!allowsAutomaticResultVideo()) return;
         if (!this.isCurrent(generation) || !this.ended || this.resultVideoGeneration === generation) return;
         this.resultVideoGeneration = generation;
         if (EditorSession.trial || this.levelNumber < 2 || Math.random() >= 0.5) return;

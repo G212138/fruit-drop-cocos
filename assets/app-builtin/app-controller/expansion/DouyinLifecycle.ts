@@ -1,7 +1,7 @@
 import { game } from 'cc';
 import { GameHaptics } from './GameHaptics';
 import { getDouyinGame } from '../../app-model/expansion/platform/DouyinRuntime';
-import { supportsPlatform } from '../../app-model/expansion/platform/PlatformRuntime';
+import { supportsPlatform } from '../../app-model/expansion/platform/PlatformContracts';
 import { DouyinRewardProvider } from '../../app-model/expansion/platform/DouyinRewardProvider';
 
 /** 连接抖音 宿主生命周期与 Cocos 主循环，整个进程只注册一次。 */
