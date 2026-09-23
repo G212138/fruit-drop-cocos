@@ -11,6 +11,10 @@ export const PHYSICS_RULES = {
     gravityY: -2112,
     /** 原版负三百像素每秒换算为负九点三七五米每秒；直接填负三百会放大三十二倍。 */
     dropVelocityY: -300 / PIXELS_PER_PHYSICS_METER,
+    /** 点击旋转的最小角速度增量，单位弧度每秒；手感参数，约每秒52度。 */
+    clickSpinMin: 0.9,
+    /** 点击旋转的最大角速度增量，单位弧度每秒；手感参数，约每秒103度。 */
+    clickSpinMax: 1.8,
     /** 静止判断的线速度平方上限，单位为物理米每秒的平方。 */
     settledSpeedSquared: 25 / (PIXELS_PER_PHYSICS_METER ** 2),
     /** 静止判断的角速度绝对值上限，单位为弧度每秒。 */

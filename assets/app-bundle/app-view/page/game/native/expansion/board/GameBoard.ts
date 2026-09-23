@@ -263,7 +263,7 @@ export class GameBoard extends Component {
             this.guideDismissed = true;
             this.shake.release(fruit);
             this.spawner.releaseBlackHole(fruit);
-            fruit.drop();
+            fruit.drop(userTriggered);
             if (userTriggered) GameHaptics.impact();
             if (this.mode === 2) this.horizontal.afterDrop(this.spawner.getWaiting(), this.rightLine);
             else this.shiftGate.request(fruit.node.uuid);

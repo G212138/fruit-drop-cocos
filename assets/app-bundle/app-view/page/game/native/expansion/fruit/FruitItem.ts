@@ -100,8 +100,8 @@ export class FruitItem extends Component {
         }
     }
 
-    /** 棋盘批准后启动动态刚体。 */
-    drop(): void {
+    /** 棋盘批准后启动动态刚体。@param userTriggered 玩家点击时施加一次随机左右旋转冲量。 */
+    drop(userTriggered = false): void {
         this.visual.clearWarning();
         this.reviveVisual.capture(this.node);
         this.released = true;
@@ -109,6 +109,15 @@ export class FruitItem extends Component {
         // 原版像素每秒已经在 PhysicsRules 换算为 Creator 3.8 所需的物理米每秒。
         this.body.linearVelocity = new Vec2(0, PHYSICS_RULES.dropVelocityY);
         this.body.wakeUp();
+        if (userTriggered) this.applyClickSpin();
+    }
+
+    /** 按转动惯量换算角冲量，让不同大小的水果获得相近旋转速度，之后由物理碰撞自然演化。 */
+    private applyClickSpin(): void {
+        const direction = Math.random() < 0.5 ? -1 : 1;
+        const speed = PHYSICS_RULES.clickSpinMin
+            + Math.random() * (PHYSICS_RULES.clickSpinMax - PHYSICS_RULES.clickSpinMin);
+        this.body.applyAngularImpulse(direction * speed * this.body.getInertia(), true);
     }
 
     /** 是否仍可参与整体补位。 */
