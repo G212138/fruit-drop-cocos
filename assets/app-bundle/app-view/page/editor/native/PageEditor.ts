@@ -1,7 +1,7 @@
 import { GameTheme } from '../../../../../app-builtin/app-model/expansion/GameTheme';
 import { findEditorPlacement, clampEditorPan } from '../../../../../app-builtin/app-model/expansion/level/EditorPlacement';
 import { EditorSession } from '../../../../../app-builtin/app-model/expansion/level/EditorSession';
-import { _decorator, Node, Label, EditBox, Prefab, SpriteFrame, instantiate, input, Input, EventKeyboard, KeyCode, EventMouse, EventTouch, UITransform, Vec3, JsonAsset } from 'cc';
+import { _decorator, Node, Label, EditBox, Prefab, SpriteFrame, instantiate, input, Input, EventKeyboard, KeyCode, EventMouse, EventTouch, UITransform, Vec2, Vec3, JsonAsset } from 'cc';
 import BaseView from 'db://app/base/BaseView';
 import { app } from '../../../../../app/app';
 import { EditorFruitMarker } from './expansion/EditorFruitMarker';
@@ -22,6 +22,9 @@ export class PageEditor extends BaseView {
     /** 按原编号对应的甜品图标，编辑器预览与当前主题一致。 */
     @property([SpriteFrame])
     dessertFrames: SpriteFrame[] = [];
+    /** 游戏预制体的实际显示尺寸，单位设计像素，按物品编号绑定。 */
+    @property([Vec2]) fruitSizes: Vec2[] = [];
+    @property([Vec2]) dessertSizes: Vec2[] = [];
     /** 水果编号或冰层数输入，整数。 */
     @property(EditBox)
     numberInput: EditBox = null!;
@@ -82,6 +85,9 @@ export class PageEditor extends BaseView {
             const marker = node.getComponent(EditorFruitMarker)!;
             marker.index = index;
             marker.icon.spriteFrame = this.activeFrames[Number(item.n) - 1];
+            const size = this.itemSize(Number(item.n));
+            marker.icon.node.getComponent(UITransform)!.setContentSize(size.x, size.y);
+            node.getComponent(UITransform)!.setContentSize(size.x, size.y);
             const scale = item.FatherBlackHoleID ? 0.5 : 1;
             node.setScale(scale, scale, 1);
             marker.badge.string = (item.h === 't' ? '隐藏 ' : '') + (item.ice ? '冰' + item.ice + ' ' : '')
@@ -152,8 +158,12 @@ export class PageEditor extends BaseView {
     private get activeFrames(): SpriteFrame[] { return GameTheme.active === 2 ? this.dessertFrames : this.fruitFrames; }
     /** @param kind 逻辑编号；以原图片最大边长的一半估算放置半径，单位设计像素。 */
     private fruitRadius(kind: number): number {
-        const size = this.activeFrames[kind - 1]?.originalSize;
-        return size ? Math.max(size.width, size.height) / 2 : 45;
+        const size = this.itemSize(kind);
+        return Math.max(size.x, size.y) / 2;
+    }
+    /** 当前主题的游戏显示尺寸，同时用于标记、点击范围和放置边界。 */
+    private itemSize(kind: number): Vec2 {
+        return (GameTheme.active === 2 ? this.dessertSizes : this.fruitSizes)[kind - 1] || new Vec2(90, 90);
     }
     /** 删除当前选中水果及其黑洞成员。 */
     deleteFruit(): void {
