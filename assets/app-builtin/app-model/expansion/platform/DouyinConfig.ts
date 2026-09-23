@@ -5,7 +5,15 @@ export const DouyinConfig = {
     appId: 'ttaf1dd9a03178d36c02',
     /** 按业务用途配置抖音激励广告位。 */
     rewardedAds: {
-        eliminate: '', shuffle: '', revive: '', 'expand-slot': '',
-        'terrain-unlock': '',
+        /** 消除道具。 */
+        eliminate: 'cp6350pxhrern4ilol',
+        /** 打乱道具。 */
+        shuffle: '27h3itvao6n9k5gp91',
+        /** 失败复活。 */
+        revive: 'lbl62dkgjc06toodvj',
+        /** 扩容槽位。 */
+        'expand-slot': 'hedie4d8ik78dg7k8i',
+        /** 解锁主题。 */
+        'terrain-unlock': '5fmgf2m14bf4p0k3mg',
     } as Partial<Record<RewardPlacement, string>>,
 };

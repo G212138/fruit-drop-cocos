@@ -6,7 +6,7 @@ function load(file){file=path.resolve(file);if(cache[file])return cache[file];co
 const root='assets/app-builtin/app-model/expansion/platform/';
 async function main(){
  const runtime=load(root+'PlatformRuntime.ts');assert.equal(runtime.platformKind(),'browser');
- const {DouyinConfig}=load(root+'DouyinConfig.ts');assert.equal(DouyinConfig.appId,'ttaf1dd9a03178d36c02');assert(Object.values(DouyinConfig.rewardedAds).every(v=>v===''));assert.equal(runtime.platformInterstitialId(),'');
+ const {DouyinConfig}=load(root+'DouyinConfig.ts');assert.equal(DouyinConfig.appId,'ttaf1dd9a03178d36c02');assert.deepEqual(DouyinConfig.rewardedAds,{"eliminate": "cp6350pxhrern4ilol", "shuffle": "27h3itvao6n9k5gp91", "revive": "lbl62dkgjc06toodvj", "expand-slot": "hedie4d8ik78dg7k8i", "terrain-unlock": "5fmgf2m14bf4p0k3mg"});assert.equal(runtime.platformInterstitialId(),'');
  let calls=0,close,error,loaded=0,shown=0,offs=0,hide,show,loginOptions,share;
  const ad={load(){loaded++;return Promise.resolve()},show(){shown++;return Promise.resolve()},onClose(f){close=f},offClose(){offs++},onError(f){error=f},offError(){offs++}};
  global.tt={canIUse:()=>true,createRewardedVideoAd(o){assert.equal(o.adUnitId,'douyin-test');calls++;return ad},onHide(f){hide=f},onShow(f){show=f},vibrateLong(o){o.success()},login(o){loginOptions=o;o.success({anonymousCode:'anonymous-only'})},getStorageSync:k=>storage.get('dy:'+k),setStorageSync:(k,v)=>storage.set('dy:'+k,v),shareAppMessage(o){share=o}};
@@ -17,6 +17,7 @@ async function main(){
  const {DouyinRewardProvider}=load(root+'DouyinRewardProvider.ts');const provider=DouyinRewardProvider.shared;
  DouyinConfig.idleInterstitialAd='must-not-show';assert.equal(runtime.platformInterstitialId(),'');
  DouyinConfig.rewardedAds['result-video']='must-not-show';assert.equal((await provider.show({id:'blocked',placement:'result-video'})).status,'unavailable');assert.equal(calls,0);
+ DouyinConfig.rewardedAds.revive='';
  const request={id:'dy-test',placement:'revive'};assert.equal((await provider.show(request)).status,'unavailable');assert.equal(calls,0);
  DouyinConfig.rewardedAds.revive='douyin-test';
  const {DouyinLifecycle}=load('assets/app-builtin/app-controller/expansion/DouyinLifecycle.ts');DouyinLifecycle.install();

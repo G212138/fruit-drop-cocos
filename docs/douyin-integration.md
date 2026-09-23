@@ -3,7 +3,7 @@
 ## 当前状态
 
 抖音 App ID：`ttaf1dd9a03178d36c02`，已写入 DouyinConfig.ts 和 tools/douyin-build.json。
-抖音只需五个主动激励广告位：消除、打乱、复活、扩容、主题解锁；目前全部留空。
+抖音只需五个主动激励广告位：消除、打乱、复活、扩容、主题解锁；已全部配置。
 30秒闲置插屏和第二关起50%结算视频仅TikTok启用，其他平台关闭，与是否填写广告位无关。
 尚未构建、上传或进行抖音真机验收。
 
@@ -37,7 +37,7 @@ TikTok优先识别TTMinis.game，避免原生包的tt别名被误识别为抖音
 
 ## 构建与验收
 
-1. 将五个抖音广告位填写到DouyinConfig.ts。
+1. 五个抖音广告位已写入DouyinConfig.ts，构建前核对后台状态。
 2. 使用Cocos Creator 3.8.8的抖音小游戏构建和tools/douyin-build.json，输出build/douyin。
 3. 不要对抖音产物运行prepare-tiktok-native.cjs；构建后运行node tools/check-douyin-build.cjs。
 4. 抖音开发者工具导入build/douyin，验证启动、存档、分享、广告完成/取消/异常、前后台、振动和安全区。
