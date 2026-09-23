@@ -11,7 +11,7 @@ for(const top of [300,500,720]){
  assert.equal(fruits[0].node.position.y+50,top);
  assert.equal(fruits[0].node.position.y-fruits[1].node.position.y,gap);
 }
-const fit=[fruit(0,100,100)];new HorizontalFlow().begin(fit,{position:{x:300}},500);assert.equal(fit[0].node.position.y,100);
+const fit=[fruit(0,100,100)];new HorizontalFlow().begin(fit,{position:{x:300}},500);assert.equal(fit[0].node.position.y,450);
 const scaled=[fruit(0,500,100,2,.25)];new HorizontalFlow().begin(scaled,{position:{x:300}},600);assert.equal(scaled[0].node.position.y,450);
 new HorizontalFlow().begin([],{position:{x:300}},400);
-console.log('通过：多种顶部边界、整组间距保持、正常布局不偏移、缩放与锚点、空布局。');
+console.log('通过：多种顶部边界、整组间距保持、低位布局上移贴齐安全边界、缩放与锚点、空布局。');

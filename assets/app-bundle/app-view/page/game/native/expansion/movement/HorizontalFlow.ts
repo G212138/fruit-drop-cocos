@@ -19,8 +19,8 @@ export class HorizontalFlow {
                 return fruit.node.position.y + transform.contentSize.height
                     * Math.abs(fruit.node.scale.y) * (1 - transform.anchorY);
             }));
-            // 整组下移，保留相对间距；只修正越界，不让正常布局向上跳。
-            const deltaY = Math.min(0, top - highest);
+            // 按完整外沿贴齐安全上界，整组平移保留间距，为下方地块腾出空间。
+            const deltaY = top - highest;
             for (const fruit of fruits) {
                 const position = fruit.node.position;
                 fruit.node.setPosition(position.x, position.y + deltaY, position.z);
