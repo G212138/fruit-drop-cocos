@@ -4,7 +4,7 @@ import { PIXELS_PER_PHYSICS_METER } from './PhysicsRules';
 
 /** 容器摇晃适配参数，并非原版配置。 */
 export const SHAKE_RULES = {
-    /** 不设置额外冷却，仅由 busy 阻止晃动过程中重复触发；结束即可继续。 */
+    /** 不设置额外冷却，运动中允许继续叠加摇晃。 */
     cooldown: 0,
     /** 往返过程 1.4 秒，先快后慢收势，首尾位移与速度均为零。 */
     duration: 1.4,
@@ -38,6 +38,8 @@ interface Scenery {
 
 /** 用运动学容器推动动态水果；自由水果的位置和速度由物理引擎决定。 */
 export class FruitShake {
+    /** 追加摇晃各自的已运行秒数，保持现有位移连续。 */
+    private pulses: number[] = [];
     /** 上次开始的本局时间，单位秒。 */
     private previous = -Infinity;
     /** 已运行时间，单位秒。 */
@@ -74,6 +76,7 @@ export class FruitShake {
         this.held.clear();
         this.scenery.length = 0;
         this.elapsed = Infinity;
+        this.pulses = [];
     }
 
     /** 重开或退出时清理运动和冷却。 */
@@ -89,9 +92,14 @@ export class FruitShake {
      * @param board 已有棋盘节点，提供地形刚体和背景。
      */
     apply(fruits: FruitItem[], now: number, board: Node): number {
-        if (!Number.isFinite(now) || this.busy || now - this.previous < SHAKE_RULES.cooldown) return 0;
+        if (!Number.isFinite(now) || now - this.previous < SHAKE_RULES.cooldown) return 0;
         const live = fruits.filter(fruit => isValid(fruit.node, true) && !fruit.removing && !fruit.spawning);
         if (!live.length) return 0;
+        if (this.busy) {
+            this.pulses.push(0);
+            this.previous = now;
+            return live.length;
+        }
         // 仅绑定固定部分；动态水果始终保留正常重力和碰撞响应。
         for (const body of board.getComponentsInChildren(RigidBody2D)) {
             if (!body.enabled || !body.node.activeInHierarchy || body.type !== ERigidBody2DType.Static) continue;
@@ -146,11 +154,11 @@ export class FruitShake {
             if (!isValid(state.node, true)) continue;
             state.node.setWorldPosition(state.origin.x + actual, state.origin.y, state.origin.z);
             if (state.node.name === 'Background') {
-                const envelope = Math.sin(Math.min(1, this.elapsed / SHAKE_RULES.duration) * Math.PI) ** 2;
+                const envelope = Math.sin(Math.min(1, Math.min(this.elapsed, ...this.pulses) / SHAKE_RULES.duration) * Math.PI) ** 2;
                 state.node.setScale(state.scale.x * (1 + (SHAKE_RULES.backgroundScale - 1) * envelope), state.scale.y, state.scale.z);
             }
         }
-        if (this.elapsed >= SHAKE_RULES.duration) {
+        if (this.elapsed >= SHAKE_RULES.duration && !this.pulses.length) {
             this.stop();
             return;
         }
@@ -163,7 +171,15 @@ export class FruitShake {
         }
         // 快速建立受力、逐渐卸力，避免中段突然变猛；相位连续减速。
         const envelope = (1 - Math.exp(-18 * progress)) ** 2 * (1 - progress) ** 2;
-        const offset = SHAKE_RULES.amplitude * envelope * Math.sin(this.phase(progress) * Math.PI * 2);
+        this.pulses = this.pulses.map(age => age + dt).filter(age => age < SHAKE_RULES.duration);
+        let offset = SHAKE_RULES.amplitude * envelope * Math.sin(this.phase(progress) * Math.PI * 2);
+        for (const age of this.pulses) {
+            const p = age / SHAKE_RULES.duration;
+            offset += SHAKE_RULES.amplitude * (1 - Math.exp(-18 * p)) ** 2 * (1 - p) ** 2
+                * Math.sin(this.phase(p) * Math.PI * 2);
+        }
+        // 连续输入的总位移限制在32世界像素，避免无限叠加造成穿透。
+        offset = Math.max(-SHAKE_RULES.amplitude, Math.min(SHAKE_RULES.amplitude, offset));
         for (const state of this.fixed.values()) {
             const body = state.body;
             if (!isValid(body, true) || !body.enabled) continue;

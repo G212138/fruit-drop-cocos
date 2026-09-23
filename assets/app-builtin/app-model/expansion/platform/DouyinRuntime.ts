@@ -6,6 +6,14 @@ export interface DouyinRewardedAd extends PlatformRewardedAd {
 }
 /** 抖音宿主子集；独立检测，不给全局对象创建别名。 */
 export interface DouyinGameApi extends Omit<PlatformApi, 'createRewardedVideoAd'> {
+    /** 启动加速度监听；不指定宿主未明确支持的采样间隔。 */
+    startAccelerometer?(options: { success: () => void; fail: () => void }): void;
+    /** 停止加速度监听。 */
+    stopAccelerometer?(options: Record<string, unknown>): void;
+    /** 注册三轴加速度回调。 */
+    onAccelerometerChange?(callback: (value: { x: number; y: number; z: number }) => void): void;
+    /** 仅注销自己的三轴回调。 */
+    offAccelerometerChange?(callback: (value: { x: number; y: number; z: number }) => void): void;
     /** 静默登录允许匿名凭证，不伪造业务用户身份。 */
     login?(options: { force: boolean; success: (result: { code?: string; anonymousCode?: string }) => void; fail: () => void }): void;
     /** 获取宿主激励视频实例。 */

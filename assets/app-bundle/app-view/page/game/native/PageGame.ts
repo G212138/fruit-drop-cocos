@@ -1,3 +1,4 @@
+import { PlatformMotion } from '../../../../../app-builtin/app-controller/expansion/PlatformMotion';
 import { GameLanguage } from '../../../../../app-builtin/app-model/expansion/GameLanguage';
 import { resultText } from '../../../pop/result/native/expansion/ResultStrings';
 import { UiClickSound } from '../../../../../app-builtin/app-controller/expansion/UiClickSound';
@@ -41,7 +42,7 @@ export class PageGame extends BaseView.BindController(GameController) {
     /** 判断是否为正常游戏阶段；设置、广告暂停、结算和入场期间拒绝摇晃。 */
     private canShake(): boolean {
         return this.ready && !this.ended && !game.isPaused() && !this.settingsOpening
-            && !!this.board?.canUseProp;
+            && !!this.board?.canShake;
     }
     /** 首关首次放下物品后的配对说明，编辑器绑定。 */
     @property(Node) pairHintRoot: Node = null!;
@@ -60,6 +61,7 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 处理摇晃请求、引导跟随并读取补位标记；不写入UI适配位置。 */
     lateUpdate(): void {
+        PlatformMotion.sync(this.canShake(), () => this.requestShake());
         if (this.shakeRequested) {
             this.shakeRequested = false;
             if (this.canShake()) this.board?.shakeFruits();
@@ -433,6 +435,7 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 固定棋盘和HUD只清局解绑，动态弹窗和特效才销毁。 */
     private releaseChildren(): void {
+        PlatformMotion.stop();
         if (this.pairHintRoot) this.pairHintRoot.active = false;
         this.shakeRequested = false;
         if (this.resultRequested) {
@@ -479,6 +482,7 @@ export class PageGame extends BaseView.BindController(GameController) {
 
     /** 页面销毁后取消异步结果及控制器监听。 */
     onDestroy(): void {
+        PlatformMotion.stop();
         this.generation++;
         this.controller.targetOff(this);
     }

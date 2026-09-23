@@ -51,3 +51,8 @@ TikTok优先识别TTMinis.game，避免原生包的tt别名被误识别为抖音
 - https://developer.open-douyin.com/docs/resource/zh-CN/mini-game/develop/api/javascript-api/overview
 - https://developer.open-douyin.com/docs/resource/zh-CN/mini-game/develop/api/javascript-api/open-capacity/log-in/tt-login
 - https://docs.cocos.com/creator/3.8/manual/zh/editor/publish/publish-bytedance-mini-game.html
+
+
+## 手机摇晃输入
+
+抖音独立使用 DouyinMotion 监听加速度，由 PlatformMotion 分发到游戏页面已有摇晃入口。正常游戏中支持连续手机晃动及按钮追加施力，位移限幅32世界像素；设置、广告、后台、结算和退出时停止采样。轻微手抖不触发，初始阈值为两次反向变化幅值至少1.2、间隔不超过650毫秒，仍需抖音真机校准。接口缺失或启动失败时保留按钮，不逐帧重试。TikTok及浏览器不启用此传感器。

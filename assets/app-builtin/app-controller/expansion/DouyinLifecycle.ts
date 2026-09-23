@@ -1,3 +1,4 @@
+import { DouyinMotion } from './DouyinMotion';
 import { game } from 'cc';
 import { GameHaptics } from './GameHaptics';
 import { getDouyinGame } from '../../app-model/expansion/platform/DouyinRuntime';
@@ -39,6 +40,7 @@ export class DouyinLifecycle {
 
     /** 汇总后台和广告占用，只有两者都结束后才恢复本适配器暂停的游戏。 */
     private static applyPause(): void {
+        DouyinMotion.setBlocked(this.blocked);
         if (this.blocked) {
             if (!game.isPaused()) {
                 this.pausedHere = true;

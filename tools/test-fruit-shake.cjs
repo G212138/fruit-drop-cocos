@@ -69,7 +69,7 @@ assert.equal(shake.busy, false);
 assert.equal(background.worldPosition.x, 0);
 assert.equal(background.scale.x, 1);
 assert.equal(shake.apply(fruits, 1.4, board), 5, '结束后立即允许继续摇');
-assert.equal(shake.apply(fruits, 1.4, board), 0, '正在摇晃时不能重复启动');
+assert.equal(shake.apply(fruits, 1.4, board), 5, '正在摇晃时可以继续施力');
 waiting.node.worldPosition.x = 15;
 shake.release(waiting);
 waiting.waiting = false; waiting.body.type = 2;
@@ -92,3 +92,14 @@ shake.tick(fruits,1,()=>feedback++);
 assert.equal(feedback,3,'中断后不能继续播反馈');
 console.log('通过：三次摇晃反馈与停止后的回调取消。');
 
+
+shake.reset();shake.apply(fruits,300,board);
+for(let i=0;i<40;i++)shake.tick(fruits,1/60);
+const positionBefore=floor.node.worldPosition.x;
+assert.equal(shake.apply(fruits,300.7,board),5);
+assert.equal(floor.node.worldPosition.x,positionBefore,'追加不能跳回原点');
+for(let i=0;i<50;i++)shake.tick(fruits,1/60);
+assert(shake.busy,'追加施力延续到原轮结束之后');
+for(let i=0;i<60;i++)shake.tick(fruits,1/60);
+assert.equal(shake.busy,false);assert.equal(floor.node.worldPosition.x,5,'全部脉冲结束回到原始地块坐标');
+console.log('通过：中途连续追加不跳位、持续时间延长、最终正确归位。');

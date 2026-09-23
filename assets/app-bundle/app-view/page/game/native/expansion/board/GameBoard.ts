@@ -130,7 +130,7 @@ export class GameBoard extends Component {
 
     /** 可操作阶段触发整个水果群摇晃，包含未点击的悬停水果。 */
     shakeFruits(): boolean {
-        if (!this.canUseProp) return false;
+        if (!this.canShake) return false;
         const count = this.shake.apply(this.spawner.getLive(), this.shakeTime, this.node);
         if (count) this.playShakeFeedback();
         return count > 0;
@@ -141,6 +141,11 @@ export class GameBoard extends Component {
 
     }
 
+    /** 摇晃允许在已有摇晃过程中追加，其他动画仍保持互斥。 */
+    get canShake(): boolean {
+        return this.playing && !this.levelHint?.busy && !this.entry.busy && !this.shift.busy
+            && !this.props.busy && !this.revival.busy && this.collectingPairs === 0;
+    }
     /** 当前棋盘是否接受道具操作。 */
     get canUseProp(): boolean {
         return this.playing && !this.levelHint?.busy && !this.entry.busy && !this.shift.busy
