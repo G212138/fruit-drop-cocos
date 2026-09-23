@@ -32,3 +32,12 @@ group[1].node.position.x=-420;flow.alignVisibleTop(group);
 assert.equal(group[1].node.position.y+50,600);
 assert.equal(group[1].node.position.y-group[0].node.position.y,200);
 console.log('通过：屏幕外高位水果不压低可见布局，进入前安全校正且整组间距保持。');
+
+// 整组适配模式固定全组上沿，屏外较高物品也参与，横移不会把底部重新压向草坡。
+const fitted=[fruit(0,100,100,.5),fruit(-1100,300,100,.5)];
+for(const item of fitted){item.node.scale.x=.5;item.node.parent={getComponent:()=>({contentSize:{width:750},anchorX:.5})};item.node.getComponent=()=>({contentSize:{width:100,height:100},anchorX:.5,anchorY:.5});}
+const fittedFlow=new HorizontalFlow();fittedFlow.begin(fitted,{position:{x:150}},600,true);
+assert.equal(Math.max(...fitted.map(f=>f.node.position.y+25)),600);
+const initialY=fitted.map(f=>f.node.position.y);fitted[1].node.position.x=-350;fittedFlow.alignVisibleTop(fitted);
+assert.deepEqual(fitted.map(f=>f.node.position.y),initialY);
+console.log('通过：整组适配后的上沿稳定，横移不重新下压布局。');

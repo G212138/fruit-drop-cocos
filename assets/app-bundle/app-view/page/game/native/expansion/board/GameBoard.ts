@@ -215,7 +215,11 @@ export class GameBoard extends Component {
         this.playing = true;
         this.spawner.spawn(level.fruits, fruit => this.bindFruit(fruit));
         // 编辑草稿可能全部位于屏幕上方，按既有补位规则移入可点击区域。
-        if (this.mode === 2) this.horizontal.begin(this.spawner.getWaiting(), this.rightLine, this.fruitDisplayTop);
+        if (this.mode === 2) {
+            const bottom = this.horizontalGroundTop();
+            this.spawner.fitHorizontalHeight(this.fruitDisplayTop, bottom);
+            this.horizontal.begin(this.spawner.getWaiting(), this.rightLine, this.fruitDisplayTop, Number.isFinite(bottom));
+        }
         const size = this.node.getComponent(UITransform)!.contentSize;
         const waiting = this.spawner.getWaiting();
         const finalDeltaY = this.mode === 1
@@ -225,6 +229,19 @@ export class GameBoard extends Component {
         if (!this.levelHint) throw new Error('关卡提示预制体绑定缺失');
         this.levelHint.play(chooseHint(level));
         if (!this.entry.busy) this.levelHint.finishEntrance();
+    }
+
+    /** 草坡最高外沿换算到水果坐标，额外留24设计像素，避免悬停水果压住地块。 */
+    private horizontalGroundTop(): number {
+        const floor = this.node.getChildByName('Floor');
+        const collider = floor?.getComponent(PolygonCollider2D);
+        const transform = floor?.getComponent(UITransform);
+        const target = this.spawner.fruitRoot.getComponent(UITransform)!;
+        if (!collider || !transform || !collider.points.length) return -Infinity;
+        return Math.max(...collider.points.map(point => {
+            const world = transform.convertToWorldSpaceAR(new Vec3(point.x + collider.offset.x, point.y + collider.offset.y));
+            return target.convertToNodeSpaceAR(world).y;
+        })) + 24;
     }
 
     /** 第一关第一次有效点击后永久隐藏本局手指。 */

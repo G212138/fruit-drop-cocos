@@ -7,6 +7,8 @@ import { initialHorizontalShift, shiftAfterHorizontalDrop, consumeHorizontalShif
 export class HorizontalFlow {
     /** 当前安全上界，单位水果容器设计像素。 */
     private top = Infinity;
+    /** 高度适配后按整组上沿定位，避免横移时再次压低水果。 */
+    private fitWholeGroup = false;
     /** 水果容器左边缘，单位设计像素。 */
     private left = -Infinity;
 
@@ -16,9 +18,10 @@ export class HorizontalFlow {
     private cooldown = 0;
 
     /** @param fruits 开局悬停水果。 @param line 预制体中的原版右侧线。 @param top 水果容器内的可见上界，单位设计像素。 */
-    begin(fruits: FruitItem[], line: Node, top = Infinity): void {
+    begin(fruits: FruitItem[], line: Node, top = Infinity, fitWholeGroup = false): void {
         this.reset();
         this.top = top;
+        this.fitWholeGroup = fitWholeGroup;
         const root = fruits[0]?.node.parent?.getComponent(UITransform);
         this.left = root ? -root.contentSize.width * root.anchorX : -Infinity;
         this.move(fruits, initialHorizontalShift(fruits.map(fruit => fruit.node.position.x), line.position.x));
@@ -47,7 +50,7 @@ export class HorizontalFlow {
         const size = line.getComponent(UITransform)!.contentSize;
         const selected = chooseHorizontalDrop(eligible.map(fruit => {
             const bounds = fruit.node.getComponent(UITransform)!.contentSize;
-            return { x: fruit.node.position.x, y: fruit.node.position.y, radius: Math.max(bounds.width, bounds.height) / 2 };
+            return { x: fruit.node.position.x, y: fruit.node.position.y, radius: Math.max(bounds.width * Math.abs(fruit.node.scale.x), bounds.height * Math.abs(fruit.node.scale.y)) / 2 };
         }), line.position.x, line.position.y, size.width, size.height);
         if (selected >= 0) {
             release(eligible[selected]);
@@ -63,7 +66,7 @@ export class HorizontalFlow {
             const right = fruit.node.position.x + transform.contentSize.width
                 * Math.abs(fruit.node.scale.x) * (1 - transform.anchorX);
             // 屏外每远离一设计像素，放宽一像素上界；到达左缘时恢复完整安全上界。
-            const outside = Number.isFinite(this.left) ? Math.max(0, this.left - right) : 0;
+            const outside = !this.fitWholeGroup && Number.isFinite(this.left) ? Math.max(0, this.left - right) : 0;
             return fruit.node.position.y + transform.contentSize.height
                 * Math.abs(fruit.node.scale.y) * (1 - transform.anchorY) - outside;
         }));
