@@ -5,13 +5,11 @@ import { _decorator, Node, Label, EditBox, Prefab, SpriteFrame, instantiate, inp
 import BaseView from 'db://app/base/BaseView';
 import { app } from '../../../../../app/app';
 import { EditorFruitMarker } from './expansion/EditorFruitMarker';
+import { EditorWorkspace } from './expansion/EditorWorkspace';
 const { ccclass, property } = _decorator;
-
 /** 关卡编辑页面仅连接数据模型与独立标记预制体，不创建 UI 节点。 */
 @ccclass('PageEditor')
 export class PageEditor extends BaseView {
-
-
     /** 编辑器已有水果挂载点，导出的坐标不含它的滚动偏移。 */
     @property(Node)
     fruitRoot: Node = null!;
@@ -22,7 +20,8 @@ export class PageEditor extends BaseView {
     @property([SpriteFrame])
     fruitFrames: SpriteFrame[] = [];
     /** 按原编号对应的甜品图标，编辑器预览与当前主题一致。 */
-    @property([SpriteFrame]) dessertFrames: SpriteFrame[] = [];
+    @property([SpriteFrame])
+    dessertFrames: SpriteFrame[] = [];
     /** 水果编号或冰层数输入，整数。 */
     @property(EditBox)
     numberInput: EditBox = null!;
@@ -36,13 +35,14 @@ export class PageEditor extends BaseView {
     @property(Label)
     modeLabel: Label = null!;
     /** 页面独立草稿；不读取或改写玩家通关进度。 */
+    /** 编辑器布局与数据面板。 */
+    @property(EditorWorkspace)
+    workspace: EditorWorkspace = null!;
     private readonly draft = EditorSession.draft;
-
     /** 内置关卡只供数字导入读取，不连接玩家存档。 */
     private originalLevels: unknown[] = [];
     /** 页面加载代次，避免退出后的异步回调更新旧页面。 */
     private loadGeneration = 0;
-
     /** 显示时恢复已有编辑内容并注册键盘与滚轮。 */
     onShow(): void {
         GameTheme.refresh();
@@ -50,7 +50,8 @@ export class PageEditor extends BaseView {
         const generation = ++this.loadGeneration;
         app.manager.loader.load({ bundle: 'page-game-res', path: 'levels/original-levels', type: JsonAsset,
             onComplete: asset => {
-                if (generation !== this.loadGeneration) return;
+                if (generation !== this.loadGeneration)
+                    return;
                 this.originalLevels = asset?.json?.levels || [];
             },
         });
@@ -69,7 +70,8 @@ export class PageEditor extends BaseView {
     }
     /** 按当前数据实例化标记，布局全部由已有容器与预制体定义。 */
     private render(): void {
-        for (const child of [...this.fruitRoot.children]) child.destroy();
+        for (const child of [...this.fruitRoot.children])
+            child.destroy();
         this.updateViewport();
         this.draft.document.d.forEach((item, index) => {
             const node = instantiate(this.markerPrefab);
@@ -96,6 +98,10 @@ export class PageEditor extends BaseView {
             marker.highlight(marker.index === index);
         }
         const item = this.draft.document.d[index];
+        if (this.workspace) {
+            this.workspace.iceInput.string = String(item.ice || 0);
+            this.workspace.selectionLabel.string = '选中物品 ' + item.n;
+        }
         this.statusLabel.string = '选中水果 ' + item.n + '，坐标 ' + item.p.map(Math.round).join(', ');
     }
     /** @param index 拖拽水果下标。 @param x 原始横坐标。 @param y 原始纵坐标。 */
@@ -111,22 +117,35 @@ export class PageEditor extends BaseView {
     }
     /** @param action 一次编辑操作；错误显示在页面，不清除草稿。 */
     private operate(action: () => void): void {
-        try { action(); this.render(); }
-        catch (error) { this.statusLabel.string = String((error as Error).message || error); }
+        try {
+            action();
+            this.render();
+        }
+        catch (error) {
+            this.statusLabel.string = String((error as Error).message || error);
+            this.workspace?.report(this.statusLabel.string);
+        }
     }
     /** 在视口中央附近放置新水果，避免默认重合。 */
     addFruit(): void {
         this.operate(() => {
             const kind = Number(this.numberInput.string);
-            if (!Number.isInteger(kind) || kind < 1 || kind > 30) throw new Error('水果编号必须在1至30之间');
+            if (!Number.isInteger(kind) || kind < 1 || kind > 30)
+                throw new Error('水果编号必须在1至30之间');
             const x = this.draft.document.m === 2 ? this.draft.scrollX : 0;
-            const y = this.draft.document.m === 1 ? this.draft.scrollY : 0;
+            const y = (this.draft.document.m === 1 ? this.draft.scrollY : 0) + (this.workspace?.verticalOffset || 0);
             const existing = this.draft.document.d.map(item => ({ x: item.p[0], y: item.p[1],
                 radius: this.fruitRadius(Number(item.n)) * (item.FatherBlackHoleID ? 0.5 : 1) }));
             const position = findEditorPlacement(-x, -y, this.fruitRadius(kind), this.draft.document.m, existing);
             this.draft.add(kind, position[0], position[1]);
         });
     }
+    /** 加载独立输入框指定的内置关卡。 */
+    loadSelectedLevel(): void { this.operate(() => { this.draft.importText(this.workspace.levelInput.string, 1, this.originalLevels); this.centerCanvas(); }); }
+    /** 仅调整显示中心，不改原始坐标。 */
+    private centerCanvas(): void { this.workspace?.center(this.draft.document.d.map(item => item.p), this.draft.document.m === 2); }
+    /** 缩放后刷新显示变换。 */
+    refreshCanvas(): void { this.updateViewport(); }
     /** 当前主题对应的图标，不改变导出的逻辑编号。 */
     private get activeFrames(): SpriteFrame[] { return GameTheme.active === 2 ? this.dessertFrames : this.fruitFrames; }
     /** @param kind 逻辑编号；以原图片最大边长的一半估算放置半径，单位设计像素。 */
@@ -144,7 +163,7 @@ export class PageEditor extends BaseView {
     }
     /** 将数字输入设为选中水果的冰层数；输入零清除。 */
     setIce(): void {
-        this.operate(() => this.draft.setIce(Number(this.numberInput.string)));
+        this.operate(() => this.draft.setIce(Number(this.workspace?.iceInput.string ?? this.numberInput.string)));
     }
     /** 开关选中水果的黑洞宿主状态。 */
     toggleBlackHole(): void {
@@ -160,14 +179,15 @@ export class PageEditor extends BaseView {
     }
     /** 从文本框导入单关 JSON，失败保留旧内容。 */
     importJson(): void {
-        this.operate(() => this.draft.importText(this.jsonInput.string, Number(this.numberInput.string), this.originalLevels));
+        this.operate(() => { this.draft.importText(this.jsonInput.string, Number(this.workspace?.tableInput.string ?? this.numberInput.string), this.originalLevels); this.centerCanvas(); this.workspace?.report('导入成功，关闭面板即可编辑'); });
     }
     /** 输出经过原版约束验证的关卡 JSON。 */
     exportJson(): void {
-        this.operate(() => { this.jsonInput.string = this.draft.exportText(); });
+        this.operate(() => { this.jsonInput.string = this.draft.exportText(); this.workspace?.report('导出成功，请全选并复制文本'); });
     }
     /** 恢复视口原点，不改变水果数据坐标。 */
     resetViewport(): void {
+        this.workspace?.reset();
         this.draft.scrollY = 0;
         this.draft.scrollX = 0;
         this.render();
@@ -177,35 +197,46 @@ export class PageEditor extends BaseView {
         try {
             EditorSession.trial = this.draft.beginTrial();
             app.manager.ui.show({ name: 'PageGame' });
-        } catch (error) {
+        }
+        catch (error) {
             this.statusLabel.string = String((error as Error).message || error);
         }
     }
-
     /** 返回游戏主页。 */
     home(): void {
         app.manager.ui.show({ name: 'PageHome' });
     }
     /** @param event 滚轮增量；沿用编辑器视口滚动，不改导出坐标。 */
     private wheel(event: EventMouse): void {
+        if (this.workspace?.modalOpen)
+            return;
         this.draft.scroll(event.getScrollY());
         this.updateViewport();
     }
     /** 只移动当前模式的视口轴，不改变原始关卡坐标。 */
     private updateViewport(): void {
-        this.fruitRoot.setPosition(this.draft.document.m === 2 ? this.draft.scrollX : 0,
-            this.draft.document.m === 1 ? this.draft.scrollY : 0, 0);
+        if (this.workspace) {
+            this.workspace.applyCanvas(this.draft.document.m === 2 ? this.draft.scrollX : 0, this.draft.document.m === 1 ? this.draft.scrollY : 0);
+            return;
+        }
+        this.fruitRoot.setPosition(this.draft.document.m === 2 ? this.draft.scrollX : 0, this.draft.document.m === 1 ? this.draft.scrollY : 0, 0);
     }
     /** @param event 键盘事件；文本框编辑期间不处理删除快捷键。 */
     private keyDown(event: EventKeyboard): void {
-        if (this.numberInput.isFocused() || this.jsonInput.isFocused()) return;
-        if (event.keyCode === KeyCode.DELETE || event.keyCode === KeyCode.BACKSPACE) this.deleteFruit();
-        else if (event.keyCode === KeyCode.ENTER) this.addFruit();
-        else if (event.keyCode === KeyCode.SHIFT_LEFT || event.keyCode === KeyCode.SHIFT_RIGHT) this.toggleHidden();
-        else if (event.keyCode === KeyCode.SPACE) this.numberInput.string = '';
+        if (this.workspace?.modalOpen || this.workspace?.inputFocused || this.numberInput.isFocused() || this.jsonInput.isFocused())
+            return;
+        if (event.keyCode === KeyCode.DELETE || event.keyCode === KeyCode.BACKSPACE)
+            this.deleteFruit();
+        else if (event.keyCode === KeyCode.ENTER)
+            this.addFruit();
+        else if (event.keyCode === KeyCode.SHIFT_LEFT || event.keyCode === KeyCode.SHIFT_RIGHT)
+            this.toggleHidden();
+        else if (event.keyCode === KeyCode.SPACE)
+            this.numberInput.string = '';
         else if (event.keyCode >= KeyCode.DIGIT_0 && event.keyCode <= KeyCode.DIGIT_9) {
             this.numberInput.string += String(event.keyCode - KeyCode.DIGIT_0);
-        } else if (event.keyCode >= KeyCode.NUM_0 && event.keyCode <= KeyCode.NUM_9) {
+        }
+        else if (event.keyCode >= KeyCode.NUM_0 && event.keyCode <= KeyCode.NUM_9) {
             this.numberInput.string += String(event.keyCode - KeyCode.NUM_0);
         }
     }
