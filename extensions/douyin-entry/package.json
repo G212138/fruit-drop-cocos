@@ -1,0 +1,1 @@
+{"package_version":2,"name":"douyin-entry","version":"1.0.0","editor":">=3.8.0","description":"抖音侧边栏入口启动监听","contributions":{"builder":"./builder.js"}}

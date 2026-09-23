@@ -10,6 +10,8 @@ function checkDouyinBuild() {
     const project = JSON.parse(fs.readFileSync(path.join(root, 'project.config.json'), 'utf8'));
     if (project.appid !== appId) throw new Error('构建产物与抖音配置的 App ID 不一致');
     const game = fs.readFileSync(path.join(root, 'game.js'), 'utf8');
+    if (!game.startsWith('require("./douyin-bootstrap.js");')) throw new Error('缺少game.js首行入口监听，请运行node tools/prepare-douyin.cjs');
+    if (!fs.existsSync(path.join(root, 'douyin-bootstrap.js'))) throw new Error('缺少抖音入口监听文件');
     if (game.includes('TikTok Native namespace adapter') || /globalThis\.TTMinis\s*=/.test(game)) {
         throw new Error('抖音产物中不能包含 TikTok Native 桥接');
     }
