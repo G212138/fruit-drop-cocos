@@ -1,3 +1,4 @@
+import { DEV, PREVIEW } from 'cc/env';
 import { platformKind } from '../../../../../app-builtin/app-model/expansion/platform/PlatformRuntime';
 import { DouyinRevisitView } from './expansion/DouyinRevisitView';
 import { _decorator } from 'cc';
@@ -14,14 +15,14 @@ export class PopPlatformReward extends BaseView {
     @property(DouyinRevisitView) douyinPanel: DouyinRevisitView = null!;
     /** 只启用当前平台实现，共用已制作的面板节点。 */
     onLoad(): void {
-        const douyin = platformKind() === 'douyin';
+        const douyin = (PREVIEW || platformKind() === 'douyin' || (DEV && platformKind() === 'browser'));
         this.panel.node.active = !douyin;
         this.panel.enabled = !douyin;
         if (this.douyinPanel) { this.douyinPanel.enabled = douyin; this.douyinPanel.node.active = douyin; }
     }
     /** 当前平台界面由注册层选择。 */
     private get activePanel(): TikTokRevisitView | DouyinRevisitView {
-        return platformKind() === 'douyin' ? this.douyinPanel : this.panel;
+        return (PREVIEW || platformKind() === 'douyin' || (DEV && platformKind() === 'browser')) ? this.douyinPanel : this.panel;
     }
     /** 编辑器按钮统一分发，保持用户点击同步调用链。 */
     begin(event: unknown, mission: 'shortcut' | 'profile'): void { this.activePanel.begin(event, mission); }

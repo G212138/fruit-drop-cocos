@@ -1,7 +1,7 @@
 import { DouyinRevisit } from '../../../../../../app-builtin/app-model/expansion/platform/DouyinRevisit';
 import { _decorator, Component, Node, Label } from 'cc';
 import { getPlatformGame, platformKind } from '../../../../../../app-builtin/app-model/expansion/platform/PlatformRuntime';
-import { DEV } from 'cc/env';
+import { DEV, PREVIEW } from 'cc/env';
 import { app } from '../../../../../../app/app';
 import { GameLanguage } from '../../../../../../app-builtin/app-model/expansion/GameLanguage';
 import { getTikTokGame, supportsTikTok } from '../../../../../../app-builtin/app-model/expansion/platform/TikTokRuntime';
@@ -21,10 +21,18 @@ export class HomeRevisitEntry extends Component {
     /** 多语言刷新函数，由编辑器保留入口文本并随语言更新。 */
     private readonly refresh = (): void => {
         this.shortcutLabel.string = revisitDialogText(GameLanguage.current, 1);
-        this.profileLabel.string = revisitDialogText(GameLanguage.current, 0);
+        this.profileLabel.string = (DEV && platformKind() === 'browser') ? '入口有奖' : revisitDialogText(GameLanguage.current, 0);
     };
     /** 按真实平台能力显示入口，开发模式便于验收。 */
     onEnable(): void {
+        // Creator预览固定展示两个任务入口，实际宿主仍按能力判断。
+        if (PREVIEW) {
+            this.shortcutButton.active = true;
+            this.profileButton.active = true;
+            this.shortcutLabel.string = '添加到桌面';
+            this.profileLabel.string = '入口有奖';
+            return;
+        }
         if (platformKind() === 'douyin') {
             DouyinRevisit.shared.install();
             DouyinRevisit.shared.subscribe(this.refreshDouyin);
@@ -43,7 +51,7 @@ export class HomeRevisitEntry extends Component {
         this.shortcutButton.active = DouyinRevisit.shared.shortcutSupported;
         this.profileButton.active = DouyinRevisit.shared.sidebarSupported;
         this.shortcutLabel.string = '添加到桌面';
-        this.profileLabel.string = '侧边栏礼包';
+        this.profileLabel.string = '入口有奖';
     };
     /** 隐藏首页时解除译文订阅。 */
     onDisable(): void { GameLanguage.unsubscribe(this.refresh); DouyinRevisit.shared.unsubscribe(this.refreshDouyin); }

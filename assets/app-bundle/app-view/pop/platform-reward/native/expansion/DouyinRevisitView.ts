@@ -1,3 +1,5 @@
+import { DEV } from 'cc/env';
+import { platformKind } from '../../../../../../app-builtin/app-model/expansion/platform/PlatformRuntime';
 import { _decorator, Button, Component, Label, Node } from 'cc';
 import { app } from '../../../../../../app/app';
 import { DouyinRevisit } from '../../../../../../app-builtin/app-model/expansion/platform/DouyinRevisit';
@@ -34,7 +36,7 @@ export class DouyinRevisitView extends Component {
                 : service.eligible(mission) ? '立即领奖' : mission === 'profile' ? '去首页侧边栏' : '添加到桌面';
             const button = action.node.parent?.getComponent(Button);
             if (button) button.interactable = !this.busy && !claimed && supported;
-            notice.string = this.messages[mission] || (!supported ? '当前设备暂不支持此任务' : '');
+            notice.string = this.messages[mission] || (!supported ? (DEV && platformKind() === 'browser' ? '界面预览，请在抖音客户端完成任务' : '当前设备暂不支持此任务') : '');
         }
     };
     /** 使用编辑器创建的中文标题和步骤，清除英文示意图。 */
