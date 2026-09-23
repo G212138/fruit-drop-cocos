@@ -210,7 +210,7 @@ export class GameBoard extends Component {
         this.playing = true;
         this.spawner.spawn(level.fruits, fruit => this.bindFruit(fruit));
         // 编辑草稿可能全部位于屏幕上方，按既有补位规则移入可点击区域。
-        if (this.mode === 2) this.horizontal.begin(this.spawner.getWaiting(), this.rightLine);
+        if (this.mode === 2) this.horizontal.begin(this.spawner.getWaiting(), this.rightLine, this.fruitDisplayTop);
         const size = this.node.getComponent(UITransform)!.contentSize;
         const waiting = this.spawner.getWaiting();
         const finalDeltaY = this.mode === 1

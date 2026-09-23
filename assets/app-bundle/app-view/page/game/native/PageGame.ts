@@ -223,6 +223,9 @@ export class PageGame extends BaseView.BindController(GameController) {
                     : loadCampaignLevel(asset.json.levels, this.levelNumber);
                 this.ready = true;
                 this.controller.begin(countFruits(level), level.number, !!EditorSession.trial);
+                // 入场前读取编辑器适配后的真实边界，不能等首个lateUpdate。
+                this.board.fruitDisplayTop = this.fruitViewport.apply(
+                    this.node, this.board.node, this.board.spawner.fruitRoot, this.hud.fruitTopBoundary);
                 this.board.begin(level);
                 this.hud?.setMode(level.mode);
                 this.prepareResult(generation);

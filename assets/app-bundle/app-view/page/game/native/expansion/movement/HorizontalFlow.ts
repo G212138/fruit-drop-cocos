@@ -10,9 +10,22 @@ export class HorizontalFlow {
     /** 距离下次自动释放的剩余秒数。 */
     private cooldown = 0;
 
-    /** @param fruits 开局悬停水果。 @param line 预制体中的原版右侧线。 */
-    begin(fruits: FruitItem[], line: Node): void {
+    /** @param fruits 开局悬停水果。 @param line 预制体中的原版右侧线。 @param top 水果容器内的可见上界，单位设计像素。 */
+    begin(fruits: FruitItem[], line: Node, top = Infinity): void {
         this.reset();
+        if (Number.isFinite(top) && fruits.length) {
+            const highest = Math.max(...fruits.map(fruit => {
+                const transform = fruit.node.getComponent(UITransform)!;
+                return fruit.node.position.y + transform.contentSize.height
+                    * Math.abs(fruit.node.scale.y) * (1 - transform.anchorY);
+            }));
+            // 整组下移，保留相对间距；只修正越界，不让正常布局向上跳。
+            const deltaY = Math.min(0, top - highest);
+            for (const fruit of fruits) {
+                const position = fruit.node.position;
+                fruit.node.setPosition(position.x, position.y + deltaY, position.z);
+            }
+        }
         this.move(fruits, initialHorizontalShift(fruits.map(fruit => fruit.node.position.x), line.position.x));
     }
 
