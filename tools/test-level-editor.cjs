@@ -96,3 +96,9 @@ assert.equal(clampEditorPan(99999,-50,50,280),230);
 assert.equal(clampEditorPan(-99999,-50,50,280),-230);
 assert.equal(clampEditorPan(99999,-1000,200,140),860);
 console.log('通过：动态平移边界、两端可达、操作余量及缩放换算。');
+
+assert.equal(clampEditorPan(-99999,-1000,200,280,'bottom'),-99999,'纵向顶部不限制');
+assert.equal(clampEditorPan(99999,-1000,200,280,'bottom'),720,'纵向底部保留边界');
+assert.equal(clampEditorPan(99999,-1000,200,280,'right'),99999,'横向左侧不限制');
+assert.equal(clampEditorPan(-99999,-1000,200,280,'right'),80,'横向右侧保留边界');
+console.log('通过：纵向底部单侧边界、横向右侧单侧边界。');

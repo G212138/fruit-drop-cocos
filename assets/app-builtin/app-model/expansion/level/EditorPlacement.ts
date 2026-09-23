@@ -46,9 +46,12 @@ export function findEditorPlacement(x: number, y: number, radius: number, mode: 
  * @param min 内容最小边缘，包含图片半径。
  * @param max 内容最大边缘，包含图片半径。
  * @param halfExtent 可用视口的一半，已扣除编辑余量并换算缩放。
+ * @param edge 纵向仅限制底部，横向仅限制右侧；交叉轴保持双侧限制。
  */
-export function clampEditorPan(offset: number, min: number, max: number, halfExtent: number): number {
+export function clampEditorPan(offset: number, min: number, max: number, halfExtent: number, edge: 'both' | 'bottom' | 'right' = 'both'): number {
     const first = halfExtent - max;
     const second = -halfExtent - min;
+    if (edge === 'bottom') return Math.min(second, offset);
+    if (edge === 'right') return Math.max(first, offset);
     return Math.max(Math.min(first, second), Math.min(Math.max(first, second), offset));
 }

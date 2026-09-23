@@ -251,10 +251,10 @@ export class PageEditor extends BaseView {
         });
         this.draft.scrollX = clampEditorPan(this.draft.scrollX,
             Math.min(...bounds.map(b => b.left)), Math.max(...bounds.map(b => b.right)),
-            Math.max(1, viewport.width / 2 - 48) / zoom);
+            Math.max(1, viewport.width / 2 - 48) / zoom, this.draft.document.m === 2 ? 'right' : 'both');
         this.draft.scrollY = clampEditorPan(this.draft.scrollY + centerY,
             Math.min(...bounds.map(b => b.bottom)), Math.max(...bounds.map(b => b.top)),
-            Math.max(1, viewport.height / 2 - 48) / zoom) - centerY;
+            Math.max(1, viewport.height / 2 - 48) / zoom, this.draft.document.m === 1 ? 'bottom' : 'both') - centerY;
     }
     /** 两轴平移只影响视口，不改变原始关卡坐标。 */
     private updateViewport(): void {
