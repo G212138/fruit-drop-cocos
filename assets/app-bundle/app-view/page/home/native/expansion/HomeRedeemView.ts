@@ -1,3 +1,4 @@
+import { PlatformStorage } from '../../../../../../app-builtin/app-model/expansion/platform/PlatformStorage';
 import { _decorator, Component, Node, Label, EditBox, isValid } from 'cc';
 import { GameLanguage } from '../../../../../../app-builtin/app-model/expansion/GameLanguage';
 import { getPlatformGame } from '../../../../../../app-builtin/app-model/expansion/platform/PlatformRuntime';
@@ -14,9 +15,25 @@ const texts: Record<string, string[]> = {
     ms: ['Tebus Kod','Masukkan kod','Tampal','Tebus','Penebusan kod belum tersedia','Tekan lama ruang input untuk menampal kod'],
     fil: ['Redeem Code','Ilagay ang code','I-paste','I-redeem','Hindi pa available ang pag-redeem ng code','Pindutin nang matagal ang input para i-paste ang code'],
 };
-/** 首页内嵌兑换面板，仅处理界面交互，不验证兑换码或发奖。 */
+/** 首页内嵌兑换面板，处理开发入口解锁，不发放游戏奖励。 */
 @ccclass('HomeRedeemView')
 export class HomeRedeemView extends Component {
+    /** 本机开发入口的持久化标记，与通关存档隔离。 */
+    private static readonly unlockKey = 'tumble-match.developer-entry.v1';
+    /** 存储失败时仍保留本次会话的解锁状态。 */
+    private static sessionUnlocked = false;
+    /** 首页与操作入口共用权限检查。 */
+    static get unlocked(): boolean {
+        if (this.sessionUnlocked) return true;
+        try { return PlatformStorage.getItem(this.unlockKey) === '1'; } catch { return false; }
+    }
+    /** 刷新首页已有节点，不在运行时创建界面。 */
+    refreshEntries(): void {
+        for (const name of ['EditorButton', 'LevelJump']) {
+            const node = this.node.getChildByName(name);
+            if (node) node.active = HomeRedeemView.unlocked;
+        }
+    }
     /** 编辑器绑定的遮罩和弹窗根节点。 */
     @property(Node) modal: Node = null!;
     /** 编辑器绑定的真实输入框，最多六十四字符。 */
@@ -32,7 +49,7 @@ export class HomeRedeemView extends Component {
         if (this.input) this.input.placeholder = t[1];
     };
     /** 首页激活时更新文案并订阅语言变化。 */
-    onEnable(): void { this.refresh(); GameLanguage.subscribe(this.refresh); }
+    onEnable(): void { this.refresh(); this.refreshEntries(); GameLanguage.subscribe(this.refresh); }
     /** 离开首页时收起面板，解除监听。 */
     onDisable(): void { this.close(); GameLanguage.unsubscribe(this.refresh); }
     /** 打开空白兑换表单。 */
@@ -55,9 +72,28 @@ export class HomeRedeemView extends Component {
             if (isValid(this) && this.modal.active && this.generation === generation) app.manager.ui.showToast(t[5]);
         }
     }
-    /** 预留兑换操作入口；未接业务时明确提示，不伪造成功。 */
+    /** 指定兑换码解锁本机首页开发入口，其他兑换码不改变状态。 */
     submit(): void {
         const t = texts[GameLanguage.current] || texts.en;
-        app.manager.ui.showToast(this.input.string.trim() ? t[4] : t[1]);
+        const code = this.input.string.trim();
+        if (!code) { app.manager.ui.showToast(t[1]); return; }
+        const result: Record<string, string[]> = {
+            zh: ['兑换码无效','编辑器和跳关已开启','已开启，本次未能保存，重启后需重新输入'],
+            en: ['Invalid code','Editor and level jump unlocked','Unlocked for this session. Enter the code again after restarting.'],
+            ja: ['無効なコードです','エディターとレベル移動を解放しました','保存できませんでした。再起動後に再入力してください'],
+            id: ['Kode tidak valid','Editor dan lompat level terbuka','Terbuka untuk sesi ini. Masukkan lagi setelah memulai ulang.'],
+            th: ['โค้ดไม่ถูกต้อง','เปิดตัวแก้ไขและข้ามด่านแล้ว','บันทึกไม่ได้ กรุณากรอกโค้ดอีกครั้งหลังเปิดเกมใหม่'],
+            vi: ['Mã không hợp lệ','Đã mở trình chỉnh sửa và chọn màn','Không lưu được. Hãy nhập lại mã sau khi khởi động lại.'],
+            ms: ['Kod tidak sah','Editor dan lompat tahap dibuka','Dibuka untuk sesi ini. Masukkan semula selepas memulakan semula.'],
+            fil: ['Hindi valid ang code','Na-unlock ang editor at pagpili ng level','Para sa session na ito lang. Ilagay muli ang code pagkarestart.'],
+        };
+        const message = result[GameLanguage.current] || result.en;
+        if (code !== 'suwenbin666') { app.manager.ui.showToast(message[0]); return; }
+        HomeRedeemView.sessionUnlocked = true;
+        let saved = true;
+        try { PlatformStorage.setItem(HomeRedeemView.unlockKey, '1'); } catch { saved = false; }
+        this.refreshEntries();
+        this.close();
+        app.manager.ui.showToast(message[saved ? 1 : 2]);
     }
 }

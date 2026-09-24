@@ -3,7 +3,7 @@ import { UiClickSound } from '../../../../../app-builtin/app-controller/expansio
 import { GameLanguage } from '../../../../../app-builtin/app-model/expansion/GameLanguage';
 import { PlatformStartup } from '../../../../../app-builtin/app-controller/expansion/PlatformStartup';
 import { _decorator, JsonAsset, Node, Label, EditBox, Sprite, Vec4 } from 'cc';
-import { PREVIEW } from 'cc/env';
+import { HomeRedeemView } from './expansion/HomeRedeemView';
 import { GameTheme } from '../../../../../app-builtin/app-model/expansion/GameTheme';
 import BaseView from 'db://app/base/BaseView';
 import { app } from '../../../../../app/app';
@@ -39,9 +39,9 @@ export class PageHome extends BaseView {
     /** 首页当前待挑战关卡。 */
     @property(Label) levelLabel: Label = null!;
 
-    /** 网页预览关卡输入框，由首页预制体绑定。 */
+    /** 开发入口关卡输入框，由首页预制体绑定。 */
     @property(EditBox) levelInput: EditBox = null!;
-    /** 预览跳关入口；正式发布隐藏。 */
+    /** 兑换码解锁的跳关入口；默认隐藏。 */
     @property(Node) levelJumpRoot: Node = null!;
 
     /** 保持稳定引用，隐藏首页时解除语言监听。 */
@@ -53,7 +53,7 @@ export class PageHome extends BaseView {
         this.sweepTime = 0;
         if (this.playSweep) this.playSweep.active = false;
         UiClickSound.bind(this.node);
-        if (this.levelJumpRoot) this.levelJumpRoot.active = PREVIEW;
+        this.node.getComponent(HomeRedeemView)?.refreshEntries();
         app.controller.settings.begin();
         PlatformStartup.enter();
         // XForge 隐藏模式 2：缓存页面，防止卸载分包破坏共享图片；退出仍执行 onHide 清理。
@@ -97,12 +97,13 @@ export class PageHome extends BaseView {
     openSettings(): void { app.manager.ui.show({ name: 'PopSettings', data: { mode: 'home' } }); }
     /** 打开独立关卡编辑器，不改变玩家通关进度。 */
     openEditor(): void {
+        if (!HomeRedeemView.unlocked) return;
         app.manager.ui.show({ name: 'PageEditor' });
     }
 
-    /** 校验输入并跳转到已有关卡；仅供网页预览使用，不直接改写通关存档。 */
+    /** 校验输入并跳转到已有关卡；仅在兑换码解锁后使用，不直接改写通关存档。 */
     jumpToLevel(): void {
-        if (!PREVIEW || !this.levelInput) return;
+        if (!HomeRedeemView.unlocked || !this.levelInput) return;
         const text = this.levelInput.string.trim();
         const level = Number(text);
         if (!/^[0-9]+$/.test(text) || !Number.isSafeInteger(level) || level < 1) {
