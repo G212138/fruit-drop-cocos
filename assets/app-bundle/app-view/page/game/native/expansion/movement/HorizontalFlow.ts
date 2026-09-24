@@ -48,7 +48,7 @@ export class HorizontalFlow {
         const selected = chooseHorizontalDrop(eligible.map(fruit => {
             const bounds = fruit.node.getComponent(UITransform)!.contentSize;
             return { x: fruit.node.position.x, y: fruit.node.position.y, radius: Math.max(bounds.width, bounds.height) / 2 };
-        }), line.position.x, line.position.y, size.width, size.height);
+        }), line.position.x, size.width);
         if (selected >= 0) {
             release(eligible[selected]);
             this.cooldown = HORIZONTAL_DROP_INTERVAL;

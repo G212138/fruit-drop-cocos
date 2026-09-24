@@ -245,10 +245,10 @@ assert.equal(shiftAfterHorizontalDrop([-800,-200],313),363);
 assert.equal(shiftAfterHorizontalDrop([-800,0],313),0);
 assert.deepEqual(consumeHorizontalShift(100,[-300],313,0.1),{delta:50,remaining:50});
 assert.deepEqual(consumeHorizontalShift(100,[0],313,0.1),{delta:0,remaining:0});
-assert.equal(chooseHorizontalDrop([{x:250,y:0,radius:40},{x:270,y:0,radius:40}],313,179,4,1023),1);
-assert.equal(chooseHorizontalDrop([{x:313,y:900,radius:40}],313,179,4,1023),-1);
+assert.equal(chooseHorizontalDrop([{x:250,y:0,radius:40},{x:270,y:0,radius:40}],313,4),1);
+assert.equal(chooseHorizontalDrop([{x:313,y:900,radius:40}],313,4),0);
 assert.equal(parseLevel({...originalLevels[11],level:1}).mode,2);
-console.log('通过：横向入场对齐、远端空缺补位、速度和边界截断、自动释放距离与高度筛选。');
+console.log('通过：横向入场对齐、远端空缺补位、速度和边界截断、自动释放距离与无高度限制。');
 const physicsUnits=load(expansion+'/physics/PhysicsRules.ts');
 assert.equal(physicsUnits.PHYSICS_RULES.dropVelocityY,-9.375);
 assert.equal(physicsUnits.PHYSICS_RULES.settledSpeedSquared,25/1024);
@@ -300,3 +300,13 @@ assert.ok(planVerticalShift([600,700]), '仅剩裁剪区中的多颗水果也必
 assert.equal(planVerticalShift([440]), null, '完整处于可点击区的尾果不额外移动');
 assert.equal(510 + planVerticalShift([510]).delta, 70, '尾果补位后仍保持已约定等待区高度');
 console.log('通过：尾果半露、全部在屏外与可点击边界回归。');
+
+// 右侧下落不受高度限制，并找回一步跨过触发带的候选；尚未到线的不提前释放。
+assert.equal(chooseHorizontalDrop([{x:313,y:-2000,radius:40}],313,4),0);
+assert.equal(chooseHorizontalDrop([{x:900,y:2000,radius:40}],313,4),0);
+assert.equal(chooseHorizontalDrop([{x:250,y:0,radius:40}],313,4),-1);
+assert.equal(chooseHorizontalDrop([{x:251,y:0,radius:40}],313,4),0);
+assert.equal(chooseHorizontalDrop([],313,4),-1);
+assert.equal(chooseHorizontalDrop([{x:313,y:0,radius:40},{x:900,y:0,radius:40}],313,4),1);
+console.log('通过：右侧自动下落覆盖高低越界、跨帧越线、触发边缘及最右侧优先。');
+

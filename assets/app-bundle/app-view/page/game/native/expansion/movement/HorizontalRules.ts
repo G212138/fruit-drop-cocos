@@ -45,16 +45,21 @@ export interface HorizontalCandidate {
     radius: number;
 }
 
-/** @param candidates 原顺序的可释放水果。 @param x 右侧线中心横坐标。 @param y 线中心纵坐标。 @param width 线宽。 @param height 线高。 */
-export function chooseHorizontalDrop(candidates: HorizontalCandidate[], x: number, y: number, width: number, height: number): number {
+/** 到达或越过右侧线即候选，不受虚线显示高度限制；每次仍只选择一个水果。
+ * @param candidates 原顺序的可释放水果。
+ * @param x 右侧线中心横坐标，单位设计像素。
+ * @param width 线宽，单位设计像素；保留原版半径加二十像素的触发余量。
+ */
+export function chooseHorizontalDrop(candidates: HorizontalCandidate[], x: number, width: number): number {
     let selected = -1, best = Infinity;
-    const left = x - (width > 1 ? width / 2 : 0), right = x + (width > 1 ? width / 2 : 0);
-    const bottom = height > 10 ? y - height / 2 - 20 : -Infinity;
-    const top = height > 10 ? y + height / 2 + 20 : Infinity;
+    const left = x - (width > 1 ? width / 2 : 0);
     candidates.forEach((fruit, index) => {
-        if (fruit.y + fruit.radius < bottom || fruit.y - fruit.radius > top) return;
-        const distance = fruit.x < left ? left - fruit.x : fruit.x > right ? fruit.x - right : 0;
-        if (distance <= fruit.radius + 20 && distance < best) { selected = index; best = distance; }
+        // 使用有方向的距离，已越线的水果不会因离虚线太远而漏掉。
+        const distance = left - fruit.x;
+        if (distance <= fruit.radius + 20 && distance < best) {
+            selected = index;
+            best = distance;
+        }
     });
     return selected;
 }
