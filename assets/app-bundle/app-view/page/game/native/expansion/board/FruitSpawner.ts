@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Prefab, instantiate, isValid, UITransform } from 'cc';
+import { _decorator, Component, Node, Prefab, instantiate, isValid } from 'cc';
 import { GameTheme } from '../../../../../../../app-builtin/app-model/expansion/GameTheme';
 import { IceFruitView } from '../ice/IceFruitView';
 import { FloorFruit } from '../failure/FloorFailureRules';
@@ -35,8 +35,6 @@ export class FruitSpawner extends Component {
     /** 黑洞成员生命周期，与单体实例集合分别管理。 */
     private readonly blackHoles = new BlackHoleFlow();
     /** 当前棋盘的事件绑定回调，重开时替换。 */
-    /** 本局横向适配倍率，新出现的黑洞成员沿用同一尺寸。 */
-    private layoutScale = 1;
     private onSpawned: ((fruit: FruitItem) => void) | null = null;
 
     /** 存活实例集合，消除时移除，重开时清空。 */
@@ -55,7 +53,6 @@ export class FruitSpawner extends Component {
      * @param onSpawned 每个水果实例化完成后绑定局部事件的回调。
      */
     spawn(wave: FruitDefinition[], onSpawned: (fruit: FruitItem) => void): void {
-        this.layoutScale = 1;
         this.onSpawned = onSpawned;
         for (const definition of wave) {
             if (definition.fatherBlackHoleId) continue;
@@ -65,26 +62,6 @@ export class FruitSpawner extends Component {
                 this.blackHoles.attach(fruit, wave.filter(item => item.fatherBlackHoleId === definition.blackHoleId),
                     this.blackHolePrefab, this.fruitRoot);
             }
-        }
-    }
-
-    /** 按上下可用高度等比缩小本局图片、碰撞体和排列；只缩小，不放大，不改关卡源数据。 */
-    fitHorizontalHeight(top: number, bottom: number): void {
-        const fruits = this.getWaiting();
-        if (!fruits.length || !Number.isFinite(bottom) || top <= bottom) return;
-        const edges = fruits.map(fruit => {
-            const t = fruit.node.getComponent(UITransform)!;
-            const height = t.height * Math.abs(fruit.node.scale.y);
-            return { top: fruit.node.position.y + height * (1 - t.anchorY),
-                bottom: fruit.node.position.y - height * t.anchorY };
-        });
-        const height = Math.max(...edges.map(e => e.top)) - Math.min(...edges.map(e => e.bottom));
-        this.layoutScale = Math.min(1, (top - bottom) / Math.max(1, height));
-        for (const fruit of fruits) {
-            const node = fruit.node;
-            node.setPosition(node.position.x * this.layoutScale, node.position.y * this.layoutScale);
-            node.setScale(node.scale.x * this.layoutScale, node.scale.y * this.layoutScale, 1);
-            fruit.collider.apply();
         }
     }
 
@@ -100,7 +77,6 @@ export class FruitSpawner extends Component {
         // 挂入活动场景前设置，让首次创建物理夹具就采用统一弹性，水果和甜品共用。
         fruit.collider.restitution = PHYSICS_RULES.fruitRestitution;
         node.setPosition(definition.x, definition.y);
-        node.setScale(node.scale.x * this.layoutScale, node.scale.y * this.layoutScale, 1);
         node.parent = this.fruitRoot;
         fruit.configure(definition.kind);
         this.attachHiddenView(node, definition.hidden);
