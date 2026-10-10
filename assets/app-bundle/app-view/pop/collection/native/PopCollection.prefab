@@ -39156,7 +39156,7 @@
       "y": 0
     },
     "_fillStart": 0,
-    "_fillRange": 0,
+    "_fillRange": 1,
     "_isTrimmedMode": true,
     "_useGrayscale": false,
     "_atlas": null,
@@ -39505,7 +39505,7 @@
       "y": 0
     },
     "_fillStart": 0,
-    "_fillRange": 0,
+    "_fillRange": 1,
     "_isTrimmedMode": true,
     "_useGrayscale": false,
     "_atlas": null,
@@ -40579,7 +40579,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "266ac948-0907-4ac9-9de2-0ea87633a8bd@f9941",
+      "__uuid__": "770181de-8ec9-4704-bc60-c10f38663ddf@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 1,
@@ -40591,7 +40591,7 @@
       "y": 0
     },
     "_fillStart": 0,
-    "_fillRange": 0,
+    "_fillRange": 1,
     "_isTrimmedMode": false,
     "_useGrayscale": false,
     "_atlas": null,
